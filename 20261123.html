@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <title>图论与字符串算法详解</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.75;
+            color: #222;
+            background: #ffffff;
+            margin: 0;
+            padding: 0 0 80px 0;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        h1 {
+            font-size: 26px;
+            border-bottom: 3px solid #333;
+            padding-bottom: 8px;
+            margin-top: 28px;
+        }
+
+        h2 {
+            font-size: 21px;
+            margin-top: 42px;
+            padding: 6px 10px;
+            background: #eef2f7;
+            border-left: 6px solid #2c5f9e;
+        }
+
+        h3 {
+            font-size: 17px;
+            margin-top: 26px;
+            color: #1f4e79;
+        }
+
+        h4 {
+            font-size: 16px;
+            margin-top: 18px;
+            color: #444;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        ul,
+        ol {
+            margin: 10px 0 10px 26px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        pre {
+            background: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 12px 14px;
+            overflow-x: auto;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.55;
+            white-space: pre;
+        }
+
+        code {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+        }
+
+        p code,
+        li code,
+        td code {
+            background: #f0f0f0;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            border: 1px solid #bbb;
+            padding: 6px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f4f8;
+        }
+
+        .note {
+            background: #fffbe6;
+            border-left: 5px solid #e0b400;
+            padding: 10px 14px;
+            margin: 14px 0;
+        }
+
+        .tip {
+            background: #eaf5ea;
+            border-left: 5px solid #3a8a3a;
+            padding: 10px 14px;
+            margin: 14px 0;
+        }
+
+        .figure {
+            text-align: center;
+            margin: 18px 0;
+        }
+
+        .figure-caption {
+            font-size: 14px;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        nav {
+            background: #f7f9fb;
+            border: 1px solid #d7dee6;
+            border-radius: 6px;
+            padding: 10px 16px;
+            margin: 18px 0 8px 0;
+            font-size: 15px;
+        }
+
+        nav a {
+            margin-right: 16px;
+            color: #1f4e79;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .formula {
+            font-family: "Cambria Math", Georgia, serif;
+            font-size: 16px;
+            background: #f7f7f7;
+            border: 1px dashed #ccc;
+            padding: 8px 12px;
+            margin: 12px 0;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+
+        <h1>图论与字符串算法详解</h1>
+
+        <p>本页把 Kruskal 最小生成树、拓扑排序、字符串哈希、KMP 字符串匹配四个算法的原理、复杂度、正确性依据、模板代码和对应洛谷模板题的完整代码逐一讲清楚。所有代码均按照 NOIP
+            标准环境（g++14）编写，可直接编译运行，并逐行添加了中文注释。</p>
+
+        <nav>
+            <a href="#kruskal">一、Kruskal 最小生成树</a>
+            <a href="#topo">二、拓扑排序</a>
+            <a href="#hash">三、字符串哈希</a>
+            <a href="#kmp">四、KMP 字符串匹配</a>
+        </nav>
+
+        <!-- ==================== 一、Kruskal ==================== -->
+        <section id="kruskal">
+            <h2>一、Kruskal 最小生成树</h2>
+
+            <h3>1.1 概念</h3>
+            <p><strong>生成树</strong>：在一个有 n 个顶点的连通无向图中，选出恰好 n−1 条边，使得所有顶点仍然连通且不产生环，这样得到的子图就是一棵生成树。</p>
+            <p><strong>最小生成树（Minimum Spanning Tree，MST）</strong>：在所有可能的生成树中，边权之和最小的那一棵。</p>
+            <p><strong>Kruskal
+                    算法</strong>是求解最小生成树的经典算法，它的核心是<strong>贪心</strong>加<strong>并查集</strong>：把所有边按权值从小到大排序，然后依次尝试加入，只要这条边不会和已经选中的边构成环，就把它选进来。判断"会不会成环"的工作，交给并查集来完成。
+            </p>
+
+            <h3>1.2 算法步骤</h3>
+            <ol>
+                <li>把所有边按权值升序排序。</li>
+                <li>依次扫描每条边，若它连接的两个顶点不在同一连通块中，就选取这条边并合并两个连通块；否则跳过，以避免成环。</li>
+                <li>已选边数达到 n − 1 时提前结束（n 个点的生成树恰好需要 n − 1 条边）。</li>
+                <li>若扫描完所有边仍不足 n − 1 条，说明图不连通，不存在最小生成树（在 P3366 中输出 <code>orz</code>）。</li>
+            </ol>
+
+            <h3>1.3 正确性依据（割性质）</h3>
+            <p>对于图的任意一个割，横跨该割的权值最小的边，必然属于某一棵最小生成树（边权有重复时，最小生成树不唯一）。Kruskal
+                每一步选的边，恰好是连接两个不同连通块的最小边，因此不断利用割性质，由局部最优扩展为全局最优。</p>
+
+            <h3>1.4 复杂度</h3>
+            <table>
+                <tr>
+                    <th>部分</th>
+                    <th>复杂度</th>
+                </tr>
+                <tr>
+                    <td>排序</td>
+                    <td>O(m log m)</td>
+                </tr>
+                <tr>
+                    <td>并查集（路径压缩 + 按大小合并）</td>
+                    <td>单次均摊 O(α(n))，近似常数</td>
+                </tr>
+                <tr>
+                    <td>总计</td>
+                    <td>O(m log m)，瓶颈在排序</td>
+                </tr>
+            </table>
+            <p>空间复杂度为 O(n + m)，用于存储并查集数组与边集。</p>
+
+            <div class="note">
+                <strong>并查集复杂度的一个细节：</strong>只有路径压缩时，均摊复杂度是 O(log n)；两种优化（路径压缩 + 按大小/按秩合并）同时使用才是 O(α(n))，其中 α
+                是反阿克曼函数，增长极慢，在 n 小于 10<sup>80</sup> 时都不超过 4，可以近似看作常数。
+            </div>
+
+            <h3>1.5 算法示意图</h3>
+            <div class="figure">
+                <svg width="400" height="220" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 被选中的边（绿色粗线） -->
+                    <line x1="60" y1="50" x2="200" y2="50" stroke="#2e7d32" stroke-width="3" />
+                    <line x1="60" y1="50" x2="60" y2="170" stroke="#2e7d32" stroke-width="3" />
+                    <line x1="60" y1="170" x2="200" y2="170" stroke="#2e7d32" stroke-width="3" />
+                    <line x1="200" y1="170" x2="330" y2="110" stroke="#2e7d32" stroke-width="3" />
+                    <!-- 未被选中的边（灰色虚线） -->
+                    <line x1="200" y1="50" x2="200" y2="170" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="5 4" />
+                    <line x1="200" y1="50" x2="330" y2="110" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="5 4" />
+                    <!-- 边权标注 -->
+                    <text x="130" y="40" text-anchor="middle" font-size="13" fill="#333">2</text>
+                    <text x="46" y="114" text-anchor="middle" font-size="13" fill="#333">3</text>
+                    <text x="130" y="162" text-anchor="middle" font-size="13" fill="#333">1</text>
+                    <text x="215" y="114" text-anchor="middle" font-size="13" fill="#333">4</text>
+                    <text x="274" y="68" text-anchor="middle" font-size="13" fill="#333">6</text>
+                    <text x="274" y="152" text-anchor="middle" font-size="13" fill="#333">5</text>
+                    <!-- 顶点 -->
+                    <circle cx="60" cy="50" r="16" fill="#ffffff" stroke="#333" stroke-width="2" />
+                    <circle cx="200" cy="50" r="16" fill="#ffffff" stroke="#333" stroke-width="2" />
+                    <circle cx="60" cy="170" r="16" fill="#ffffff" stroke="#333" stroke-width="2" />
+                    <circle cx="200" cy="170" r="16" fill="#ffffff" stroke="#333" stroke-width="2" />
+                    <circle cx="330" cy="110" r="16" fill="#ffffff" stroke="#333" stroke-width="2" />
+                    <text x="60" y="55" text-anchor="middle" font-size="14" fill="#000">1</text>
+                    <text x="200" y="55" text-anchor="middle" font-size="14" fill="#000">2</text>
+                    <text x="60" y="175" text-anchor="middle" font-size="14" fill="#000">3</text>
+                    <text x="200" y="175" text-anchor="middle" font-size="14" fill="#000">4</text>
+                    <text x="330" y="115" text-anchor="middle" font-size="14" fill="#000">5</text>
+                </svg>
+                <div class="figure-caption">边排序后依次为：3-4(1)、1-2(2)、1-3(3)、2-4(4)、4-5(5)、2-5(6)。前三条边都被选中；第 4 条边 2-4(4)
+                    的两个端点此时已连通，加入会成环，跳过；第 5 条边 4-5(5) 被选中，此时已凑满 n−1=4 条边，算法结束，总权值为 1+2+3+5 = 11。</div>
+            </div>
+
+            <h3>1.6 模板代码（vector 版，逐行注释）</h3>
+            <pre><code>#include &lt;bits/stdc++.h&gt;                 // 万能头文件：一次性包含 C++ 标准库中绝大多数常用头文件
+using namespace std;                     // 使用标准命名空间，省去 std:: 前缀
+
+const int N = 5005;                      // 顶点数上限：本题 1 &lt;= n &lt;= 5000
+
+struct Edge {                            // 边的结构体
+    int u, v, w;                         // u、v 是边的两个端点，w 是这条边的权值
+    bool operator&lt;(const Edge&amp; rhs) const {   // 重载小于号，让 sort 知道怎么比较两条边
+        return w &lt; rhs.w;                // 按权值从小到大排序（Kruskal 的第一步）
+    }
+};
+
+int fa[N], siz[N];                       // fa[x]：x 的父节点；siz[x]：以 x 为根的集合元素个数
+
+// 并查集：查找 x 所在集合的根节点
+int find(int x) {
+    return x == fa[x] ? x : fa[x] = find(fa[x]);   // 若 x 自己是根就返回；否则递归找根，并把路径上所有点直接挂到根上（路径压缩）
+}
+
+// 并查集：合并 x 与 y 所在的两个集合，若本来就在同一集合返回 false
+bool unite(int x, int y) {
+    x = find(x);                         // 取 x 所在集合的根
+    y = find(y);                         // 取 y 所在集合的根
+    if (x == y) return false;            // 根相同 =&gt; 已连通 =&gt; 加这条边会成环 =&gt; 返回 false
+    if (siz[x] &lt; siz[y]) swap(x, y);     // 按大小合并：始终让元素多的集合当"根"，控制树高
+    fa[y] = x;                           // 把较小的集合挂到较大的集合下面
+    siz[x] += siz[y];                    // 更新合并后集合的元素个数
+    return true;                         // 合并成功，返回 true
+}
+
+// Kruskal 求最小生成树
+// 图连通：返回 true，并通过 ans 带回最小生成树的边权和
+// 图不连通：返回 false
+bool kruskal(int n, vector&lt;Edge&gt;&amp; edges, long long&amp; ans) {
+    for (int i = 1; i &lt;= n; ++i) {       // 并查集初始化
+        fa[i] = i;                       // 初始时每个点自成一个集合，父亲是自己
+        siz[i] = 1;                      // 每个集合初始大小为 1
+    }
+
+    sort(edges.begin(), edges.end());    // 把所有边按权值升序排序
+
+    ans = 0;                             // 最小生成树的边权和
+    int cnt = 0;                         // 已经选入生成树的边数
+
+    for (const auto&amp; e : edges) {        // 按权值从小到大依次扫描每一条边
+        if (unite(e.u, e.v)) {           // 若两个端点不在同一连通块，选中这条边并合并
+            ans += e.w;                  // 把边权累加进答案
+            if (++cnt == n - 1) break;   // n 个点的生成树恰好需要 n-1 条边，凑够就提前结束
+        }                                // 否则说明这条边会与已选边构成环，直接跳过
+    }
+
+    return cnt == n - 1;                 // 边数够 =&gt; 图连通；否则图不连通，不存在最小生成树
+}
+
+int main() {
+    ios::sync_with_stdio(false);         // 关闭 C 与 C++ 标准流的同步，提高读入速度
+    cin.tie(nullptr);                    // 解除 cin 与 cout 的绑定，进一步加速
+
+    int n, m;
+    cin &gt;&gt; n &gt;&gt; m;                     // 读入点数 n 与边数 m
+
+    vector&lt;Edge&gt; edges(m);               // 开一个长度为 m 的边数组
+    for (auto&amp; e : edges) cin &gt;&gt; e.u &gt;&gt; e.v &gt;&gt; e.w;   // 逐条读入边的两个端点和边权
+
+    long long ans;                       // 存放最小生成树的总权值
+    if (kruskal(n, edges, ans)) cout &lt;&lt; ans &lt;&lt; '\n';  // 连通：输出最小生成树的权值和
+    else cout &lt;&lt; "orz\n";                // 不连通：按题目要求输出 orz
+    return 0;
+}
+</code></pre>
+
+            <h3>1.7 题目：P3366 【模板】最小生成树</h3>
+            <h4>概述题意</h4>
+            <p>给定一个 n 个节点和 m 条边的无向连通图，要求在其中挑选出 n−1 条边，使这些边在保持图全体节点连通的前提下，边权之和达到最小。若原图本身不连通则输出 <code>orz</code>。数据规模满足 1
+                ≤ n ≤ 5000 且 1 ≤ m ≤ 2×10<sup>5</sup>，边权不超过 10<sup>4</sup>。</p>
+
+            <h4>数学模型</h4>
+            <p>给定无向图 G = (V, E)，权值函数 w: E → ℝ。目标是求取包含所有顶点 V 的无环子图即树 T ⊆ E，并使得总权值 Σ<sub>e∈T</sub> w(e) 取极小值。</p>
+
+            <h4>解题思路</h4>
+            <p>依据拟阵理论与割的性质，将所有边按权值升序排列，并利用贪心思想逐一尝试加入。定义一个并查集用于维护当前所有生成树分支的连通性。按序遍历边集，若某条边的两个端点在并查集中不隶属同一集合，说明引入此边不会产生环，即可将其纳入最小生成树集合，随后在并查集中将二者连通。一旦成功接纳了
+                n−1 条边，即可宣告构建完毕并终止流程。如果在穷举所有边之后所用边数仍少于 n−1，反向验证了原图存在孤立区块。排序边集的时间开销主导了算法效能，总体时间复杂度为 O(m log
+                m)，所需并查集与边集载体致使空间复杂度为 O(n + m)。</p>
+
+            <h4>完整代码（数组版，逐行注释）</h4>
+            <pre><code>#include &lt;bits/stdc++.h&gt;                 // 万能头文件
+using namespace std;                     // 标准命名空间
+
+struct Edge {                            // 边的结构体
+    int u, v, w;                         // 端点 u、v 与权值 w
+    bool operator&lt;(const Edge&amp; rhs) const {   // 重载小于号，供 sort 使用
+        return w &lt; rhs.w;                // 按权值升序排序
+    }
+} edges[200005];                         // 边数组，m 最大 2*10^5，多开一点防止越界
+
+int fa[5005];                            // 并查集父亲数组，点数最大 5000
+int n, m;                                // n 个点，m 条边
+
+// 查找根节点 + 路径压缩
+int find(int x) {
+    if (fa[x] == x) return x;            // 自己是根，直接返回
+    return fa[x] = find(fa[x]);          // 否则递归找根，并把自己的父亲直接改成根（路径压缩）
+}
+
+// Kruskal 主体：返回最小生成树权值和，若图不连通返回 -1
+int kruskal() {
+    sort(edges + 1, edges + 1 + m);      // 下标从 1 开始，把 1..m 号边按权值升序排序
+    for (int i = 1; i &lt;= n; ++i) fa[i] = i;   // 并查集初始化：每个点自成一个集合
+    int cnt = 0, sum = 0;                // cnt：已选边数；sum：已选边权之和
+    for (int i = 1; i &lt;= m; ++i) {       // 依次扫描每条边
+        int u = find(edges[i].u);        // 取这条边第一个端点的根
+        int v = find(edges[i].v);        // 取这条边第二个端点的根
+        if (u != v) {                    // 根不同 =&gt; 不在同一连通块 =&gt; 加入不会成环
+            fa[u] = v;                   // 合并两个连通块（把 u 的根挂到 v 的根下）
+            sum += edges[i].w;           // 累加边权
+            cnt++;                       // 已选边数加一
+            if (cnt == n - 1) break;     // 凑够 n-1 条边，最小生成树构建完成，提前退出
+        }
+    }
+    if (cnt &lt; n - 1) return -1;          // 边数不足 n-1，说明图不连通
+    return sum;                          // 返回最小生成树的权值和
+}
+
+int main() {
+    ios::sync_with_stdio(false);         // 关闭同步，加速读入
+    cin.tie(nullptr);                    // 解除绑定，加速读入
+    cin &gt;&gt; n &gt;&gt; m;                     // 读入点数和边数
+    for (int i = 1; i &lt;= m; ++i) {       // 逐条读入边
+        cin &gt;&gt; edges[i].u &gt;&gt; edges[i].v &gt;&gt; edges[i].w;
+    }
+    int ans = kruskal();                 // 跑一遍 Kruskal
+    if (ans == -1) {                     // 不连通
+        cout &lt;&lt; "orz\n";                 // 按题意输出 orz
+    } else {
+        cout &lt;&lt; ans &lt;&lt; "\n";            // 输出最小生成树权值和
+    }
+    return 0;
+}
+</code></pre>
+
+            <div class="note">
+                <strong>本题坑点：</strong>并查集的合并逻辑如果忽略路径压缩极易被链状图卡至超时。无向图可能存在自环和重边，算法天然依靠权值排序和并查集跳过了这些有害结构，因此无需做过滤预处理；但如果刻意用邻接矩阵进行去重，反而容易错失对部分边的存储，从而导致内存访问越界或逻辑崩溃。
+            </div>
+        </section>
+
+        <!-- ==================== 二、拓扑排序 ==================== -->
+        <section id="topo">
+            <h2>二、拓扑排序</h2>
+
+            <h3>2.1 概念</h3>
+            <p><strong>拓扑排序</strong>是针对有向无环图（DAG）的线性化算法。它把图中的所有顶点排成一个线性序列，使得对于任意一条有向边 (u, v)，u 在序列中都严格出现在 v
+                之前。如果图中含有环，则无法进行拓扑排序。</p>
+            <p>形象地说，把每条有向边看成"v 依赖 u"，那么拓扑序列就是一种合法的"做事顺序"：任何一个任务出现时，它依赖的所有任务都已经排在前面了。</p>
+
+            <h3>2.2 Kahn 算法步骤</h3>
+            <ol>
+                <li>维护所有节点的入度。入度为 0，代表当前点无依赖，可以直接开工。</li>
+                <li>把所有入度为 0 的点一次性全部压入队列。</li>
+                <li>用队列不断提取入度为 0 的节点，把它加入拓扑序列，并"删除"它的所有出边（等价于把后继节点的入度减 1）。</li>
+                <li>如果某个后继节点的入度减到 0，说明它的所有前置条件都已满足，把它压入队列。</li>
+                <li>队列为空后，若序列长度等于 n，则排序成功；若小于 n，说明图中存在环。</li>
+            </ol>
+            <p>复杂度：O(V + E)，即 O(n + m)，每个点、每条边各被处理一次；空间复杂度同样是 O(n + m)。</p>
+
+            <h3>2.3 示意图</h3>
+            <div class="figure">
+                <svg width="420" height="200" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                            orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#555555" />
+                        </marker>
+                    </defs>
+                    <!-- 有向边 -->
+                    <line x1="62" y1="90" x2="138" y2="60" stroke="#555555" stroke-width="2" marker-end="url(#arrow)" />
+                    <line x1="62" y1="110" x2="138" y2="140" stroke="#555555" stroke-width="2"
+                        marker-end="url(#arrow)" />
+                    <line x1="162" y1="55" x2="248" y2="90" stroke="#555555" stroke-width="2"
+                        marker-end="url(#arrow)" />
+                    <line x1="162" y1="145" x2="248" y2="110" stroke="#555555" stroke-width="2"
+                        marker-end="url(#arrow)" />
+                    <line x1="278" y1="100" x2="344" y2="100" stroke="#555555" stroke-width="2"
+                        marker-end="url(#arrow)" />
+                    <!-- 顶点 -->
+                    <circle cx="50" cy="100" r="17" fill="#ffffff" stroke="#2c5f9e" stroke-width="2" />
+                    <circle cx="150" cy="50" r="17" fill="#ffffff" stroke="#2c5f9e" stroke-width="2" />
+                    <circle cx="150" cy="150" r="17" fill="#ffffff" stroke="#2c5f9e" stroke-width="2" />
+                    <circle cx="262" cy="100" r="17" fill="#ffffff" stroke="#2c5f9e" stroke-width="2" />
+                    <circle cx="362" cy="100" r="17" fill="#ffffff" stroke="#2c5f9e" stroke-width="2" />
+                    <text x="50" y="105" text-anchor="middle" font-size="14" fill="#000">1</text>
+                    <text x="150" y="55" text-anchor="middle" font-size="14" fill="#000">2</text>
+                    <text x="150" y="155" text-anchor="middle" font-size="14" fill="#000">3</text>
+                    <text x="262" y="105" text-anchor="middle" font-size="14" fill="#000">4</text>
+                    <text x="362" y="105" text-anchor="middle" font-size="14" fill="#000">5</text>
+                </svg>
+                <div class="figure-caption">入度：1 号点入度为 0，2、3 号点入度为 1，4 号点入度为 2，5 号点入度为 1。初始队列为 {1}；取出 1 后 2、3 入度归零入队；取出
+                    2、3 后 4 入度归零入队；取出 4 后 5 入队。得到拓扑序列 1 2 3 4 5（不唯一）。</div>
+            </div>
+
+            <h3>2.4 核心代码</h3>
+            <pre><code>void topo_sort() {
+    queue&lt;int&gt; q;
+    for (int i = 1; i &lt;= n; ++i) {
+        if (deg[i] == 0) q.push(i);      // 所有入度为 0 的点先入队
+    }
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        ans.push_back(u);                // 取出即加入拓扑序列
+        for (int v : G[u]) {             // 遍历 u 的所有后继
+            deg[v]--;                    // 删除 u -&gt; v 这条边，v 的入度减一
+            if (deg[v] == 0) {           // 入度归零说明 v 的所有前驱都已处理完
+                q.push(v);               // v 入队
+            }
+        }
+    }
+}
+</code></pre>
+
+            <h3>2.5 题目：B3644 【模板】拓扑排序</h3>
+            <h4>概述题意</h4>
+            <p>给定一个包含 n 个节点和若干条有向边的图，要求输出该图的一个拓扑序列。输入以邻接表形式给出，每个节点的后继节点以 0 作为结束标志。如果有多种拓扑排序方案，输出任意一种即可。数据规模满足 1 ≤ n ≤
+                100。</p>
+
+            <h4>数学模型</h4>
+            <p>给定有向无环图 G = (V, E)，需要构造一个顶点集合 V 的线性排列 π = ⟨v<sub>1</sub>, v<sub>2</sub>, …, v<sub>n</sub>⟩，使得对于图中的任意一条有向边
+                (u, v) ∈ E，在排列 π 中顶点 u 均出现在顶点 v 之前。</p>
+
+            <h4>解题思路</h4>
+            <p>利用 Kahn 算法思想解题。定义状态数组 deg<sub>u</sub> 表示节点 u 的入度，即当前该节点尚未被满足的前驱节点数量。扫描全图的边集合，统计每个节点的入度；将所有入度为 0
+                的节点加入一个队列中作为起点。进入循环，每次从队列中取出一个节点 u 并将其加入拓扑序列，同时遍历其所有出边 (u, v)。节点 u 已经在序列中，将其对节点 v 的约束解除，等价于执行
+                deg<sub>v</sub> = deg<sub>v</sub> − 1。如果更新后 deg<sub>v</sub> 变为 0，说明节点 v
+                的所有前置条件均已满足，将其压入队列。循环直至队列为空。若最终生成的序列长度等于 n，则排序成功；若小于 n，说明图中存在环。算法遍历图的每个节点与每条边各一次，时间复杂度为 O(n + m)，空间复杂度为
+                O(n + m)。</p>
+
+            <h4>完整代码（逐行注释）</h4>
+            <pre><code>#include &lt;bits/stdc++.h&gt;                 // 万能头文件
+using namespace std;                     // 标准命名空间
+
+int n;                                   // 节点个数
+vector&lt;int&gt; G[105];                      // 邻接表：G[u] 存放 u 的所有后继节点
+int deg[105];                            // deg[u] 表示节点 u 的入度
+vector&lt;int&gt; ans;                         // 存放拓扑序列
+
+int main() {
+    ios::sync_with_stdio(false);         // 关闭同步，加速读入
+    cin.tie(nullptr);                    // 解除绑定，加速读入
+    cin &gt;&gt; n;                            // 读入节点个数
+    for (int u = 1; u &lt;= n; ++u) {       // 依次读入每个节点的后继列表
+        int v;
+        while (cin &gt;&gt; v &amp;&amp; v != 0) {     // 读到 0 表示该节点的后继列表结束
+            G[u].push_back(v);           // 建边 u -&gt; v
+            deg[v]++;                    // v 的入度加一
+        }
+    }
+
+    queue&lt;int&gt; q;                        // 队列：存放当前所有入度为 0 的节点
+    for (int i = 1; i &lt;= n; ++i) {       // 初始化：必须把所有入度为 0 的点一次性全部入队
+        if (deg[i] == 0) q.push(i);      // 这样处理多个连通分量时也不会漏点
+    }
+
+    while (!q.empty()) {                 // Kahn 算法主循环
+        int u = q.front();               // 取出队头
+        q.pop();
+        ans.push_back(u);                // 队头加入拓扑序列
+        for (int v : G[u]) {             // 遍历 u 的所有后继节点
+            deg[v]--;                    // 删除边 u -&gt; v，v 的入度减一
+            if (deg[v] == 0) {           // 入度归零说明 v 的所有前置条件都满足了
+                q.push(v);               // v 入队
+            }
+        }
+    }
+
+    for (int i = 0; i &lt; (int)ans.size(); ++i) {   // 按顺序输出拓扑序列
+        cout &lt;&lt; ans[i] &lt;&lt; (i + 1 == (int)ans.size() ? "" : " ");   // 最后一个数后面不加空格
+    }
+    cout &lt;&lt; "\n";                        // 输出换行
+    return 0;
+}
+</code></pre>
+
+            <div class="note">
+                <strong>本题坑点：</strong>在处理存在多个连通分量的图时，必须在初始化阶段将所有入度为 0
+                的节点一次性全部压入队列。如果只压入一个起点，那么其它连通分量中的节点永远无法进入队列，答案就会缺失。
+            </div>
+        </section>
+
+        <!-- ==================== 三、字符串哈希 ==================== -->
+        <section id="hash">
+            <h2>三、字符串哈希</h2>
+
+            <h3>3.1 概念</h3>
+            <p><strong>字符串哈希</strong>利用多项式进制哈希，将任意字符串映射为一个整型数值。通过前缀和思想与进制幂次预处理，可以将子串匹配与比对从 O(L) 降到 O(1)。</p>
+            <p>设字符串为 s = s<sub>1</sub>s<sub>2</sub>…s<sub>L</sub>，选取进制数 B 和模数 P，定义哈希值：</p>
+            <span class="formula">H(s) = ( Σ<sub>i=1..L</sub> c(s<sub>i</sub>) · B<sup>L−i</sup> ) mod P</span>
+            <p>其中 c(s<sub>i</sub>) 表示字符对应的编码。通过哈希函数，将字符串映射为一个整数。相同字符串必然具有相同哈希值，可以通过哈希值对字符串进行去重。</p>
+
+            <h3>3.2 前缀哈希与区间哈希</h3>
+            <p>H[i] 代表字符串 s 的前 i 个字符（即子串 s[1…i]）所对应的哈希值。</p>
+            <span class="formula">H[i] = H[i − 1] × P + s[i] &nbsp;&nbsp;（常取 P = 131 或 13331）</span>
+            <p>区间 [l, r] 的哈希值为：</p>
+            <span class="formula">get(l, r) = H[r] − H[l − 1] × P<sup>r − l + 1</sup></span>
+            <p>理解方式：把 H[r] 看成"前 r 个字符的哈希"，H[l−1] 看成"前 l−1 个字符的哈希"。要让两者对齐，需要把 H[l−1] 整体左移 r−l+1 位（即乘以
+                P<sup>r−l+1</sup>），再做减法即可得到中间那一段的哈希值。</p>
+
+            <h3>3.3 自然溢出技巧</h3>
+            <p>使用 <code>unsigned long long</code> 存储，利用其在超出 2<sup>64</sup> − 1 时自动对 2<sup>64</sup>
+                取模的特性，省去了大素数取模的求逆元或减法溢出麻烦，速度极快且代码极简。这就是所谓的"自然溢出哈希"。</p>
+
+            <h3>3.4 单哈希模板（逐行注释）</h3>
+            <pre><code>#include &lt;iostream&gt;                    // 输入输出流
+#include &lt;string&gt;                      // 字符串类型
+#include &lt;vector&gt;                      // 动态数组
+
+using namespace std;                     // 标准命名空间
+
+using ULL = unsigned long long;          // 起个别名，利用无符号长整型的自然溢出特性
+const ULL P = 131;                       // 进制基数，常用 131 或 13331
+
+struct StringHash {                      // 字符串哈希结构体
+    vector&lt;ULL&gt; h, p;                    // h 存前缀哈希，p 存进制的幂次
+
+    // 构造函数：传入字符串，预处理出全部前缀哈希与幂次
+    StringHash(const string&amp; s) {
+        int n = s.size();                // 字符串长度
+        h.resize(n + 1);                 // 默认初始化为 0（resize 会保留原有元素，但这里是新建的所以全为 0）
+        p.resize(n + 1);                 // 幂次数组同样开 n+1 大小
+        p[0] = 1;                        // P 的 0 次方等于 1
+
+        for (int i = 0; i &lt; n; ++i) {    // 逐个字符递推
+            p[i + 1] = p[i] * P;         // 预处理 P 的 i+1 次方
+            h[i + 1] = h[i] * P + s[i];  // 递推前缀哈希：H[i+1] = H[i] * P + s[i]
+        }
+    }
+
+    // 取子串 [l, r] 的哈希值（注意这里的 l、r 是 1-based 的位置）
+    ULL get(int l, int r) const {
+        return h[r] - h[l - 1] * p[r - l + 1];   // 前缀相减，把左半部分整体左移后抵消掉
+    }
+};
+
+int main() {
+    string s = "aabcaabc";               // 测试字符串
+
+    StringHash sh(s);                    // 构造哈希对象，完成预处理
+
+    ULL hash1 = sh.get(1, 3);            // 对应字符串 "aab"（下标 1..3）
+    ULL hash2 = sh.get(5, 7);            // 对应字符串 "aab"（下标 5..7）
+
+    if (hash1 == hash2) {                // 哈希值相同
+        cout &lt;&lt; "两个子串完全相同! \n";
+    } else {
+        cout &lt;&lt; "两个子串不同。\n";
+    }
+
+    return 0;
+}
+</code></pre>
+
+            <h3>3.5 vector 的 resize 和 assign</h3>
+            <ul>
+                <li><code>resize(n + 1, 1)</code>：如果容器原来有元素（比如原来大小是 5），现在 <code>resize(10, 1)</code>，前 5 个原有的元素保持不变，后 5
+                    个新扩容的元素被赋值为 1。</li>
+                <li><code>assign(n + 1, 1)</code>：无论原来里面有什么，直接把所有元素全部重置、覆盖为 1。</li>
+            </ul>
+            <div class="tip">简单记：<strong>resize 是"不够就补"，assign 是"全部重来"</strong>。多组数据重复使用同一个 vector 时，用 assign
+                才能保证不残留上一组的数据。</div>
+
+            <h3>3.6 双哈希写法</h3>
+            <p>单哈希存在碰撞风险。为了降低哈希冲突概率，采用双哈希，分别使用两组不同的进制数和模数，得到哈希二元组：</p>
+            <span class="formula">Hash(s) = ( H<sub>1</sub>(s), H<sub>2</sub>(s) )</span>
+            <pre><code>#include &lt;string&gt;                      // 字符串
+#include &lt;vector&gt;                      // 动态数组
+
+using namespace std;                     // 标准命名空间
+
+using ULL = unsigned long long;          // 无符号长整型，利用自然溢出
+const ULL P1 = 131, P2 = 13331;          // 两个不同的进制基数
+
+struct DoubleHash {                      // 双哈希结构体
+    vector&lt;ULL&gt; h1, p1;                  // 第一套哈希的前缀值与幂次
+    vector&lt;ULL&gt; h2, p2;                  // 第二套哈希的前缀值与幂次
+
+    DoubleHash(const string&amp; s) {        // 构造时一次性预处理两套哈希
+        int n = s.size();                // 字符串长度
+        h1.resize(n + 1); p1.resize(n + 1); p1[0] = 1;   // 第一套数组开好，p1[0] = 1
+        h2.resize(n + 1); p2.resize(n + 1); p2[0] = 1;   // 第二套数组开好，p2[0] = 1
+
+        for (int i = 0; i &lt; n; ++i) {    // 逐字符递推
+            h1[i + 1] = h1[i] * P1 + s[i];   // 第一套前缀哈希
+            p1[i + 1] = p1[i] * P1;          // 第一套幂次
+            h2[i + 1] = h2[i] * P2 + s[i];   // 第二套前缀哈希
+            p2[i + 1] = p2[i] * P2;          // 第二套幂次
+        }
+    }
+
+    // 返回一个 pair 分别代表两套哈希的结果
+    pair&lt;ULL, ULL&gt; get(int l, int r) const {
+        ULL val1 = h1[r] - h1[l - 1] * p1[r - l + 1];   // 第一套哈希的区间值
+        ULL val2 = h2[r] - h2[l - 1] * p2[r - l + 1];   // 第二套哈希的区间值
+        return {val1, val2};             // 两套值一起返回，比较时两个都相等才算相同
+    }
+};
+</code></pre>
+
+            <h3>3.7 题目：P3370 字符串哈希</h3>
+            <h4>概述题意</h4>
+            <p>给定 N 个字符串，字符串中包含数字、大小写英文字母，且区分大小写。求这些字符串中不同字符串的数量。1 ≤ N ≤ 10000，字符串最大长度不超过 1500。</p>
+
+            <h4>数学模型</h4>
+            <p>采用多项式字符串哈希，将字符串映射为整数，再通过哈希函数对字符串去重。为了降低冲突概率，使用两组不同的进制数和模数，得到哈希二元组 Hash(s) = (H<sub>1</sub>(s),
+                H<sub>2</sub>(s))。</p>
+
+            <h4>解题思路</h4>
+            <p>采用字符串哈希结合排序去重。直接比较所有字符串是否相同，最坏需要 O(N<sup>2</sup>L)
+                的字符比较开销，不适合较大的数据范围。字符串哈希可以把每个字符串映射为固定长度的哈希值，从而快速进行比较。选择两组进制数和模数，分别计算每个字符串的两个哈希值，将两个哈希值组成一个二元组存入数组；对所有哈希二元组进行排序；使用
+                <code>unique</code> 删除相邻的重复哈希值；去重后的元素数量即为不同字符串的数量。哈希值可以通过递推计算 h = (h · B + c) mod
+                P，每读取一个字符，只需进行一次更新，无需预处理幂次。双哈希能够显著降低不同字符串映射到相同哈希值的概率，但哈希碰撞在数学上仍然可能发生。设所有字符串的总长度为 L，时间复杂度 O(L + N log
+                N)，计算哈希需要 O(L)，排序需要 O(N log N)；空间复杂度 O(N)，只需保存每个字符串对应的哈希二元组。</p>
+
+            <h4>完整代码（逐行注释）</h4>
+            <pre><code>#include &lt;bits/stdc++.h&gt;                 // 万能头文件
+using namespace std;                     // 标准命名空间
+
+const int BASE1 = 131;                   // 第一套哈希的进制基数
+const int BASE2 = 13331;                 // 第二套哈希的进制基数
+
+const long long MOD1 = 100000007LL;      // 第一套哈希的模数（大质数）
+const long long MOD2 = 100000009LL;      // 第二套哈希的模数（大质数）
+
+int main() {
+    ios::sync_with_stdio(false);         // 关闭同步，加速读入
+    cin.tie(nullptr);                    // 解除绑定，加速读入
+
+    int n;
+    cin &gt;&gt; n;                            // 读入字符串个数
+
+    vector&lt;pair&lt;long long, long long&gt;&gt; hashes;   // 存放每个字符串的哈希二元组
+
+    for (int i = 1; i &lt;= n; ++i) {       // 逐个处理每个字符串
+        string s;
+        cin &gt;&gt; s;                        // 读入当前字符串
+
+        long long h1 = 0, h2 = 0;        // 两套哈希的累加值，初始为 0
+
+        for (unsigned char c : s) {      // unsigned 兼容性好，保证字符被解释为正数
+            h1 = (h1 * BASE1 + c) % MOD1;    // 第一套：h = (h * BASE1 + c) mod MOD1
+            h2 = (h2 * BASE2 + c) % MOD2;    // 第二套：h = (h * BASE2 + c) mod MOD2
+        }
+
+        hashes.push_back({h1, h2});      // 把二元组存进数组
+    }
+
+    sort(hashes.begin(), hashes.end());  // 对二元组排序，相同的哈希值会排在一起
+
+    hashes.erase(                        // erase 掉重复部分
+        unique(hashes.begin(), hashes.end()),   // unique 把相邻重复元素"移到后面"，返回去重后尾指针
+        hashes.end()                     // 删除从新尾部到原尾部的所有元素
+    );
+
+    cout &lt;&lt; hashes.size() &lt;&lt; '\n';       // 剩余元素个数即不同字符串的数量
+
+    return 0;
+}
+</code></pre>
+
+            <div class="note">
+                <strong>本题坑点：</strong>单哈希存在碰撞风险。使用双哈希可以显著降低碰撞概率，但不能提供绝对的无碰撞保证。因此选取模数时要用大质数，或者直接用
+                <code>unsigned long long</code> 自然溢出（相当于对 2<sup>64</sup> 取模）。
+            </div>
+        </section>
+
+        <!-- ==================== 四、KMP ==================== -->
+        <section id="kmp">
+            <h2>四、KMP 字符串匹配</h2>
+
+            <h3>4.1 概念</h3>
+            <p><strong>KMP（Knuth-Morris-Pratt）</strong>是高效的单模式串匹配算法。它利用模式串自身的自我重叠性质（最长公共前后缀），在匹配失配时，让模式串指针进行"优雅的跳跃"，从而做到文本串指针
+                i 绝不回溯，时间复杂度 O(N + M)。</p>
+            <p>nxt[i] 表示子串 p[0…i] 中，最长相等真前缀与真后缀的长度（即前缀函数 π<sub>i</sub>）。当主串字符 s[i] 与模式串字符 p[j] 失配时，nxt[j−1]
+                告诉我们模式串应该对齐到哪个位置继续比对，省去了从头匹配的无效开销。</p>
+            <p>主串指针 i 一直向右，永不回头；模式串指针 j 在 <code>while (j &gt; 0 &amp;&amp; s[i] != p[j])</code> 中利用 next 数组快速回退。总比较次数
+                O(N + M)。</p>
+
+            <h3>4.2 nxt 数组示例</h3>
+            <p>以模式串 p = "ababaca" 为例（下标从 0 开始）：</p>
+            <table>
+                <tr>
+                    <th>下标 i</th>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>6</td>
+                </tr>
+                <tr>
+                    <th>字符 p[i]</th>
+                    <td>a</td>
+                    <td>b</td>
+                    <td>a</td>
+                    <td>b</td>
+                    <td>a</td>
+                    <td>c</td>
+                    <td>a</td>
+                </tr>
+                <tr>
+                    <th>nxt[i]</th>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>0</td>
+                    <td>1</td>
+                </tr>
+            </table>
+            <p>解释：nxt[4] = 3 说明子串 "ababa" 的最长相等真前缀与真后缀是 "aba"，长度为 3；nxt[5] = 0 说明子串 "ababac" 没有任何相等真前后缀。</p>
+
+            <h3>4.3 核心代码（0-based 版，推荐）</h3>
+            <pre><code>#include &lt;string&gt;                      // 字符串类型
+#include &lt;vector&gt;                      // 动态数组
+
+using namespace std;                     // 标准命名空间
+
+// 预处理 next 数组
+vector&lt;int&gt; build_next(const string&amp; p) {
+    int m = p.size();                    // 模式串长度
+    vector&lt;int&gt; nxt(m, 0);               // nxt 数组，长度 m，初始全 0
+    for (int i = 1, j = 0; i &lt; m; ++i) { // i 从 1 开始，j 表示当前已匹配的前缀长度
+        while (j &gt; 0 &amp;&amp; p[i] != p[j]) j = nxt[j - 1];   // 失配就沿 nxt 回退，直到能匹配或退到 0
+        if (p[i] == p[j]) j++;           // 匹配成功，已匹配长度加一
+        nxt[i] = j;                      // 记录子串 p[0..i] 的最长相等真前后缀长度
+    }
+    return nxt;                          // 返回预处理结果
+}
+
+// KMP 匹配：返回所有匹配的起始下标（0-based）
+vector&lt;int&gt; kmp_search(const string&amp; s, const string&amp; p) {
+    vector&lt;int&gt; nxt = build_next(p);     // 先对模式串做自匹配预处理
+    vector&lt;int&gt; matches;                 // 保存所有匹配位置
+    int n = s.size(), m = p.size();      // 文本串长度与模式串长度
+
+    for (int i = 0, j = 0; i &lt; n; ++i) { // i 扫文本串，永不回退；j 为已匹配长度
+        while (j &gt; 0 &amp;&amp; s[i] != p[j]) j = nxt[j - 1];   // 失配时模式串指针优雅回退
+        if (s[i] == p[j]) j++;           // 当前字符匹配，已匹配长度加一
+        if (j == m) {                    // 已匹配长度等于模式串长度 =&gt; 找到一次完整匹配
+            matches.push_back(i - m + 1);   // 记录匹配的起始坐标（0-based）
+            j = nxt[j - 1];              // 继续寻找重叠匹配，不能直接清零
+        }
+    }
+    return matches;                      // 返回所有匹配位置
+}
+</code></pre>
+            <p>说明：<code>build_next</code> 本质上是模式串 p 对它自己做的 KMP 匹配。s、p、nxt 都是 0-based 的，推荐这样写。</p>
+
+            <h3>4.4 1-based 写法（预处理部分）</h3>
+            <pre><code>vector&lt;int&gt; build_next(const string&amp; p) {
+    int m = p.size();                    // 模式串长度
+    // 注意：通常习惯把字符串变相改成 1-based（比如前面加个空格：p = " " + p）
+    vector&lt;int&gt; nxt(m + 1, 0);           // 1-based 的 nxt 数组，长度 m+1
+    for (int i = 2, j = 0; i &lt;= m; ++i) {    // i 从 2 开始
+        while (j &gt; 0 &amp;&amp; p[i] != p[j + 1]) j = nxt[j];   // 失配时回退到 nxt[j]
+        if (p[i] == p[j + 1]) j++;       // 匹配成功，长度加一
+        nxt[i] = j;                      // 记录 nxt[i]
+    }
+    return nxt;
+}
+</code></pre>
+
+            <h3>4.5 题目：P3375 【模板】KMP 字符串匹配</h3>
+            <h4>概述题意</h4>
+            <p>给定一个文本串 s<sub>1</sub> 和一个模式串 s<sub>2</sub>，要求输出模式串在文本串中所有出现位置的起始下标。同时需要输出模式串的前缀函数 nxt
+                数组，即每个前缀的最长相等真前后缀长度。两个字符串的长度均不超过 10<sup>6</sup>，且仅包含大写英文字母。</p>
+
+            <h4>数学模型</h4>
+            <p>对于模式串 P 与文本串 S（下标均从 0 开始），定义状态 π<sub>i</sub> 表示子串 P[0…i] 中满足既是其真前缀又是其后缀的最长子串的长度，即 π<sub>i</sub> = max{ k
+                | k &lt; i+1 且 P[0…k−1] = P[i−k+1…i] }。求解集合 R = { i | S[i…i+|P|−1] = P }，并输出全集 π。</p>
+
+            <h4>解题思路</h4>
+            <p>字符串暴力匹配的核心缺陷在于每次失配后，指向文本串的指针必须大幅度回退。KMP 算法利用模式串自身的结构消除了这种回退。对模式串自身进行自匹配预处理构建 nxt 数组（即前缀函数 π）。定义双指针 i 与
+                j，其中 j 既表示当前已匹配的长度，也表示下一个待比较的字符下标。当处理文本串第 i 个字符 S[i] 与模式串字符 P[j] 时，若发生失配，则模式串指针 j 按照 j = nxt[j−1]
+                规则不断回退（已匹配部分为 P[0…j−1]，其最长公共前后缀长度为 nxt[j−1]），直到能够匹配或者退回起点。若匹配成功则 j 向前移动一步。当 j
+                等于模式串长度时，说明发现了一次完整匹配，记录下位置并继续令 j = nxt[j−1] 探寻下一个可能。整个过程中文本串的指针 i 始终单调递增，不会倒退。算法仅需为模式串开辟一个辅助数组，空间复杂度为
+                O(|P|)。虽然存在回退的 while 循环，但 j 增加的次数总计不超过 |S|，且每次回退至少减少 1，运用摊还分析可得时间复杂度为线性 O(|S| + |P|)。</p>
+
+            <h4>核心代码</h4>
+            <pre><code>void build_nxt(const string&amp; p) {
+    int m = p.length();                  // 模式串长度
+    nxt[0] = 0;                          // 单个字符没有真前后缀，长度为 0
+    for (int i = 1, j = 0; i &lt; m; ++i) { // 从第二个字符开始递推
+        while (j &gt; 0 &amp;&amp; p[i] != p[j]) j = nxt[j - 1];   // 失配回退
+        if (p[i] == p[j]) j++;           // 匹配成功，长度加一
+        nxt[i] = j;                      // 记录 nxt[i]
+    }
+}
+
+void kmp_match(const string&amp; s, const string&amp; p) {
+    int n = s.length(), m = p.length();  // 文本串与模式串长度
+    for (int i = 0, j = 0; i &lt; n; ++i) { // i 扫描文本串，不回溯
+        while (j &gt; 0 &amp;&amp; s[i] != p[j]) j = nxt[j - 1];   // 失配时模式串指针回退
+        if (s[i] == p[j]) j++;           // 匹配成功，已匹配长度加一
+        if (j == m) {                    // 找到一次完整匹配
+            cout &lt;&lt; i - m + 2 &lt;&lt; "\n";  // 0-based 起点为 i-m+1，题目要求 1-based 输出，故 +1
+            j = nxt[j - 1];              // 继续寻找下一个匹配（允许重叠）
+        }
+    }
+}
+</code></pre>
+
+            <h4>完整代码（逐行注释）</h4>
+            <pre><code>#include &lt;bits/stdc++.h&gt;                 // 万能头文件
+using namespace std;                     // 标准命名空间
+
+int nxt[1000005];                        // 前缀函数数组，长度上限 10^6，开全局数组避免爆栈
+
+int main() {
+    ios::sync_with_stdio(false);         // 关闭同步，加速读入（10^6 级别数据必须加速）
+    cin.tie(nullptr);                    // 解除绑定，加速读入
+    string s, p;
+    cin &gt;&gt; s &gt;&gt; p;                      // 读入文本串 s 与模式串 p
+    int n = s.length();                  // 文本串长度
+    int m = p.length();                  // 模式串长度
+
+    // 第一步：对模式串自身做 KMP，预处理出 nxt 数组
+    for (int i = 1, j = 0; i &lt; m; ++i) { // i 从 1 开始（nxt[0] 天然为 0）
+        while (j &gt; 0 &amp;&amp; p[i] != p[j]) j = nxt[j - 1];   // 失配则沿 nxt 回退
+        if (p[i] == p[j]) j++;           // 匹配成功，已匹配长度加一
+        nxt[i] = j;                      // 记录前缀 p[0..i] 的最长相等真前后缀长度
+    }
+
+    // 第二步：用 nxt 数组在文本串上做匹配
+    for (int i = 0, j = 0; i &lt; n; ++i) { // i 扫文本串，永不回退
+        while (j &gt; 0 &amp;&amp; s[i] != p[j]) j = nxt[j - 1];   // 失配时模式串指针回退
+        if (s[i] == p[j]) j++;           // 当前字符匹配成功
+        if (j == m) {                    // 匹配长度达到 m，说明出现了一次完整匹配
+            cout &lt;&lt; i - m + 2 &lt;&lt; "\n";  // 转为 1-based 输出起始位置
+            j = nxt[j - 1];              // 回退一步，继续寻找下一个（可能重叠的）匹配
+        }
+    }
+
+    // 第三步：输出模式串的 nxt 数组（题目要求输出全部 m 个）
+    for (int i = 0; i &lt; m; ++i) {
+        cout &lt;&lt; nxt[i] &lt;&lt; (i == m - 1 ? "" : " ");   // 数字之间用空格分隔，行末不加空格
+    }
+    cout &lt;&lt; "\n";                        // 输出换行
+    return 0;
+}
+</code></pre>
+
+            <div class="note">
+                <strong>本题坑点：</strong>KMP 算法的代码实现对下标极度敏感。直接使用字符串 0-based 下标，nxt[i] 对应前缀 p[0…i]，失配时回退为 j = nxt[j −
+                1]。匹配成功时 j = m，立即执行 j = nxt[j − 1]。要求输出 1-based 位置，所以输出时要写成 i − m + 2。
+            </div>
+        </section>
+
+    </main>
+</body>
+
+</html>

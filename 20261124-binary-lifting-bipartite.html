@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>倍增、LCA、二分图与组合计数 · 20261124 课件精讲</title>
+<style>
+    html {
+        background: #f2f3f1;
+    }
+    body {
+        margin: 0;
+        background: #f2f3f1;
+        color: #222222;
+        font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+        font-size: 16px;
+        line-height: 1.85;
+    }
+    main {
+        width: 960px;
+        margin: 0 auto;
+        padding: 38px 44px 58px;
+        background: #ffffff;
+        box-sizing: border-box;
+    }
+    h1 {
+        margin: 0 0 10px;
+        font-size: 26px;
+        line-height: 1.45;
+        color: #173d2c;
+    }
+    h2 {
+        margin: 44px 0 14px;
+        padding-left: 11px;
+        border-left: 5px solid #2f6f4e;
+        font-size: 21px;
+        line-height: 1.5;
+        color: #173d2c;
+    }
+    h3 {
+        margin: 28px 0 10px;
+        font-size: 17px;
+        line-height: 1.6;
+        color: #24523a;
+    }
+    p {
+        margin: 10px 0;
+        font-size: 16px;
+    }
+    ul, ol {
+        margin: 10px 0 10px 26px;
+        padding: 0;
+    }
+    li {
+        margin: 5px 0;
+        font-size: 16px;
+    }
+    strong {
+        color: #173d2c;
+    }
+    a {
+        color: #1f5f8b;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    code {
+        padding: 1px 4px;
+        background: #eef2ef;
+        border-radius: 3px;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 14px;
+    }
+    pre {
+        margin: 12px 0 18px;
+        padding: 13px 16px;
+        overflow-x: auto;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    pre.code {
+        background: #1f2428;
+        color: #e6edf3;
+        border: 1px solid #11161a;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    pre.code code {
+        padding: 0;
+        background: none;
+        color: inherit;
+        font-size: 13px;
+        white-space: pre;
+    }
+    pre.sample {
+        background: #f5f7f5;
+        border: 1px solid #d7ded9;
+        color: #1f2d25;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+    pre.sample code {
+        padding: 0;
+        background: none;
+        color: inherit;
+        font-size: 13px;
+        white-space: pre;
+    }
+    table {
+        width: 100%;
+        margin: 14px 0 20px;
+        border-collapse: collapse;
+        font-size: 14px;
+        line-height: 1.65;
+    }
+    th, td {
+        padding: 7px 9px;
+        border: 1px solid #cfd8d2;
+        vertical-align: top;
+        text-align: left;
+    }
+    th {
+        background: #e9f0eb;
+        color: #173d2c;
+        font-weight: bold;
+    }
+    .formula {
+        margin: 14px 0;
+        padding: 11px 16px;
+        background: #f4f7f5;
+        border: 1px dashed #b9c9bf;
+        text-align: center;
+        font-size: 16px;
+        line-height: 1.9;
+    }
+    .note {
+        margin: 16px 0;
+        padding: 10px 15px;
+        background: #f7faf8;
+        border-left: 4px solid #2f6f4e;
+    }
+    .warn {
+        margin: 16px 0;
+        padding: 10px 15px;
+        background: #fff7f5;
+        border-left: 4px solid #b23b2e;
+    }
+    .toc {
+        margin: 26px 0 8px;
+        padding: 14px 24px 16px;
+        background: #f4f7f5;
+        border: 1px solid #d7ded9;
+    }
+    .toc-title {
+        margin: 0 0 6px;
+        padding: 0;
+        border: none;
+        font-size: 17px;
+        color: #173d2c;
+    }
+    .toc ol {
+        margin: 4px 0 0 22px;
+    }
+    .toc li {
+        margin: 3px 0;
+        font-size: 15px;
+        line-height: 1.7;
+    }
+    .page-header {
+        padding-bottom: 15px;
+        border-bottom: 1px solid #dfe5e1;
+    }
+    .eyebrow {
+        margin: 0 0 6px;
+        color: #5f7568;
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+    .subtitle {
+        margin: 0;
+        color: #44564b;
+        font-size: 16px;
+    }
+    .meta {
+        margin: 8px 0 0;
+        color: #6b7a71;
+        font-size: 14px;
+    }
+    figure {
+        margin: 22px 0 24px;
+        text-align: center;
+    }
+    figure svg {
+        display: block;
+        margin: 0 auto;
+        background: #fbfcfb;
+        border: 1px solid #e0e6e2;
+    }
+    figcaption {
+        margin-top: 7px;
+        color: #5b6a61;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+    footer {
+        margin-top: 52px;
+        padding-top: 15px;
+        border-top: 1px solid #dfe5e1;
+        color: #5b6a61;
+        font-size: 14px;
+        line-height: 1.8;
+    }
+    footer h2 {
+        margin: 0 0 8px;
+        font-size: 17px;
+        border: none;
+        padding: 0;
+    }
+</style>
+</head>
+<body>
+<main>
+<header class="page-header">
+    <p class="eyebrow">信息学竞赛 · 图论、树上算法与计数</p>
+    <h1>倍增、LCA、二分图与组合计数</h1>
+    <p class="subtitle">从“一次向上跳 2<sup>k</sup> 步”到“寻找一条增广路”，再到“用阶乘与容斥快速计数”，把课件里的六段核心内容串成一条线。</p>
+    <p class="meta">配套代码：6 个完整程序，按“倍增 → LCA → 二分图 → 匹配 → 组合数 → 欧拉函数”的顺序排列。</p>
+</header>
+
+<nav class="toc" aria-label="目录">
+    <h2 class="toc-title">目录</h2>
+    <ol>
+        <li><a href="#binary-lifting">倍增：把长距离拆成二进制</a></li>
+        <li><a href="#build-table">建倍增表：一次 BFS 填满表格</a></li>
+        <li><a href="#lca-query">LCA 查询：先对齐，再一起上跳</a></li>
+        <li><a href="#p3379">P3379 完整代码与样例</a></li>
+        <li><a href="#bipartite">二分图：两种颜色的世界</a></li>
+        <li><a href="#coloring-code">交替染色代码与判定</a></li>
+        <li><a href="#p1330">P1330 封锁阳光大学</a></li>
+        <li><a href="#hungarian">匈牙利算法：给左部每个点找匹配</a></li>
+        <li><a href="#compare">两种“交替”问题的对照</a></li>
+        <li><a href="#comb-basics">组合计数基础与容斥原理</a></li>
+        <li><a href="#b3717">B3717 组合数问题</a></li>
+        <li><a href="#p2158">P2158 仪仗队与欧拉函数</a></li>
+        <li><a href="#corrections">课件代码订正清单</a></li>
+        <li><a href="#summary">总结与练习</a></li>
+    </ol>
+</nav>
+
+<section id="binary-lifting">
+    <h2>1. 倍增：把长距离拆成二进制</h2>
+    <p>假设在树上要从节点 <code>u</code> 往上走 13 步才能到达祖先。最直接的办法是走一步、再看一步，总共走 13 次；如果每次查询都要走很多步，程序就会变慢。倍增换了一个角度：先把 13 写成二进制 <code>1101</code>，也就是 <code>8 + 4 + 1</code>，于是只要向上跳三次，分别跳 8 步、4 步、1 步，就能到达同一个祖先。步数没有变少，但“跳跃”的次数从 13 次降到了 3 次。</p>
+    <p>这个技巧能成立，是因为任意正整数都有唯一的二进制拆分。把要跳的步数拆成若干个 2 的次幂之和，跳跃次数就等于二进制中 1 的个数，最多不超过 <code>⌊log<sub>2</sub>N⌋ + 1</code>。当 N 是 500000 时，这个数字只有 19 左右。倍增要做的，就是提前把“向上跳 2<sup>k</sup> 步会到哪个点”全部算出来，查询时直接查表。</p>
+
+    <h3>1.1 祖先表 fa[u][k]</h3>
+    <p>定义 <code>fa[u][k]</code> 表示节点 <code>u</code> 向上跳 <code>2<sup>k</sup></code> 步后到达的祖先。这里的 <code>k</code> 从 0 开始编号，所以 <code>k = 0</code> 表示跳 1 步，<code>k = 1</code> 表示跳 2 步，<code>k = 2</code> 表示跳 4 步，依此类推。当 <code>k</code> 继续增大时，跳跃距离会翻倍增长，但表格的列数增长得很慢，这就是倍增在空间和时间上的平衡点。</p>
+    <div class="formula">
+        fa[u][0] = parent[u]<br>
+        fa[u][k] = fa[ fa[u][k-1] ][k-1] &nbsp;&nbsp; (k ≥ 1)
+    </div>
+    <p>第二行是整套算法的核心。要从 <code>u</code> 向上跳 <code>2<sup>k</sup></code> 步，可以先跳 <code>2<sup>k-1</sup></code> 步到达某个中间节点，再从这个中间节点跳 <code>2<sup>k-1</sup></code> 步。两段加起来正好是 <code>2<sup>k</sup></code> 步。由于两段长度相等，第二段的起点就是 <code>fa[u][k-1]</code>，第二段的终点就是 <code>fa[ fa[u][k-1] ][k-1]</code>。</p>
+    <p>为了处理“跳过头”的情况，代码里引入了一个虚拟节点 <code>0</code>。根节点的父节点记为 <code>0</code>，并规定 <code>depth[0] = 0</code>、<code>fa[0][k] = 0</code>。当跳跃越过根时，就会落到节点 0 上，而节点 0 的祖先仍然是 0，不会访问越界的内存。这个哨兵看起来不起眼，但它让对齐深度和同步上跳的边界判断都变得统一。</p>
+
+    <figure>
+        <svg width="760" height="300" viewBox="0 0 760 300" role="img" aria-labelledby="tree-title tree-desc">
+            <title id="tree-title">一棵 6 个节点的有根树</title>
+            <desc id="tree-desc">根节点 1 的深度为 1，节点 2、3 的深度为 2，节点 4、5、6 的深度为 3。节点 4 向上跳一步到 2，向上跳两步到 1。</desc>
+            <line x1="380" y1="58" x2="230" y2="104" stroke="#8aa396" stroke-width="2"></line>
+            <line x1="380" y1="58" x2="530" y2="104" stroke="#8aa396" stroke-width="2"></line>
+            <line x1="230" y1="128" x2="150" y2="184" stroke="#8aa396" stroke-width="2"></line>
+            <line x1="230" y1="128" x2="310" y2="184" stroke="#8aa396" stroke-width="2"></line>
+            <line x1="530" y1="128" x2="530" y2="184" stroke="#8aa396" stroke-width="2"></line>
+
+            <circle cx="380" cy="40" r="20" fill="#e4efe7" stroke="#2f6f4e" stroke-width="2"></circle>
+            <text x="380" y="46" text-anchor="middle" font-size="15" fill="#173d2c">1</text>
+            <text x="380" y="20" text-anchor="middle" font-size="13" fill="#5b6a61">深度 1</text>
+
+            <circle cx="230" cy="110" r="20" fill="#e4efe7" stroke="#2f6f4e" stroke-width="2"></circle>
+            <text x="230" y="116" text-anchor="middle" font-size="15" fill="#173d2c">2</text>
+            <text x="230" y="90" text-anchor="middle" font-size="13" fill="#5b6a61">深度 2</text>
+
+            <circle cx="530" cy="110" r="20" fill="#e4efe7" stroke="#2f6f4e" stroke-width="2"></circle>
+            <text x="530" y="116" text-anchor="middle" font-size="15" fill="#173d2c">3</text>
+            <text x="530" y="90" text-anchor="middle" font-size="13" fill="#5b6a61">深度 2</text>
+
+            <circle cx="150" cy="190" r="20" fill="#f6ead8" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="150" y="196" text-anchor="middle" font-size="15" fill="#5c3a13">4</text>
+            <text x="150" y="224" text-anchor="middle" font-size="13" fill="#5b6a61">深度 3</text>
+
+            <circle cx="310" cy="190" r="20" fill="#e4efe7" stroke="#2f6f4e" stroke-width="2"></circle>
+            <text x="310" y="196" text-anchor="middle" font-size="15" fill="#173d2c">5</text>
+            <text x="310" y="224" text-anchor="middle" font-size="13" fill="#5b6a61">深度 3</text>
+
+            <circle cx="530" cy="190" r="20" fill="#e4efe7" stroke="#2f6f4e" stroke-width="2"></circle>
+            <text x="530" y="196" text-anchor="middle" font-size="15" fill="#173d2c">6</text>
+            <text x="530" y="224" text-anchor="middle" font-size="13" fill="#5b6a61">深度 3</text>
+
+            <path d="M 150 170 C 70 130 70 60 350 40" fill="none" stroke="#c07a24" stroke-width="2" stroke-dasharray="6 5"></path>
+            <text x="76" y="116" font-size="13" fill="#8a5414">4 向上 2 步到 1</text>
+            <text x="560" y="270" font-size="13" fill="#5b6a61">fa[4][0] = 2，fa[4][1] = 1</text>
+        </svg>
+        <figcaption>图 1：一棵有根树。每个节点旁边的数字是深度；橙色虚线表示节点 4 向上跳 2 步到达节点 1，也就是 <code>fa[4][1] = 1</code>。</figcaption>
+    </figure>
+
+    <h3>1.2 这张表到底存了什么</h3>
+    <p>把图 1 的树按“根为 1、父节点唯一”的约定填表，可以得到下面的结果。表中只列到 <code>k = 3</code>，更高层的祖先全是 0；实际程序里会填满 <code>k = 0</code> 到 <code>k = 19</code> 共 20 列。读表时注意每一列的含义：第 0 列是父亲，第 1 列是爷爷，第 2 列是向上 4 步，第 3 列是向上 8 步。</p>
+    <table>
+        <thead>
+            <tr><th>节点 u</th><th>depth[u]</th><th>fa[u][0]</th><th>fa[u][1]</th><th>fa[u][2]</th><th>fa[u][3]</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>2</td><td>2</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>3</td><td>2</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>4</td><td>3</td><td>2</td><td>1</td><td>0</td><td>0</td></tr>
+            <tr><td>5</td><td>3</td><td>2</td><td>1</td><td>0</td><td>0</td></tr>
+            <tr><td>6</td><td>3</td><td>3</td><td>1</td><td>0</td><td>0</td></tr>
+        </tbody>
+    </table>
+    <p>以节点 4 为例：<code>fa[4][0] = 2</code>，表示向上 1 步到 2；<code>fa[4][1] = fa[2][0] = 1</code>，表示向上 2 步到 1；<code>fa[4][2] = fa[1][1] = 0</code>，表示向上 4 步会越过根，落到虚拟节点 0。节点 6 的 <code>fa[6][1] = fa[3][0] = 1</code>，也符合“先到 3，再到 1”的过程。</p>
+    <p>表的规模是 <code>N × LOG</code>。当 <code>N = 500000</code>、<code>LOG = 20</code> 时，一共存 1000 万个整数；每个 <code>int</code> 占 4 字节，大约 40 MB。这个空间在常见竞赛题的内存限制内，但也不能随意把 LOG 开得过大。预处理要填满这张表，时间复杂度是 <code>O(N log N)</code>；之后每次查询只需要沿着表的列从高到低看一遍，时间复杂度是 <code>O(log N)</code>。</p>
+    <div class="note">
+        <strong>为什么 LOG 取 20？</strong> 因为 <code>2<sup>19</sup> = 524288</code>，已经大于最大节点数 500000；表的下标从 0 到 19，最大单次跳跃是 2<sup>19</sup> 步，而组合起来可以表示 1 到 2<sup>20</sup>−1 之间的任何步数，足够覆盖一条 500000 个点的链。
+    </div>
+</section>
+
+<section id="build-table">
+    <h2>2. 建倍增表：一次 BFS 填满表格</h2>
+    <p>倍增表不是凭空出现的，它需要先知道每个节点的父亲和深度。课件里的做法是从根节点出发做一次 BFS：根先入队，然后不断取出队首节点，把它的子节点入队，同时填好子节点的深度、父亲和整行倍增信息。BFS 的顺序保证了“父亲一定比儿子先处理”，所以轮到某个节点时，父亲的倍增表已经算好了，递推公式可以直接使用。</p>
+    <p>这里特别选择 BFS，而不是递归 DFS。课件里 N 可以达到 500000，如果树退化成一条链，递归 DFS 会连续压入 500000 层函数调用，很容易把栈撑爆；BFS 用队列保存待处理的节点，队列开在堆上，深度再大也不会增加函数调用栈。这个选择不是风格问题，而是能不能稳定通过大数据的问题。</p>
+
+    <h3>2.1 BFS 预处理的四个步骤</h3>
+    <ol>
+        <li>把根节点 <code>root</code> 的深度设为 1，把 <code>fa[root][0]</code> 设为 0，并把根的所有更高层祖先也设为 0；然后把根入队。</li>
+        <li>从队列中取出队首节点 <code>u</code>，枚举它的所有邻居 <code>v</code>。如果 <code>v</code> 正好是 <code>u</code> 的父亲，就跳过，避免沿着树边往回走。</li>
+        <li>对于真正的子节点 <code>v</code>，令 <code>depth[v] = depth[u] + 1</code>、<code>fa[v][0] = u</code>，再用递推式填 <code>fa[v][1]</code> 到 <code>fa[v][19]</code>，最后把 <code>v</code> 入队。</li>
+        <li>队列为空时，整棵树的深度和倍增表都填完了，可以开始回答 LCA 查询。</li>
+    </ol>
+    <p>在“输入保证是一棵树”的前提下，跳过父亲就足以保证每个节点只被处理一次，不需要额外的 <code>visited</code> 数组。因为树中没有环，除了父亲以外，邻居只可能是儿子；每个儿子只会从它唯一的父亲那里被访问到。如果输入的不是树，而是带环的普通无向图，仅跳过父亲就不够了，必须另加访问标记；这一点在写通用图算法时要特别小心。</p>
+
+    <h3>2.2 沿着图 1 走一遍队列</h3>
+    <p>还是用图 1 的树，根为 1。初始时队列里只有 1；处理 1 时发现 2 和 3，把它们入队；处理 2 时发现 4 和 5；处理 3 时发现 6；最后处理 4、5、6，没有新的子节点。整个过程如下表。</p>
+    <table>
+        <thead>
+            <tr><th>步骤</th><th>出队节点</th><th>新入队节点</th><th>填写的内容</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>1</td><td>2、3</td><td>depth[2]=depth[3]=2，fa[2][0]=fa[3][0]=1</td></tr>
+            <tr><td>2</td><td>2</td><td>4、5</td><td>depth[4]=depth[5]=3，fa[4][0]=fa[5][0]=2</td></tr>
+            <tr><td>3</td><td>3</td><td>6</td><td>depth[6]=3，fa[6][0]=3</td></tr>
+            <tr><td>4</td><td>4</td><td>无</td><td>4 是叶子，没有子节点</td></tr>
+            <tr><td>5</td><td>5</td><td>无</td><td>5 是叶子，没有子节点</td></tr>
+            <tr><td>6</td><td>6</td><td>无</td><td>6 是叶子，没有子节点</td></tr>
+        </tbody>
+    </table>
+    <p>表中只写了 <code>fa[v][0]</code>，实际代码会在同一个循环里继续填 <code>fa[v][1]</code> 到 <code>fa[v][19]</code>。例如处理节点 4 时，先得到 <code>fa[4][0] = 2</code>，然后算 <code>fa[4][1] = fa[2][0] = 1</code>、<code>fa[4][2] = fa[1][1] = 0</code>，一直到 <code>fa[4][19] = 0</code>。由于 2 的倍增行已经在处理 1 时填好，1 的行也已经在根初始化时填好，所以这些查表都是现成的。</p>
+
+    <h3>2.3 全局数组与初始化</h3>
+    <p>代码把 <code>adj</code>、<code>depth</code>、<code>fa</code> 都定义在全局作用域。全局的整型数组会自动初始化为 0，这一点对虚拟节点 0 很重要：<code>depth[0] = 0</code>、<code>fa[0][k] = 0</code> 不需要额外写循环，数组一创建就已经满足。根节点的 <code>fa[root][k]</code> 需要显式写成 0，因为根的行不是自动为 0 的；代码在 BFS 开头用一个循环把根的所有祖先列清零。</p>
+    <p>另一个容易忽略的细节是 <code>depth[root] = 1</code>。如果根的深度设成 0，那么“向上跳一步”就会从深度 0 跳到深度 −1，边界条件会变得别扭；设成 1 之后，虚拟节点 0 的深度正好是 0，所有真实节点的深度都不小于 1，判断 <code>depth[fa[u][k]] &gt;= depth[v]</code> 时就不会出现负数。这个约定与课件的第 1 页一致，但与第 7 页的完整代码不同，后面第 10 节会专门说明。</p>
+</section>
+
+<section id="lca-query">
+    <h2>3. LCA 查询：先对齐，再一起上跳</h2>
+    <p>LCA 是“最近公共祖先”的缩写。对于树上的两个节点 <code>u</code> 和 <code>v</code>，它们的公共祖先有很多个，从根一直到某个分叉点；其中深度最大的那个公共祖先，就是最近公共祖先。换句话说，从 <code>u</code> 往上走和从 <code>v</code> 往上走，两条路径第一次汇合的那个节点，就是 LCA。图 1 中，4 和 5 的 LCA 是 2，4 和 6 的 LCA 是 1，4 和 2 的 LCA 是 2 本身。</p>
+    <p>如果不用倍增，求 LCA 的朴素做法是先把两个节点提到同一深度，再一起一步一步往上走，直到相遇；最坏情况下一次查询要走 O(N) 步，M 次查询就是 O(NM)。倍增把“一步一步走”换成“按二进制位跳”，把一次查询压到 O(log N)。整个查询分为两个阶段：先对齐深度，再同步上跳。</p>
+
+    <h3>3.1 第一阶段：对齐深度</h3>
+    <p>如果两个节点深度不同，较深的那个节点不可能和较浅的节点有“同一个最近公共祖先”在更下面，所以先把较深的节点向上提，直到两者深度相同。假设 <code>u</code> 较深，从 <code>k = 19</code> 倒着枚举到 0，检查“如果从 <code>u</code> 跳 2<sup>k</sup> 步，落点是否仍然不比 <code>v</code> 浅”。如果落点的深度大于等于 <code>v</code> 的深度，就放心地跳；否则这一步会跳过头，放弃这一位，继续尝试更小的步长。由于任何深度差都能拆成二进制，循环结束时两个节点一定在同一深度。</p>
+    <div class="formula">
+        if (depth[ fa[u][k] ] &gt;= depth[v]) &nbsp; u = fa[u][k];
+    </div>
+    <p>这个判断借助了虚拟节点 0。如果 <code>u</code> 跳 2<sup>k</sup> 步会越过根，落点就是 0，而 <code>depth[0] = 0</code>，它不可能大于等于任何一个真实节点的深度（真实节点深度至少为 1），所以这一步不会被采纳，正好避免了跳过头。若把根的深度设成 0，这个不等式就需要额外处理 0 号节点，边界会更容易写错。</p>
+    <p>对齐之后，如果 <code>u</code> 和 <code>v</code> 已经相等，说明较浅的那个节点本身就是较深节点的祖先，它当然也是 LCA，可以直接返回。例如查询 4 和 2：4 的深度是 3，2 的深度是 2，把 4 向上提一步就到 2，此时 <code>u == v</code>，答案就是 2。</p>
+
+    <h3>3.2 第二阶段：同步上跳</h3>
+    <p>如果对齐后两个节点仍然不同，说明 LCA 在更上面。此时从大到小枚举 <code>k</code>，检查两个节点同时跳 2<sup>k</sup> 步后的祖先是否相同：如果相同，说明这一跳会到达 LCA 或 LCA 的上面，不能跳；如果不同，说明 LCA 还在更上面，可以放心地让两个节点一起跳。循环结束后，两个节点一定停在 LCA 的两个不同子节点上，此时它们再向上走一步就会相遇，所以答案是 <code>fa[u][0]</code>。</p>
+    <div class="formula">
+        if (fa[u][k] != fa[v][k]) &nbsp; { u = fa[u][k]; v = fa[v][k]; }
+    </div>
+    <p>为什么“祖先不同”就代表可以跳？因为如果两个节点同时跳 2<sup>k</sup> 步后祖先不同，说明它们还没有到达同一个分叉点，LCA 还在这次跳跃的落点之上；跳过去不会越过 LCA。反过来，如果跳完后的祖先相同，这个相同的祖先可能是 LCA，也可能是 LCA 的祖先，贸然跳过去就会丢失正确答案，所以只能放弃这一位。从高位到低位尝试，保证最后停在“离 LCA 最近、但还没有到达 LCA”的位置。</p>
+
+    <h3>3.3 三个查询的逐步演示</h3>
+    <p>用图 1 的树，深度和倍增表都按前面的约定填写。下面三个查询分别覆盖“同步上跳”“直接返回父节点”“对齐后立即相遇”三种情况。</p>
+    <table>
+        <thead>
+            <tr><th>查询</th><th>对齐深度</th><th>同步上跳过程</th><th>答案</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>4 和 6</td>
+                <td>两者深度都是 3，不需要对齐。</td>
+                <td>k=1 时 fa[4][1]=1、fa[6][1]=1，相同，不跳；k=0 时 fa[4][0]=2、fa[6][0]=3，不同，跳到 2 和 3；返回 fa[2][0]=1。</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>4 和 5</td>
+                <td>两者深度都是 3，不需要对齐。</td>
+                <td>k=1 时 fa[4][1]=1、fa[5][1]=1，相同，不跳；k=0 时 fa[4][0]=2、fa[5][0]=2，仍然相同，不跳；返回 fa[4][0]=2。</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>4 和 2</td>
+                <td>4 较深，向上提一步到 2，两者重合。</td>
+                <td>已经重合，不再进入同步上跳，直接返回当前节点。</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>1 和 6</td>
+                <td>6 较深，向上提两步到 1，两者重合。</td>
+                <td>已经重合，直接返回当前节点。</td>
+                <td>1</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>把这三个过程与代码对应起来，可以看到第一阶段只关心深度，第二阶段只关心祖先是否相等。两个阶段都用“从高位到低位”的循环，原因相同：高位代表的步长更大，先确定大的部分，再用低位补足剩余部分，这样能用最少的跳跃次数覆盖任意步数。若从低位到高位，可能会先跳很多小步，最后反而错过正确的大步组合。</p>
+
+    <h3>3.4 正确性与复杂度</h3>
+    <p>对齐深度不会改变 LCA：把较深的节点向上提，提到的是它自己的祖先，两个节点的公共祖先集合没有变化，最近的那个自然也不变。同步上跳阶段只在“跳完后祖先不同”时移动，因此任何时刻两个节点都还在 LCA 的不同子树里，绝不会越过 LCA。循环结束时，再跳一步就会相遇，所以 <code>fa[u][0]</code> 就是 LCA。这个证明不需要讨论具体的树形，只用到“祖先关系沿树向上传递”这一条性质。</p>
+    <p>预处理要遍历 N 个节点，每个节点填 LOG 列，复杂度是 O(N log N)；单次查询最多检查 LOG 列两次，复杂度是 O(log N)；M 次查询的总复杂度是 O((N + M) log N)。空间复杂度是 O(N log N)，主要花在 <code>fa</code> 数组上。对于 N、M 都达到 500000 的 P3379，这个复杂度可以稳定通过。</p>
+</section>
+
+<section id="p3379">
+    <h2>4. P3379 完整代码与样例</h2>
+    <p>P3379 的题意很直接：给定一棵有 N 个节点的有根树，根为 S，接下来有 M 次询问，每次给出两个节点 a、b，求它们的最近公共祖先。输入的第一行是 N、M、S，接下来 N−1 行是树边，最后 M 行是询问。课件里给出了完整的 BFS + 倍增写法，但根节点的约定在第 1 页和第 7 页不一致；下面的程序统一采用“根深度为 1、根的父节点为虚拟节点 0、depth[0] = 0”的约定，并把头文件写全，保证在 g++14 下可以直接编译运行。</p>
+    <p>程序分为三块：<code>bfs</code> 负责预处理深度和倍增表，<code>lca</code> 负责回答一次询问，<code>main</code> 负责读入、建树、调用预处理并循环输出。读代码时可以先把这三块分开看，不必一开始就逐行啃完；每块内部的注释会解释每一行在做什么。</p>
+
+    <h3>4.1 完整程序</h3>
+    <pre class="code"><code>#include &lt;iostream&gt;                    // 输入输出流
+#include &lt;vector&gt;                      // 邻接表 vector
+#include &lt;queue&gt;                       // BFS 用到的队列
+#include &lt;algorithm&gt;                   // swap 函数
+using namespace std;                   // 使用标准命名空间
+
+const int N = 500005;                  // 最大节点数，比题目上限多 5
+const int LOG = 20;                    // 2^20 &gt; 500000，够覆盖最大深度
+
+vector&lt;int&gt; adj[N];                    // 邻接表，adj[u] 存 u 的邻居
+int depth[N];                          // depth[u] 表示根到 u 的边数加一
+int fa[N][LOG];                        // fa[u][k] 是 u 的 2^k 级祖先
+
+void bfs(int root) {                   // 从根出发，预处理深度和倍增表
+    queue&lt;int&gt; q;                      // 建立 BFS 队列
+    depth[root] = 1;                   // 根的深度定为 1，depth[0] 保持 0
+    fa[root][0] = 0;                   // 根的父节点记为哨兵 0
+    for (int k = 1; k &lt; LOG; ++k) {    // 从 1 开始填根的倍增表
+        fa[root][k] = 0;               // 根没有更远的祖先
+    }                                  // 根的倍增表初始化结束
+    q.push(root);                      // 根节点入队
+    while (!q.empty()) {               // 队列不空就继续扩展
+        int u = q.front();             // 取出队首节点
+        q.pop();                       // 队首出队
+        for (int v : adj[u]) {         // 枚举 u 的所有邻居
+            if (v == fa[u][0]) {       // 如果 v 是 u 的父亲
+                continue;              // 跳过，避免沿树边往回走
+            }                          // 父节点判断结束
+            depth[v] = depth[u] + 1;   // 子节点比父节点深一层
+            fa[v][0] = u;              // v 的 2^0 级祖先是 u
+            for (int k = 1; k &lt; LOG; ++k) { // 递推 v 的更高层祖先
+                fa[v][k] = fa[fa[v][k - 1]][k - 1]; // 先跳 2^(k-1)，再跳 2^(k-1)
+            }                          // v 的倍增表填完
+            q.push(v);                 // 子节点入队，继续向下扩展
+        }                              // u 的邻居枚举结束
+    }                                  // BFS 主循环结束
+}                                      // bfs 函数结束
+
+int lca(int u, int v) {                // 求 u 和 v 的最近公共祖先
+    if (depth[u] &lt; depth[v]) {         // 保证 u 是较深的那个节点
+        swap(u, v);                    // 交换 u、v
+    }                                  // 深浅调整结束
+    for (int k = LOG - 1; k &gt;= 0; --k) { // 从最大步长开始尝试对齐
+        if (depth[fa[u][k]] &gt;= depth[v]) { // 跳 2^k 步后仍不比 v 浅
+            u = fa[u][k];              // 放心地向上跳 2^k 步
+        }                              // 对齐判断结束
+    }                                  // 深度对齐结束
+    if (u == v) {                      // 对齐后两点已经重合
+        return u;                      // 当前节点就是 LCA
+    }                                  // 提前返回结束
+    for (int k = LOG - 1; k &gt;= 0; --k) { // 从大到小尝试同步上跳
+        if (fa[u][k] != fa[v][k]) {    // 跳完后的祖先不同，说明还没到 LCA
+            u = fa[u][k];              // u 向上跳 2^k 步
+            v = fa[v][k];              // v 向上跳 2^k 步
+        }                              // 同步上跳判断结束
+    }                                  // 同步上跳结束
+    return fa[u][0];                   // 再跳一步就是 LCA
+}                                      // lca 函数结束
+
+int main() {                           // 主函数
+    ios::sync_with_stdio(false);       // 关闭 C 与 C++ 的输入同步
+    cin.tie(nullptr);                  // 解除 cin 与 cout 的绑定
+    int n, m, s;                       // n 个点，m 次询问，根为 s
+    if (!(cin &gt;&gt; n &gt;&gt; m &gt;&gt; s)) {       // 读入点数、询问数、根
+        return 0;                      // 没有输入时直接结束
+    }                                  // 基本信息读入结束
+    for (int i = 1; i &lt; n; ++i) {      // 一棵树有 n-1 条边
+        int u, v;                      // 一条边的两个端点
+        cin &gt;&gt; u &gt;&gt; v;                 // 读入这条边
+        adj[u].push_back(v);           // 无向边 u 到 v
+        adj[v].push_back(u);           // 无向边 v 到 u
+    }                                  // 建树结束
+    bfs(s);                            // 从根 s 开始预处理
+    while (m--) {                      // 依次处理 m 次询问
+        int u, v;                      // 本次询问的两个点
+        cin &gt;&gt; u &gt;&gt; v;                 // 读入询问
+        cout &lt;&lt; lca(u, v) &lt;&lt; '\n';     // 输出它们的 LCA
+    }                                  // 询问处理结束
+    return 0;                          // 程序正常结束
+}                                      // main 函数结束</code></pre>
+
+    <h3>4.2 样例</h3>
+    <p>下面这组数据就是图 1 的树，根为 1，共 5 次询问。输入中前 5 行是 5 条边，后 5 行是询问；输出每行一个整数，依次对应每次询问的 LCA。</p>
+    <p><strong>样例输入</strong></p>
+    <pre class="sample"><code>6 5 1
+1 2
+1 3
+2 4
+2 5
+3 6
+4 5
+4 6
+3 6
+1 6
+5 5</code></pre>
+    <p><strong>样例输出</strong></p>
+    <pre class="sample"><code>2
+1
+3
+1
+5</code></pre>
+    <p>逐行核对：询问 4 和 5 的答案是 2，询问 4 和 6 的答案是 1，询问 3 和 6 的答案是 3（3 是 6 的父节点），询问 1 和 6 的答案是 1，询问 5 和 5 的答案是 5（一个节点和它自己的 LCA 就是它本身）。这五个结果与前面的手算表一致。</p>
+
+    <h3>4.3 两组补充数据</h3>
+    <p>第一组是一条 5 个节点的链，根为 1，询问集中在链尾 5 和前面的节点。链的形状能检验“对齐深度”是否会把较深的节点准确提到目标深度；如果代码把深度差算错，链上的答案会立刻暴露。</p>
+    <table>
+        <thead>
+            <tr><th>补充数据</th><th>形状</th><th>询问</th><th>输出</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>01b.in</code></td><td>1—2—3—4—5 的链，根为 1</td><td>5 和 4、5 和 3、5 和 2、5 和 1</td><td><code>4 3 2 1</code></td></tr>
+            <tr><td><code>01c.in</code></td><td>以 3 为根的星形树，3 连着 1、2、4、5</td><td>1 和 2、4 和 5、1 和 3、2 和 2</td><td><code>3 3 3 2</code></td></tr>
+        </tbody>
+    </table>
+    <p>链的答案是“较浅的那个节点”，因为链上的祖先关系是一条直线；星形树的答案大多是根 3，因为不同分支的节点只能在根处汇合。把这两组数据与主样例放在一起，可以覆盖链、星、普通树三种形状。</p>
+
+    <h3>4.4 读代码时抓住三件事</h3>
+    <p>第一，<code>bfs</code> 里的 <code>if (v == fa[u][0]) continue;</code> 是“不要沿着父亲往回走”，它依赖输入是一棵树；如果输入带环，需要改成访问标记。第二，<code>lca</code> 里的两个循环都从 <code>LOG - 1</code> 开始，不能从 0 开始，否则会先跳小步，可能错过正确的大步组合。第三，<code>main</code> 里的 <code>n - 1</code> 条边和 <code>m</code> 次询问要严格按输入顺序读，不能把询问读进建边循环。</p>
+    <p>代码的边界也已经处理：<code>N</code> 比题目上限多开 5，防止下标越界；<code>LOG = 20</code> 覆盖 500000 的最大深度；<code>depth[0] = 0</code> 和 <code>fa[0][k] = 0</code> 由全局数组自动初始化；根节点的倍增行在 <code>bfs</code> 开头显式清零。即使 N = 1、没有任何树边，程序也能读入并正确处理“自己和自己”的询问。</p>
+
+    <h3>4.5 编译与复杂度</h3>
+    <p>在 NOIP 常见的 g++ 环境下，可以使用下面的命令编译。加了 <code>-Wall -Wextra -pedantic</code> 之后没有任何警告，说明没有明显的类型或越界隐患；正式比赛时通常只需要 <code>-O2</code>。</p>
+    <pre class="sample"><code>g++ -std=c++14 -O2 -Wall -Wextra -pedantic 01_lca_binary_lifting.cpp -o lca</code></pre>
+    <p>复杂度为预处理 O(N log N)、单次询问 O(log N)、总时间 O((N + M) log N)，空间 O(N log N)。对于 N、M 都是 500000 的数据，1000 万个 <code>int</code> 约占 40 MB，BFS 队列和邻接表另占一部分，总内存在常见限制内。若题目内存限制特别紧，可以把 <code>fa</code> 的类型改成 <code>int</code> 并确认 LOG 刚好够用，但不建议为了省几 MB 把 LOG 压到不够覆盖最大深度。</p>
+    <div class="warn">
+        <strong>两个常见错误。</strong>第一种是把根的父节点设成根自己，同时又把根深度设成 0，却在查询时用“落点深度是否大于等于目标深度”做判断，结果根会被反复跳到，甚至死循环。第二种是把 <code>LOG</code> 设成 19，误以为 <code>2<sup>19</sup></code> 够用；单次跳跃确实够，但 500000 的深度差需要 19 位二进制，最高位对应 <code>2<sup>18</sup></code>，再加上组合，20 列更稳妥。统一约定之后，这两种错误都可以避免。
+    </div>
+</section>
+
+<section id="bipartite">
+    <h2>5. 二分图：两种颜色的世界</h2>
+    <p>二分图的故事可以从“分阵营”开始。假设图里的每个点代表一个人，每条边代表两个人有矛盾，现在要把所有人分进两个阵营，要求同一条边连接的两个人在不同阵营。如果能够做到，这张图就是二分图，两个阵营就是它的左右部；如果做不到，说明图里存在某种绕不出去的冲突。课件把二分图概括成“不包含奇数环的无向图”，这句话是判定算法的理论基础。</p>
+    <p>形式化地说，二分图 <code>G = (V, E)</code> 的顶点集可以划分成两个互不相交的集合 <code>X</code> 和 <code>Y</code>，使得每一条边的一个端点在 <code>X</code> 中，另一个端点在 <code>Y</code> 中。注意这里说的是“每一条边”，包括那些看起来不起眼的边；只要有一条边的两个端点落在同一侧，这个划分就不合法。把所有点染成两种颜色，其实就是在构造这个划分：颜色 1 的点放进 <code>X</code>，颜色 2 的点放进 <code>Y</code>。</p>
+
+    <h3>5.1 偶环可以，奇环不行</h3>
+    <p>先看最简单的环。四个点首尾相连形成 C4，从任意一个点开始染颜色 1，沿着环走一步换一种颜色，走到第四个点时颜色是 2，再连回起点，起点是 1，颜色不同，没有冲突，所以 C4 可以二分。三角形 C3 只有三个点，从起点染 1，第二个点染 2，第三个点染 1，但第三个点和起点之间还有一条边，两个端点都是颜色 1，冲突，所以 C3 不能二分。把这两种情况记牢，再遇到一般的环时，只要看长度是奇数还是偶数即可。</p>
+    <p>为什么奇数环一定不行？沿着环交替染色，每走一条边颜色翻转一次；走奇数条边回到起点，颜色应该翻转奇数次，也就是变成相反的颜色，但起点和终点是同一个点，颜色必须相同，矛盾。为什么没有奇数环就一定行？从任意一个未染色的点出发做 BFS 或 DFS，遇到未染色的邻居就染相反色；如果某条边的两个端点已经同色，把这条边和它们在搜索树上的路径拼起来，就会得到一个奇数环，这与“没有奇数环”矛盾。因此“没有冲突”与“没有奇数环”是同一件事。</p>
+
+    <figure>
+        <svg width="760" height="310" viewBox="0 0 760 310" role="img" aria-labelledby="bip-title bip-desc">
+            <title id="bip-title">偶环与奇环的染色对比</title>
+            <desc id="bip-desc">左边是四元环，交替染成两种颜色，所有边都连接不同颜色；右边是三元环，三个点无法只用两种颜色且让每条边两端不同色，必定出现一条同色边。</desc>
+            <text x="42" y="28" font-size="15" fill="#173d2c">C4：偶数环，可以 2 染色</text>
+            <text x="442" y="28" font-size="15" fill="#173d2c">C3：奇数环，一定冲突</text>
+
+            <line x1="140" y1="86" x2="300" y2="86" stroke="#7d8f84" stroke-width="2"></line>
+            <line x1="300" y1="86" x2="300" y2="230" stroke="#7d8f84" stroke-width="2"></line>
+            <line x1="300" y1="230" x2="140" y2="230" stroke="#7d8f84" stroke-width="2"></line>
+            <line x1="140" y1="230" x2="140" y2="86" stroke="#7d8f84" stroke-width="2"></line>
+
+            <circle cx="140" cy="86" r="24" fill="#e3edf9" stroke="#2f5f8f" stroke-width="2"></circle>
+            <text x="140" y="92" text-anchor="middle" font-size="15" fill="#1f3f5f">颜色 1</text>
+            <circle cx="300" cy="86" r="24" fill="#f8ead9" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="300" y="92" text-anchor="middle" font-size="15" fill="#6b4317">颜色 2</text>
+            <circle cx="300" cy="230" r="24" fill="#e3edf9" stroke="#2f5f8f" stroke-width="2"></circle>
+            <text x="300" y="236" text-anchor="middle" font-size="15" fill="#1f3f5f">颜色 1</text>
+            <circle cx="140" cy="230" r="24" fill="#f8ead9" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="140" y="236" text-anchor="middle" font-size="15" fill="#6b4317">颜色 2</text>
+            <text x="220" y="176" text-anchor="middle" font-size="13" fill="#5b6a61">每条边两端颜色都不同</text>
+
+            <line x1="560" y1="80" x2="500" y2="230" stroke="#7d8f84" stroke-width="2"></line>
+            <line x1="500" y1="230" x2="640" y2="230" stroke="#7d8f84" stroke-width="2"></line>
+            <line x1="640" y1="230" x2="560" y2="80" stroke="#c0392b" stroke-width="4" stroke-dasharray="7 5"></line>
+
+            <circle cx="560" cy="80" r="24" fill="#e3edf9" stroke="#2f5f8f" stroke-width="2"></circle>
+            <text x="560" y="86" text-anchor="middle" font-size="15" fill="#1f3f5f">颜色 1</text>
+            <circle cx="500" cy="230" r="24" fill="#f8ead9" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="500" y="236" text-anchor="middle" font-size="15" fill="#6b4317">颜色 2</text>
+            <circle cx="640" cy="230" r="24" fill="#e3edf9" stroke="#2f5f8f" stroke-width="2"></circle>
+            <text x="640" y="236" text-anchor="middle" font-size="15" fill="#1f3f5f">颜色 1</text>
+            <text x="572" y="145" font-size="13" fill="#a12a1d">同色边，冲突</text>
+            <text x="490" y="285" font-size="13" fill="#5b6a61">无论怎么换色，总有一条边两端同色</text>
+        </svg>
+        <figcaption>图 2：左边 C4 可以交替染色，所有边都跨越两种颜色；右边 C3 的第三条边不得不连接两个同色点，红色虚线标出了这条冲突边。</figcaption>
+    </figure>
+
+    <h3>5.2 DFS 交替染色的步骤</h3>
+    <p>判定二分图不需要真的去数环的长度，只需要做一次交替染色。准备一个 <code>color</code> 数组，0 表示未染色，1 和 2 表示两种颜色。从 1 到 N 枚举每个节点，如果它还没有颜色，就以它为起点染成颜色 1，然后递归处理它的邻居；如果邻居没有颜色，就染成相反的颜色 <code>3 - c</code>，继续递归；如果邻居已经有颜色，就比较它和当前节点的颜色，相同则冲突，不同则这条边合法，继续看下一条边。</p>
+    <ol>
+        <li>把所有节点的 <code>color</code> 初始化为 0。全局数组本身是 0，但如果在多组测试数据中复用同一个数组，需要显式清空。</li>
+        <li>枚举起点 <code>i = 1..N</code>。如果 <code>color[i] == 0</code>，说明 <code>i</code> 属于一个还没处理过的连通分量，从它开始新的一轮染色，初始颜色设为 1。</li>
+        <li>进入递归函数 <code>dfs_color(u, c)</code>，先令 <code>color[u] = c</code>，再枚举 <code>u</code> 的所有邻居 <code>v</code>。</li>
+        <li>若 <code>color[v] == 0</code>，递归调用 <code>dfs_color(v, 3 - c)</code>；若这次递归返回 <code>false</code>，当前分量失败，整个图不是二分图。</li>
+        <li>若 <code>color[v] == c</code>，说明同一条边的两端同色，立即返回 <code>false</code>；若 <code>color[v] == 3 - c</code>，这条边合法，继续检查下一个邻居。</li>
+        <li>所有起点都处理完且没有返回 <code>false</code>，图就是二分图。图不连通时，每个分量都会被单独染色，互不影响。</li>
+    </ol>
+    <p>这个过程中有一个容易漏掉的细节：已经染过色且颜色不同的邻居不需要再递归。因为那个邻居所在的整个连通块在之前的递归中已经处理过，重新进入只会重复劳动，甚至可能在环上绕圈。只有未染色的邻居才需要继续深入，这一点与普通的图遍历完全一致。</p>
+
+    <h3>5.3 常见图形的判定结果</h3>
+    <table>
+        <thead>
+            <tr><th>图形</th><th>能否二分</th><th>原因</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>一条链（任意长度）</td><td>可以</td><td>没有环，交替染色不会产生同色边。</td></tr>
+            <tr><td>任意一棵树</td><td>可以</td><td>树没有环，从根开始按层染色即可。</td></tr>
+            <tr><td>四边形 C4</td><td>可以</td><td>环长为 4，是偶数，沿环走一圈颜色翻转偶数次，回到起点仍是相反色。</td></tr>
+            <tr><td>三角形 C3</td><td>不可以</td><td>环长为 3，是奇数，第三次染色必然与起点同色。</td></tr>
+            <tr><td>五边形 C5</td><td>不可以</td><td>环长为 5，是奇数；沿环交替染色会在最后一条边上冲突。</td></tr>
+            <tr><td>两个三角形用一条边相连</td><td>不可以</td><td>只要含有任意一个奇环，整张图就不是二分图。</td></tr>
+            <tr><td>只有孤立点</td><td>可以</td><td>没有边，所有点都可以随意放进任一侧。</td></tr>
+        </tbody>
+    </table>
+    <p>从表中可以看出，判定二分图并不需要图连通，也不要求每个点都有边。孤立点自成一个连通分量，随便染成颜色 1 或颜色 2 都不会产生冲突；多个连通分量之间没有边，染色方案可以各自独立选择。这一点在 P1330 中会直接影响答案的统计方式。</p>
+</section>
+
+<section id="coloring-code">
+    <h2>6. 交替染色代码与判定</h2>
+    <p>下面的程序把上面的步骤写成完整的 C++ 代码。输入第一行是节点数 <code>n</code> 和边数 <code>m</code>，接下来 <code>m</code> 行是无向边的两个端点；输出只有一行，<code>Yes</code> 表示是二分图，<code>No</code> 表示不是。代码使用显式的 <code>&lt;iostream&gt;</code> 和 <code>&lt;vector&gt;</code> 头文件，不依赖 <code>bits/stdc++.h</code>，在 g++14 下可以直接编译。</p>
+
+    <h3>6.1 完整程序</h3>
+    <pre class="code"><code>#include &lt;iostream&gt;                    // 输入输出流
+#include &lt;vector&gt;                      // 邻接表 vector
+using namespace std;                   // 使用标准命名空间
+
+const int N = 10005;                   // 最大节点数，本题按 n &lt;= 10000 设计
+
+vector&lt;int&gt; adj[N];                    // 邻接表，存无向图
+int color[N];                          // 0 未染色，1 和 2 是两种颜色
+
+bool dfs_color(int u, int c) {         // 把 u 染成 c，并检查它的整棵搜索子树
+    color[u] = c;                      // 先给 u 上色
+    for (int v : adj[u]) {             // 枚举 u 的所有邻居
+        if (color[v] == 0) {           // 如果 v 还没有颜色
+            if (!dfs_color(v, 3 - c)) { // 把 v 染成相反色，继续递归
+                return false;          // 子树里发生冲突，整体失败
+            }                          // 递归返回判断结束
+        } else if (color[v] == c) {    // 如果 v 已经染过，而且和 u 同色
+            return false;              // 同一条边的两端同色，产生冲突
+        }                              // 邻居颜色判断结束
+    }                                  // 邻居枚举结束
+    return true;                       // u 的子树全部染色成功
+}                                      // dfs_color 函数结束
+
+int main() {                           // 主函数
+    ios::sync_with_stdio(false);       // 关闭 C 与 C++ 的输入同步
+    cin.tie(nullptr);                  // 解除 cin 与 cout 的绑定
+    int n, m;                          // n 个点，m 条无向边
+    if (!(cin &gt;&gt; n &gt;&gt; m)) {            // 读入点数和边数
+        return 0;                      // 没有输入时直接结束
+    }                                  // 基本信息读入结束
+    for (int i = 1; i &lt;= m; ++i) {     // 依次读入 m 条边
+        int u, v;                      // 一条边的两个端点
+        cin &gt;&gt; u &gt;&gt; v;                 // 读入这条边
+        adj[u].push_back(v);           // 无向边 u 到 v
+        adj[v].push_back(u);           // 无向边 v 到 u
+    }                                  // 建图结束
+    for (int i = 1; i &lt;= n; ++i) {     // 图可能不连通，必须枚举所有起点
+        if (color[i] == 0) {           // 找到一个还没染色的连通分量
+            if (!dfs_color(i, 1)) {    // 从它开始染成颜色 1
+                cout &lt;&lt; "No\n";        // 染色冲突，不是二分图
+                return 0;              // 直接结束程序
+            }                          // 分量判定结束
+        }                              // 未染色判断结束
+    }                                  // 所有分量处理完毕
+    cout &lt;&lt; "Yes\n";                   // 没有任何冲突，是二分图
+    return 0;                          // 程序正常结束
+}                                      // main 函数结束</code></pre>
+
+    <h3>6.2 样例</h3>
+    <p>主样例是一个四边形，四个点首尾相连，显然可以交替染色，因此输出 <code>Yes</code>。程序从节点 1 开始染颜色 1，节点 2 和 4 染颜色 2，节点 3 染颜色 1，所有边都跨越两种颜色。</p>
+    <p><strong>样例输入</strong></p>
+    <pre class="sample"><code>4 4
+1 2
+2 3
+3 4
+4 1</code></pre>
+    <p><strong>样例输出</strong></p>
+    <pre class="sample"><code>Yes</code></pre>
+    <p>另外三组数据分别检查三角形、带奇环的不连通图、只有一个孤立点的情况。它们的输出如下表。第二组和第三组都应该输出 <code>No</code>；第四组没有边，任何染色都不会冲突，应该输出 <code>Yes</code>。</p>
+    <table>
+        <thead>
+            <tr><th>数据</th><th>图的形状</th><th>输出</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>02b.in</code></td><td>三角形 1—2—3—1</td><td><code>No</code></td></tr>
+            <tr><td><code>02c.in</code></td><td>三角形 1—2—3—1，另有一条边 4—5</td><td><code>No</code></td></tr>
+            <tr><td><code>02d.in</code></td><td>只有节点 1，没有边</td><td><code>Yes</code></td></tr>
+        </tbody>
+    </table>
+
+    <h3>6.3 逐段理解代码</h3>
+    <p><code>dfs_color(u, c)</code> 是核心递归函数。它先把当前节点染成 <code>c</code>，然后逐个检查邻居；遇到未染色的邻居就把“相反色”的任务交给下一层递归，遇到同色邻居就直接返回 <code>false</code>。注意返回值的使用方式：只要有一棵子树返回 <code>false</code>，当前层也立刻返回 <code>false</code>，不再继续检查其他邻居，因为整个图已经确定不是二分图，继续检查没有意义。</p>
+    <p><code>main</code> 里的外层循环负责处理不连通的情况。如果只从节点 1 开始染色，那么与 1 不连通的分量永远不会被访问，即使里面藏着奇环，程序也会错误地输出 <code>Yes</code>。所以必须枚举 1 到 <code>n</code> 的每一个点，只对未染色的点发起新的 DFS；每个连通分量只处理一次，总复杂度不会因为外层循环而变高。</p>
+    <p>代码没有在每组数据开始前清空 <code>color</code>，因为整个程序只处理一组输入，全局数组初始就是 0。如果改成多组测试数据，必须在每组开始前用 <code>fill(color, color + n + 1, 0)</code> 清空，否则上一组的颜色会污染下一组。这个习惯在比赛里很重要，很多“本地对、提交错”的问题都来自忘记清空。</p>
+
+    <h3>6.4 复杂度与递归深度</h3>
+    <p>每个节点最多被染色一次，每条无向边在邻接表中出现两次，也最多被检查两次，所以时间复杂度是 O(n + m)，空间复杂度是 O(n + m)。递归深度最坏等于一个连通分量的节点数；本题 n 不超过 10000，递归深度最多 10000 层，在常见环境下可以接受。如果题目把 n 放大到 10<sup>6</sup>，递归就可能撑爆栈，这时应改成 BFS 队列或显式栈的写法，思路完全一样，只是把递归换成循环。</p>
+    <p>编译命令与上一节相同，把文件名换成 <code>02_bipartite_check.cpp</code> 即可。程序在样例、三角形、不连通图、孤立点上都运行过，输出与预期一致；对 n 最大为 10000 的链也做过深度测试，没有出现栈溢出。</p>
+</section>
+
+<section id="p1330">
+    <h2>7. P1330 封锁阳光大学</h2>
+    <p>P1330 的题意是：一张无向图有 n 个顶点、m 条边，每个顶点可以放一只河蟹，放了河蟹之后，与这个顶点相连的所有道路都会被封锁。要求所有道路都被封锁，同时任意两个相邻的顶点不能同时放河蟹，求最少需要多少只河蟹；如果不存在合法方案，输出 <code>Impossible</code>。题目的两个条件看起来一正一反，合在一起会得到一个非常强的结论。</p>
+    <p>第一条“所有道路都被封锁”要求每条边至少有一个端点被选中；第二条“相邻顶点不能同时放”要求每条边至多有一个端点被选中。至少一个、至多一个，合起来就是每条边恰好有一个端点被选中。也就是说，选中的点集 <code>S</code> 必须满足：对每一条边 <code>(u, v)</code>，<code>u</code> 和 <code>v</code> 中恰好一个在 <code>S</code> 里。这个条件正好是二分图的定义：把 <code>S</code> 染成颜色 1，把其余点染成颜色 2，每条边都连接两种颜色。</p>
+    <p>于是问题转化为：判断图能否二分；如果能，每个连通分量有两种染色方案（颜色 1 和颜色 2 互换），选择节点数较少的那一侧放河蟹，把所有分量的最小值相加。孤立点没有边，两种颜色的数量分别是 1 和 0，取较小值 0，表示不需要在孤立点放河蟹，这与题意一致。</p>
+
+    <h3>7.1 每个分量分别取最小，不能全局取最小</h3>
+    <p>这里有一个很容易错的点：不能把整张图的所有颜色 1 节点数加起来、所有颜色 2 节点数加起来，再取一次全局最小。不同连通分量的染色方案是相互独立的，颜色 1 在某个分量里可能代表“多的一侧”，在另一个分量里却可能代表“少的一侧”；全局相加会把不同分量的选择绑在一起，得到错误答案。正确做法是每处理完一个连通分量，就立刻把 <code>min(cnt1, cnt2)</code> 累加进答案，然后继续下一个分量。</p>
+    <p>举一个具体的反例。分量 A 的颜色数量是 1 和 100，分量 B 的颜色数量是 100 和 1。按分量分别取最小，答案是 1 + 1 = 2；如果先把颜色 1 全加起来得到 101，颜色 2 也得到 101，再取最小，答案会变成 101，大了很多。这个例子说明“分层独立决策”与“全局统一决策”不是一回事，P1330 要求的是前者。</p>
+    <table>
+        <thead>
+            <tr><th>连通分量</th><th>颜色 1 数量</th><th>颜色 2 数量</th><th>该分量最优</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>分量 A</td><td>1</td><td>100</td><td>1</td></tr>
+            <tr><td>分量 B</td><td>100</td><td>1</td><td>1</td></tr>
+            <tr><td>分别取最小后相加</td><td>—</td><td>—</td><td><strong>2</strong></td></tr>
+            <tr><td>先全局相加再取最小</td><td>101</td><td>101</td><td>101（错误）</td></tr>
+        </tbody>
+    </table>
+
+    <h3>7.2 完整程序</h3>
+    <pre class="code"><code>#include &lt;iostream&gt;                    // 输入输出流
+#include &lt;vector&gt;                      // 邻接表 vector
+#include &lt;algorithm&gt;                   // min 函数
+using namespace std;                   // 使用标准命名空间
+
+const int N = 10005;                   // 最大节点数，本题 n &lt;= 10000
+
+vector&lt;int&gt; adj[N];                    // 邻接表，存无向图
+int color[N];                          // 0 未染色，1 放河蟹，2 不放河蟹
+
+bool dfs(int u, int c, int &amp;cnt1, int &amp;cnt2) { // 染色并统计两种颜色的数量
+    color[u] = c;                      // 给 u 染上颜色 c
+    if (c == 1) {                      // 如果 u 是颜色 1
+        ++cnt1;                        // 颜色 1 的数量加一
+    } else {                           // 否则 u 是颜色 2
+        ++cnt2;                        // 颜色 2 的数量加一
+    }                                  // 颜色统计结束
+    for (int v : adj[u]) {             // 枚举 u 的所有邻居
+        if (color[v] == 0) {           // 如果 v 还没有颜色
+            if (!dfs(v, 3 - c, cnt1, cnt2)) { // 把 v 染成相反色并递归
+                return false;          // 子树冲突，整体失败
+            }                          // 递归返回判断结束
+        } else if (color[v] == c) {    // 如果 v 已经染色且和 u 同色
+            return false;              // 相邻点同色，无法满足题意
+        }                              // 邻居颜色判断结束
+    }                                  // 邻居枚举结束
+    return true;                       // u 所在的搜索子树染色成功
+}                                      // dfs 函数结束
+
+int main() {                           // 主函数
+    ios::sync_with_stdio(false);       // 关闭 C 与 C++ 的输入同步
+    cin.tie(nullptr);                  // 解除 cin 与 cout 的绑定
+    int n, m;                          // n 个点，m 条无向边
+    if (!(cin &gt;&gt; n &gt;&gt; m)) {            // 读入点数和边数
+        return 0;                      // 没有输入时直接结束
+    }                                  // 基本信息读入结束
+    for (int i = 1; i &lt;= m; ++i) {     // 依次读入 m 条道路
+        int u, v;                      // 道路的两个端点
+        cin &gt;&gt; u &gt;&gt; v;                 // 读入这条道路
+        adj[u].push_back(v);           // 无向边 u 到 v
+        adj[v].push_back(u);           // 无向边 v 到 u
+    }                                  // 建图结束
+    int ans = 0;                       // 累计每个分量最少需要的河蟹数
+    for (int i = 1; i &lt;= n; ++i) {     // 图可能不连通，枚举所有分量
+        if (color[i] != 0) {           // 这个点已经属于前面的分量
+            continue;                  // 跳过，处理下一个点
+        }                              // 已染色判断结束
+        int cnt1 = 0;                  // 当前分量颜色 1 的节点数
+        int cnt2 = 0;                  // 当前分量颜色 2 的节点数
+        if (!dfs(i, 1, cnt1, cnt2)) {  // 从 i 开始染成颜色 1
+            cout &lt;&lt; "Impossible\n";    // 出现冲突，不存在合法方案
+            return 0;                  // 直接结束程序
+        }                              // 分量染色结束
+        ans += min(cnt1, cnt2);        // 两种方案选节点少的一边
+    }                                  // 所有分量处理完毕
+    cout &lt;&lt; ans &lt;&lt; '\n';               // 输出最少河蟹数
+    return 0;                          // 程序正常结束
+}                                      // main 函数结束</code></pre>
+
+    <h3>7.3 样例与手工核对</h3>
+    <p>主样例是一片四边形的环，外加一个孤立点 5。四边形的染色数量是 2 和 2，取较小值 2；孤立点的染色数量是 1 和 0，取较小值 0；总数 2。输出正是 2。注意孤立点虽然被染成了颜色 1，但它贡献的是 0，不会被错误地算成一只河蟹。</p>
+    <p><strong>样例输入</strong></p>
+    <pre class="sample"><code>5 4
+1 2
+1 3
+2 4
+3 4</code></pre>
+    <p><strong>样例输出</strong></p>
+    <pre class="sample"><code>2</code></pre>
+    <p>下面几组数据覆盖了奇数环、路径、断开的分量和五元环。三角形和五元环都无法二分，输出 <code>Impossible</code>；路径 3 的最优解是在中间点放一只河蟹，同时封锁两条边；路径 4 加一个孤立点的答案是 2，孤立点仍然贡献 0。</p>
+    <table>
+        <thead>
+            <tr><th>数据</th><th>图形</th><th>输出</th><th>解释</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>03b.in</code></td><td>三角形</td><td><code>Impossible</code></td><td>奇数环，无法让每条边恰好选一个端点。</td></tr>
+            <tr><td><code>03c.in</code></td><td>路径 1—2—3</td><td><code>1</code></td><td>选中间的 2，两条边都被封锁；两端选一个只能封锁一条边。</td></tr>
+            <tr><td><code>03d.in</code></td><td>路径 1—2—3—4，另加孤立点 5</td><td><code>2</code></td><td>路径本身最少 2 只，孤立点 0 只。</td></tr>
+            <tr><td><code>03e.in</code></td><td>五边形</td><td><code>Impossible</code></td><td>环长为 5，是奇数环，染色必然冲突。</td></tr>
+        </tbody>
+    </table>
+    <p>以路径 3 为例，把 2 染成颜色 1，把 1 和 3 染成颜色 2，颜色 1 的数量是 1，颜色 2 的数量是 2，取较小值 1，正好对应“在中间放一只河蟹”。如果选择两端各放一只，虽然也能封锁两条边，但需要 2 只，不是最优；算法的“取较小颜色集合”自动排除了这种方案。四边形的情况则是两种颜色各 2 个，选哪一侧都需要 2 只。</p>
+
+    <h3>7.4 代码细节与复杂度</h3>
+    <p><code>dfs(u, c, cnt1, cnt2)</code> 在染色的同时统计两种颜色的数量。参数 <code>c</code> 是当前颜色，<code>cnt1</code> 和 <code>cnt2</code> 用引用传递，保证递归过程中累加的是同一组计数器。遇到未染色邻居就递归染相反色；遇到同色邻居就返回 <code>false</code>；所有邻居都处理完返回 <code>true</code>。主函数每发现一个未染色点，就开一组新的计数器，染色成功后把 <code>min(cnt1, cnt2)</code> 加到答案里。</p>
+    <p>时间复杂度是 O(n + m)，每个点和每条边最多访问一次；空间复杂度是 O(n + m)，主要用于邻接表、<code>color</code> 数组和递归栈。本题 n 最大 10000、m 最大 100000，递归深度最坏是一条 10000 个点的链；在常见评测环境下可以运行，但如果评测机的栈空间特别小，可以把 DFS 改成显式栈，逻辑不变。代码使用 <code>long long</code> 没有必要，因为答案最多是 n，<code>int</code> 足够；但计数器和答案都用 <code>int</code>，不会溢出。</p>
+    <div class="warn">
+        <strong>三个易错点。</strong>第一，忘记枚举所有未染色点，只从一个点开始，导致不连通图漏判；第二，把每个分量的最小值和全局最小值混在一起；第三，把孤立点也当成需要放河蟹的点，实际上它的 <code>min(1, 0) = 0</code>。这三处都已经在上面的代码和样例中覆盖。
+    </div>
+</section>
+
+<section id="hungarian">
+    <h2>8. 匈牙利算法：给左部每个点找匹配</h2>
+    <p>二分图最大匹配是另一个经典问题：左部有 n 个点，右部有 m 个点，图中有 e 条边，每条边连接一个左部点和一个右部点。要选出尽可能多的边，使得任意两条被选中的边都没有公共端点。这样的边集叫做一个匹配，匹配中边的数量就是匹配的大小；要求最大的大小。可以把左部想成“求职者”，右部想成“岗位”，边表示“这个人能胜任这个岗位”，一个岗位只能录一个人，一个人也只能去一个岗位，目标是让尽可能多的人上岗。</p>
+    <p>匈牙利算法从空匹配开始，依次为每个左部点尝试找一条增广路。增广路是一条从“未匹配的左部点”出发，沿着“未匹配边—已匹配边—未匹配边—……”交替前进，最后到达“未匹配的右部点”的路径。沿着这条路径把匹配边和非匹配边互换，路径上的匹配边数会恰好增加 1，而不会破坏其他边的匹配关系。反复寻找增广路，直到找不到为止，根据增广路定理，此时的匹配就是最大匹配。</p>
+
+    <figure>
+        <svg width="760" height="320" viewBox="0 0 760 320" role="img" aria-labelledby="aug-title aug-desc">
+            <title id="aug-title">一条增广路</title>
+            <desc id="aug-desc">左部 L1 已匹配 R1，L2 未匹配；L2 连到 R1，R1 的现任 L1 还能连到未匹配的 R2，于是沿着 L2-R1-L1-R2 翻转匹配，匹配数增加一。</desc>
+            <text x="40" y="28" font-size="15" fill="#173d2c">当前匹配：L1—R1</text>
+            <text x="40" y="52" font-size="13" fill="#5b6a61">虚线是未匹配边，实线是已匹配边；从 L2 出发可以找到一条增广路。</text>
+
+            <circle cx="150" cy="105" r="25" fill="#e3edf9" stroke="#2f5f8f" stroke-width="2"></circle>
+            <text x="150" y="111" text-anchor="middle" font-size="15" fill="#1f3f5f">L1</text>
+            <circle cx="150" cy="245" r="25" fill="#f8ead9" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="150" y="251" text-anchor="middle" font-size="15" fill="#6b4317">L2</text>
+            <circle cx="620" cy="105" r="25" fill="#e3edf9" stroke="#2f5f8f" stroke-width="2"></circle>
+            <text x="620" y="111" text-anchor="middle" font-size="15" fill="#1f3f5f">R1</text>
+            <circle cx="620" cy="245" r="25" fill="#f8ead9" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="620" y="251" text-anchor="middle" font-size="15" fill="#6b4317">R2</text>
+
+            <line x1="175" y1="105" x2="595" y2="105" stroke="#2f6f4e" stroke-width="4"></line>
+            <text x="385" y="94" text-anchor="middle" font-size="13" fill="#2f6f4e">已匹配：L1—R1</text>
+
+            <line x1="176" y1="232" x2="596" y2="118" stroke="#c07a24" stroke-width="3" stroke-dasharray="7 5"></line>
+            <text x="385" y="190" text-anchor="middle" font-size="13" fill="#8a5414">① 未匹配：L2—R1</text>
+
+            <line x1="596" y1="92" x2="176" y2="218" stroke="#c07a24" stroke-width="3" stroke-dasharray="7 5"></line>
+            <text x="385" y="135" text-anchor="middle" font-size="13" fill="#8a5414">② 已匹配：R1—L1</text>
+
+            <line x1="175" y1="118" x2="595" y2="232" stroke="#c07a24" stroke-width="3" stroke-dasharray="7 5"></line>
+            <text x="385" y="210" text-anchor="middle" font-size="13" fill="#8a5414">③ 未匹配：L1—R2</text>
+
+            <text x="300" y="300" font-size="13" fill="#5b6a61">翻转后：L2—R1、L1—R2，匹配数从 1 变成 2</text>
+        </svg>
+        <figcaption>图 3：增广路 L2 → R1 → L1 → R2。路径上的边依次是未匹配、已匹配、未匹配；把匹配关系翻转后，L2 和 R1 配对、L1 和 R2 配对，匹配数增加 1。</figcaption>
+    </figure>
+
+    <h3>8.1 递归寻找增广路</h3>
+    <p>对每个左部点 <code>u</code>，调用一次 <code>dfs(u)</code>，尝试把它“嫁出去”。函数枚举 <code>u</code> 能连到的右部点 <code>v</code>：如果 <code>v</code> 在本次搜索中已经访问过，就跳过，避免在环上反复横跳；否则标记 <code>v</code> 已访问。接下来分两种情况：如果 <code>v</code> 还没有匹配对象，直接把 <code>match[v]</code> 设为 <code>u</code>，返回成功；如果 <code>v</code> 已经匹配了某个左部点 <code>match[v]</code>，就递归调用 <code>dfs(match[v])</code>，让“现任”去别处找位置。如果“现任”能腾出位置，就把 <code>v</code> 让给 <code>u</code>；否则 <code>u</code> 只能放弃 <code>v</code>，继续尝试下一个右部点。</p>
+    <p>这个过程看似在“抢位置”，实际上是在沿增广路调整匹配。每次递归都沿着一条已匹配边走到左部，再沿着一条未匹配边走向右部；如果最后落到一个未匹配的右部点，整条路径就翻转成功。访问标记保证同一次搜索中每个右部点只被询问一次，否则递归可能沿着匹配边来回走，陷入死循环。每次为新的左部点搜索前，必须让访问标记“重新生效”；代码用时间戳 <code>tim</code> 来实现，每轮把 <code>tim</code> 加一，判断 <code>vis[v] == tim</code> 就相当于“本轮访问过”。</p>
+
+    <h3>8.2 完整程序</h3>
+    <pre class="code"><code>#include &lt;iostream&gt;                    // 输入输出流
+#include &lt;vector&gt;                      // 邻接表 vector
+using namespace std;                   // 使用标准命名空间
+
+const int N = 505;                     // 左部节点最大 500，数组多开一点
+
+vector&lt;int&gt; adj[N];                    // adj[u] 存左部节点 u 能连到的右部节点
+int match[N];                          // match[v] 表示右部 v 当前匹配的左部节点
+int vis[N];                            // vis[v] 记录右部 v 在本次增广中是否到过
+int tim;                               // 时间戳，每轮增广前加一
+
+bool dfs(int u) {                      // 尝试给左部节点 u 找增广路
+    for (int v : adj[u]) {             // 枚举 u 能连到的右部节点
+        if (vis[v] == tim) {           // 本次增广已经访问过 v
+            continue;                  // 不再重复访问，避免死循环
+        }                              // 访问标记判断结束
+        vis[v] = tim;                  // 标记 v 在本次增广中被访问
+        if (match[v] == 0 || dfs(match[v])) { // v 空着，或 v 的现任能让位
+            match[v] = u;              // 把 v 匹配给 u
+            return true;               // 成功找到一条增广路
+        }                              // 匹配判断结束
+    }                                  // 右部邻居枚举结束
+    return false;                      // 没有找到增广路
+}                                      // dfs 函数结束
+
+int main() {                           // 主函数
+    ios::sync_with_stdio(false);       // 关闭 C 与 C++ 的输入同步
+    cin.tie(nullptr);                  // 解除 cin 与 cout 的绑定
+    int n, m, e;                       // 左部 n 个点，右部 m 个点，e 条边
+    if (!(cin &gt;&gt; n &gt;&gt; m &gt;&gt; e)) {       // 读入三部分规模
+        return 0;                      // 没有输入时直接结束
+    }                                  // 基本信息读入结束
+    for (int i = 1; i &lt;= e; ++i) {     // 依次读入 e 条边
+        int u, v;                      // 左部 u，右部 v
+        cin &gt;&gt; u &gt;&gt; v;                 // 读入这条边
+        adj[u].push_back(v);           // 只从左部连向右部
+    }                                  // 建图结束
+    int ans = 0;                       // 当前匹配边数
+    for (int u = 1; u &lt;= n; ++u) {     // 依次为每个左部节点尝试增广
+        ++tim;                         // 新的一轮增广，时间戳加一
+        if (dfs(u)) {                  // 如果找到增广路
+            ++ans;                     // 匹配数增加一
+        }                              // 增广结果判断结束
+    }                                  // 所有左部节点处理完毕
+    cout &lt;&lt; ans &lt;&lt; '\n';               // 输出最大匹配数
+    return 0;                          // 程序正常结束
+}                                      // main 函数结束</code></pre>
+
+    <h3>8.3 样例与手工核对</h3>
+    <p>主样例左部 3 个点、右部 3 个点、4 条边：1—1、1—2、2—2、3—2。第一轮 L1 连到 R1，R1 空着，匹配成功；第二轮 L2 连到 R2，R2 空着，匹配成功；第三轮 L3 只能连 R2，但 R2 已经被 L2 占用，递归让 L2 换位置，L2 没有其他边可换，只能失败。最终匹配数是 2。</p>
+    <p><strong>样例输入</strong></p>
+    <pre class="sample"><code>3 3 4
+1 1
+1 2
+2 2
+3 2</code></pre>
+    <p><strong>样例输出</strong></p>
+    <pre class="sample"><code>2</code></pre>
+    <p>第二组数据是典型的“需要让位”的情况：L1 先占了 R1，L2 也想连 R1，递归发现 L1 还能连 R2，于是 L1 让到 R2，L2 拿到 R1，匹配数变成 2。第三组没有边，答案是 0；第四组只有一条边，答案是 1；第五组有重边，答案仍然是 2，重边不会让匹配数变大。</p>
+    <table>
+        <thead>
+            <tr><th>数据</th><th>形状</th><th>输出</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>04b.in</code></td><td>L1—R1、L1—R2、L2—R1</td><td><code>2</code></td></tr>
+            <tr><td><code>04c.in</code></td><td>左 3、右 2、没有边</td><td><code>0</code></td></tr>
+            <tr><td><code>04d.in</code></td><td>左 1、右 1、一条边</td><td><code>1</code></td></tr>
+            <tr><td><code>04e.in</code></td><td>两条重边 1—1，两条重边 2—2</td><td><code>2</code></td></tr>
+        </tbody>
+    </table>
+
+    <h3>8.4 时间戳与常见错误</h3>
+    <p>课件里给出了两种清空访问标记的方式：一种是在每个左部点开始前用 <code>memset(vis, 0, sizeof(vis))</code> 清零，另一种是用时间戳 <code>tim</code>，每轮加一，判断 <code>vis[v] == tim</code>。两种写法都正确。前者的清空操作是 O(m)，总共 O(nm)，在 n、m 都不超过 500 时完全够用；后者避免反复清空，写起来也很简洁。本页采用时间戳写法，并用 <code>int</code> 保存 <code>vis</code>，因为时间戳需要和轮次比较，不能再用 <code>bool</code>。</p>
+    <p>匈牙利算法的时间复杂度是 O(n × e)：每个左部点最多发起一次搜索，每次搜索最多沿着边访问一遍右部点。空间复杂度是 O(n + m + e)，主要花在邻接表和 <code>match</code>、<code>vis</code> 数组上。本题 n、m 不超过 500、e 不超过 50000，O(n × e) 最坏约为 2500 万次操作，在 g++14 的 O2 优化下可以轻松通过。若数据规模更大，就需要用 Dinic 等网络流算法，这已经超出本页范围。</p>
+    <div class="warn">
+        <strong>四个易错点。</strong>第一，邻接表只从左部连向右部，不要写成双向边，否则 <code>dfs</code> 会在右部点上继续枚举，逻辑会乱。第二，<code>match[v] == 0</code> 表示右部点 <code>v</code> 还没有匹配，不能用 <code>match[v] == v</code> 之类的错误判断。第三，每次为新的左部点搜索前必须开启新的一轮访问标记，否则上一轮的 <code>vis</code> 会阻止本轮访问。第四，节点编号从 1 开始，数组要开到 <code>n + 1</code> 或更大，避免下标 0 与“空匹配”的含义冲突。
+    </div>
+</section>
+
+<section id="compare">
+    <h2>9. 两种“交替”问题的对照</h2>
+    <p>倍增与 LCA 处理的是“向上跳”的结构，二分图与匈牙利处理的是“两种状态交替”的结构，它们看起来属于不同章节，但底层的搜索思想有相通之处。把这两类问题放在一起比较，可以帮助我们在遇到新题时快速判断该用哪一套工具，也能避免把“染色”和“匹配”的数组混用。</p>
+    <table>
+        <thead>
+            <tr><th>对比项</th><th>二分图判定 / P1330</th><th>二分图最大匹配 / 匈牙利</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>要解决的问题</td><td>能否把点分成两侧，使每条边跨两侧；若能，求最小的一侧大小。</td><td>选出尽量多的边，使任意两条边没有公共端点。</td></tr>
+            <tr><td>图的结构</td><td>无向图，可以连通也可以不连通，可以有孤立点。</td><td>二分图，边只从左部指向右部；左右部已经给定。</td></tr>
+            <tr><td>核心状态</td><td><code>color[u]</code>：0 未染色，1 和 2 是两种阵营。</td><td><code>match[v]</code>：右部点 <code>v</code> 当前匹配的左部点；<code>vis[v]</code>：本轮是否访问。</td></tr>
+            <tr><td>“交替”指什么</td><td>沿着边走，颜色 1、2、1、2 交替出现。</td><td>沿着增广路走，未匹配边、已匹配边、未匹配边交替出现。</td></tr>
+            <tr><td>失败条件</td><td>遇到一条边的两个端点同色，说明存在奇环。</td><td>所有尝试都找不到增广路，说明当前匹配已经最大。</td></tr>
+            <tr><td>遍历方式</td><td>DFS 或 BFS 染色，每个点、每条边访问常数次。</td><td>对每个左部点做一次 DFS，每次沿边寻找增广路。</td></tr>
+            <tr><td>时间复杂度</td><td>O(n + m)。</td><td>O(n × e)，n 是左部点数，e 是边数。</td></tr>
+            <tr><td>空间复杂度</td><td>O(n + m)。</td><td>O(n + m + e)。</td></tr>
+            <tr><td>输出</td><td><code>Yes</code>/<code>No</code>，或最少的河蟹数 / <code>Impossible</code>。</td><td>最大匹配的边数。</td></tr>
+        </tbody>
+    </table>
+    <p>两者都需要“访问标记”，但目的不同。染色里的标记是 <code>color</code>，它同时保存了“是否访问过”和“属于哪一侧”两个信息；匹配里的 <code>vis</code> 只保存“这一轮是否访问过”，它不关心右部点属于哪一侧，因为右部点本来就在同一侧。把这两个数组的语义分清楚，就不会在匈牙利算法里误用 <code>color</code>，也不会在染色时把 <code>vis</code> 当成颜色。</p>
+    <p>两者都需要“回溯”，但回溯的内容不同。染色失败时直接返回 <code>false</code>，不需要撤销已经染好的颜色，因为一旦发现奇环，整个图就已经确定不是二分图；匹配失败时也不需要撤销 <code>match</code>，因为递归中的“让位”只有在真正找到空位时才修改 <code>match</code>，失败路径不会留下半成品。理解这一点，可以避免在递归里写多余的“还原现场”代码。</p>
+    <p>如果题目要求“把点分成两组，使组内没有边”，优先想二分图染色；如果题目要求“选出最多的配对”，优先想最大匹配。P1330 是前者的变体，P3386 是后者的模板。倍增和 LCA 则是另一条线：它不处理“配对”，而是利用二进制拆分把“向上跳”的次数压到对数级；但它的预处理同样依赖一次遍历，这一点与染色、匹配的 DFS 是相通的。</p>
+</section>
+
+<section id="comb-basics">
+    <h2>10. 组合计数基础与容斥原理</h2>
+    <p>到这里，图上的搜索与匹配告一段落。课件新增的两个问题——B3717 和 P2158——看起来一个在算组合数、一个在数方阵里的点，实际上都在做同一类事情：把大量重复的计算提前预处理，或者用容斥把“至少满足一个条件”的并集拆成“同时满足若干条件”的交集。理解这两个工具，比记住两道题的代码更重要；因为下一次遇到“多次询问组合数”或“统计与 gcd 有关的点”时，用的还是同一套思路。</p>
+
+    <h3>10.1 加法原理与乘法原理</h3>
+    <p>计数问题最先要分清的是“分类”还是“分步”。如果完成一件事有若干类互不重叠的方法，那么总方法数等于各类方法数相加，这叫加法原理。例如从 1 到 10 中选一个偶数，有 2、4、6、8、10 共 5 种；选一个奇数，有 1、3、5、7、9 共 5 种；选一个偶数或奇数，两类没有交集，一共 5 + 5 = 10 种。反过来，如果两类方法有重叠，就不能直接把数量相加，必须把重复计算的部分减掉，这正是后面容斥原理要解决的问题。</p>
+    <p>如果完成一件事要分成先后几个步骤，每一步都有若干种选择，那么总方法数等于各步选择数相乘，这叫乘法原理。例如有 3 件上衣和 4 条裤子，搭配一套衣服有 3 × 4 = 12 种；从 A 到 B 有 3 条路，从 B 到 C 有 4 条路，经过 B 从 A 到 C 就有 3 × 4 = 12 条路线。写程序时，我们经常把“选哪些数”“按什么顺序选”拆成一步一步，再用乘法把每步的选择数乘起来。</p>
+
+    <h3>10.2 排列与组合</h3>
+    <p>从 n 个不同元素中取出 m 个，如果顺序不同算不同方案，叫做排列，方案数是 <code>P(n, m) = n × (n−1) × … × (n−m+1) = n! / (n−m)!</code>。例如从 5 个人里选 2 个人分别当正、副组长，有 5 × 4 = 20 种。如果只关心选出了哪 m 个，不关心顺序，叫做组合，方案数是 <code>C(n, m) = P(n, m) / m! = n! / (m! × (n−m)!)</code>。同样是 5 个人里选 2 个人，不区分正副组长，就只有 <code>C(5, 2) = 10</code> 种。</p>
+    <p>组合数有几个常用性质：<code>C(n, 0) = C(n, n) = 1</code>；<code>C(n, 1) = n</code>；<code>C(n, m) = C(n, n−m)</code>，因为“选出 m 个”和“留下 n−m 个”是一一对应的；<code>C(n, m) = C(n−1, m−1) + C(n−1, m)</code>，这就是杨辉三角的递推式。B3717 的 n 最大到 5×10<sup>6</sup>，用二维递推存不下，也不能对每次询问现算阶乘，所以必须换成“预处理阶乘 + 逆元”的做法。</p>
+
+    <h3>10.3 模意义下的阶乘与逆元</h3>
+    <p>B3717 的模数是 <code>MOD = 998244353</code>，它是一个质数。我们先预处理 <code>fac[i] = i! mod MOD</code>，从小到大一遍就能算完；再预处理 <code>ifac[i] = (i!)<sup>−1</sup> mod MOD</code>，也就是阶乘在模 MOD 意义下的逆元。有了这两个数组，任意组合数都可以在 O(1) 时间内算出来：<code>C(n, m) = fac[n] × ifac[m] × ifac[n−m] mod MOD</code>。</p>
+    <p>逆元怎么求？因为 MOD 是质数，且 <code>1 ≤ a &lt; MOD</code>，费马小定理告诉我们 <code>a<sup>MOD−1</sup> ≡ 1 (mod MOD)</code>，所以 <code>a<sup>MOD−2</sup> ≡ a<sup>−1</sup> (mod MOD)</code>。用快速幂计算 <code>a<sup>MOD−2</sup></code>，时间复杂度 O(log MOD)；再用递推式 <code>ifac[i−1] = ifac[i] × i</code> 从 <code>ifac[n]</code> 倒推出所有逆阶乘，总预处理是 O(N + log MOD)。</p>
+    <p>这里有一个容易被忽略的前提：<code>n &lt; MOD</code>。如果 n 大于等于 MOD，那么 <code>fac[n]</code> 中含有因子 MOD，模 MOD 的结果是 0，0 没有逆元，这套公式就失效了。B3717 的 N 不超过 5×10<sup>6</sup>，远小于 998244353，所以可以放心使用；如果下次题目的 n 超过模数，就要换用 Lucas 定理，不能直接套这个模板。</p>
+
+    <h3>10.4 容斥原理：先加后减，再加回来</h3>
+    <p>容斥原理处理的是“至少满足其中一个条件”的计数。两个集合时，<code>|A ∪ B| = |A| + |B| − |A ∩ B|</code>：把 A 和 B 的数量相加，交集里的元素被算了两次，所以减掉一次。例如 <code>|A| = 5</code>、<code>|B| = 3</code>、<code>|A ∩ B| = 1</code>，那么 <code>|A ∪ B| = 5 + 3 − 1 = 7</code>。这个例子画在图 4 里，左圆只有 A 的 4 个，中间是交集的 1 个，右圆只有 B 的 2 个，合起来正好 7 个。</p>
+    <p>三个集合时，公式变成 <code>|A ∪ B ∪ C| = |A| + |B| + |C| − |A ∩ B| − |A ∩ C| − |B ∩ C| + |A ∩ B ∩ C|</code>。直观理解是：单个集合先各加一次；两两交集被多算，减一次；三个集合的交集在前面的加减中被减得太多，最后再加回来一次。一般地，枚举所有非空子集 S，若 S 中集合个数是奇数就加上交集大小，是偶数就减去交集大小，这就是容斥原理的通用形式。</p>
+    <p>在程序里，如果条件个数 k 很小，可以用一个整数 mask 枚举 <code>1</code> 到 <code>2<sup>k</sup> − 1</code> 的每个非空子集，把子集中所有条件对应的数乘起来，再根据 mask 中 1 的个数决定加还是减。P2158 里的 k 是“n 的不同质因子个数”，n ≤ 40000 时最多只有 6 个不同质因子（2×3×5×7×11×13 = 30030，再乘 17 就超过 40000），所以最多枚举 2<sup>6</sup> − 1 = 63 个子集，非常快。</p>
+    <figure>
+        <svg width="760" height="270" viewBox="0 0 760 270" role="img" aria-labelledby="inc-title inc-desc">
+            <title id="inc-title">两个集合的容斥</title>
+            <desc id="inc-desc">左圆 A 有 5 个元素，右圆 B 有 3 个元素，交集有 1 个元素；并集是 5 加 3 减 1，等于 7。</desc>
+            <text x="40" y="28" font-size="15" fill="#173d2c">两个集合的容斥：交集被算了两次，要减掉一次</text>
+            <circle cx="300" cy="130" r="95" fill="#e3edf9" fill-opacity="0.75" stroke="#2f5f8f" stroke-width="2"></circle>
+            <circle cx="420" cy="130" r="95" fill="#f8ead9" fill-opacity="0.75" stroke="#a56a2a" stroke-width="2"></circle>
+            <text x="250" y="136" text-anchor="middle" font-size="17" fill="#1f3f5f">4</text>
+            <text x="360" y="136" text-anchor="middle" font-size="17" fill="#5b3a13">1</text>
+            <text x="470" y="136" text-anchor="middle" font-size="17" fill="#6b4317">2</text>
+            <text x="225" y="45" text-anchor="middle" font-size="14" fill="#1f3f5f">A：5 个</text>
+            <text x="495" y="45" text-anchor="middle" font-size="14" fill="#6b4317">B：3 个</text>
+            <text x="380" y="250" text-anchor="middle" font-size="15" fill="#173d2c">|A ∪ B| = 5 + 3 − 1 = 7</text>
+        </svg>
+        <figcaption>图 4：两集合容斥。A 单独的 4 个、交集的 1 个、B 单独的 2 个，合起来是 7 个；如果直接算 5 + 3，交集中的那 1 个会被重复计算。</figcaption>
+    </figure>
+
+    <h3>10.5 两个问题的共同点</h3>
+    <p>B3717 的关键是“预处理一次，回答很多次”：把 <code>fac</code> 和 <code>ifac</code> 算好之后，每条询问只做两次乘法和两次取模。P2158 的关键是“把一个难数的并集拆成好数的交集”：直接数“与 n 不互质的数”不容易，但数“能被某个质因子整除的数”很容易，于是用容斥把并集大小算出来，再用 n 减去它。两道题都没有用到高深的算法，难的是看出“哪些量可以预处理”“哪些条件可以拆开”。</p>
+    <div class="note">
+        <strong>一句话总结。</strong>组合数回答“选出哪些”，容斥回答“至少满足一个条件的有多少”；前者靠阶乘和逆元把 O(n) 的式子压成 O(1)，后者靠枚举子集把“并集”化成“交集”。
+    </div>
+</section>
+
+<section id="b3717">
+    <h2>11. B3717 组合数问题</h2>
+    <p>B3717 的题意是：给定询问组数 T 和组合数中 n 的上限 N，接下来 T 行每行给出 n、m，要求计算 <code>C(n, m) mod 998244353</code>，但不需要把每个答案分别输出，而是把所有答案按位异或起来，只输出一个整数。这个“异或”看起来只是最后的合并方式，实际上它提醒我们：每条询问必须独立、快速地算出来，不能把所有答案存下来再处理，更不能对每条询问重新跑一遍 O(n) 的阶乘。</p>
+
+    <h3>11.1 题意与数据范围</h3>
+    <table>
+        <thead>
+            <tr><th>项目</th><th>范围 / 含义</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>询问组数 T</td><td><code>1 ≤ T ≤ 5 × 10<sup>6</sup></code>，输入可能非常大</td></tr>
+            <tr><td>组合数上限 N</td><td><code>0 ≤ m ≤ n ≤ N ≤ 5 × 10<sup>6</sup></code>，所有询问共用这个上限</td></tr>
+            <tr><td>模数</td><td><code>998244353</code>，是质数，且大于 N</td></tr>
+            <tr><td>输出</td><td>所有 <code>C(n, m) mod 998244353</code> 的按位异或</td></tr>
+        </tbody>
+    </table>
+    <p>T 和 N 都达到 5×10<sup>6</sup>，这意味着输入最多有一千万个整数，预处理最多要处理五百万个阶乘。对每条询问现算 <code>n! / (m!(n−m)!)</code> 需要 O(n) 时间，总时间会到 O(TN)，完全不可行；即使只对每条询问算一次乘法，也要保证读入足够快。所以这道题的正确方向是“O(N) 预处理 + O(1) 回答”。</p>
+
+    <h3>11.2 预处理阶乘与逆阶乘</h3>
+    <p>先看 <code>fac</code> 数组：<code>fac[0] = 1</code>，对 <code>i = 1, 2, …, N</code>，<code>fac[i] = fac[i−1] × i mod MOD</code>。这一步是 O(N) 的，而且必须用 <code>long long</code> 做中间乘法，因为两个小于 10<sup>9</sup> 的数相乘可能达到 10<sup>18</sup>，用 <code>int</code> 会溢出。</p>
+    <p>再看 <code>ifac</code> 数组。先算 <code>ifac[N] = fac[N]<sup>MOD−2</sup> mod MOD</code>，这是一次快速幂，O(log MOD)；然后从 N 倒推到 1，利用 <code>ifac[i−1] = ifac[i] × i mod MOD</code>。为什么这个递推成立？因为 <code>ifac[i] = 1 / i!</code>，两边乘以 i 就得到 <code>1 / (i−1)! = ifac[i−1]</code>。这样整个 <code>ifac</code> 数组只需要一次快速幂和 O(N) 次乘法。</p>
+    <p>回答询问时，<code>C(n, m) = fac[n] × ifac[m] × ifac[n−m] mod MOD</code>。如果 <code>m &lt; 0</code> 或 <code>m &gt; n</code>，按组合数定义返回 0；本题保证 <code>0 ≤ m ≤ n</code>，这个判断主要是让函数更完整。注意乘法的顺序：每乘一次就取一次模，避免中间结果超过 <code>long long</code> 的范围。</p>
+
+    <h3>11.3 完整程序</h3>
+    <p>下面的程序使用显式头文件，不依赖 <code>bits/stdc++.h</code>；读入用 <code>getchar</code> 手写快速读入，因为 T 可达 5×10<sup>6</sup>，一千万个整数的输入量很大。程序把所有答案异或到 <code>ans</code> 中，最后只输出一个整数。</p>
+    <pre class="code"><code>#include &lt;iostream&gt;                    // 标准输入输出
+#include &lt;cstdio&gt;                      // getchar 与 printf
+using namespace std;                   // 使用标准命名空间
+
+const int MAXN = 5000005;              // 最大 n，比 5×10^6 多开一点
+const int MOD = 998244353;             // 题目指定的质数模数
+
+int fac[MAXN];                         // fac[i] = i! mod MOD
+int ifac[MAXN];                        // ifac[i] = (i!)^{-1} mod MOD
+
+long long qpow(long long a, long long b) { // 快速幂，求 a^b mod MOD
+    long long res = 1;                 // 结果初始为 1
+    while (b &gt; 0) {                    // 指数还没用完
+        if (b &amp; 1) {                   // 当前二进制位为 1
+            res = res * a % MOD;       // 把这一位的幂乘进结果
+        }                              // 当前位判断结束
+        a = a * a % MOD;               // 底数平方，准备下一位
+        b &gt;&gt;= 1;                       // 指数右移一位
+    }                                  // 快速幂循环结束
+    return res;                        // 返回 a^b mod MOD
+}                                      // qpow 函数结束
+
+void init_comb(int n) {                // 预处理 0! 到 n! 及其逆元
+    fac[0] = 1;                        // 0! = 1
+    for (int i = 1; i &lt;= n; ++i) {     // 从小到大计算阶乘
+        fac[i] = 1LL * fac[i - 1] * i % MOD; // 用 long long 防止乘法溢出
+    }                                  // 阶乘计算结束
+    ifac[n] = qpow(fac[n], MOD - 2);   // 费马小定理求 n! 的逆元
+    for (int i = n; i &gt;= 1; --i) {     // 从 n 倒推到 1
+        ifac[i - 1] = 1LL * ifac[i] * i % MOD; // (i-1)!^{-1} = i!^{-1} × i
+    }                                  // 逆元倒推结束
+}                                      // init_comb 函数结束
+
+int C(int n, int m) {                  // 返回 C(n, m) mod MOD
+    if (m &lt; 0 || m &gt; n) {              // 组合数下标不合法
+        return 0;                      // 按定义返回 0
+    }                                  // 合法性判断结束
+    return 1LL * fac[n] * ifac[m] % MOD * ifac[n - m] % MOD; // 套公式
+}                                      // C 函数结束
+
+inline int read() {                    // 快速读入一个非负整数
+    int x = 0;                         // 累加结果
+    int c = getchar();                 // 读入一个字符
+    while (c &lt; '0' || c &gt; '9') {       // 跳过空白和换行
+        if (c == EOF) {                // 输入结束
+            return 0;                  // 返回 0，避免死循环
+        }                              // EOF 判断结束
+        c = getchar();                 // 继续读下一个字符
+    }                                  // 跳过非数字字符结束
+    while (c &gt;= '0' &amp;&amp; c &lt;= '9') {     // 读到数字就继续
+        x = x * 10 + (c - '0');        // 把这一位接在末尾
+        c = getchar();                 // 读下一个字符
+    }                                  // 数字读取结束
+    return x;                          // 返回读到的整数
+}                                      // read 函数结束
+
+int main() {                           // 主函数
+    int T = read();                    // 询问次数
+    int N = read();                    // 所有询问中 n 的上限
+    init_comb(N);                      // 预处理到 N
+    int ans = 0;                       // 所有组合数答案的异或和
+    while (T--) {                      // 依次处理每个询问
+        int n = read();                // 读入 n
+        int m = read();                // 读入 m
+        ans ^= C(n, m);                // 把 C(n,m) 异或进答案
+    }                                  // 询问处理结束
+    printf("%d\n", ans);               // 输出异或和
+    return 0;                          // 程序正常结束
+}                                      // main 函数结束</code></pre>
+
+    <h3>11.4 样例与手算</h3>
+    <p>样例中 N = 10，共有 5 条询问：<code>C(5,2)</code>、<code>C(10,3)</code>、<code>C(6,0)</code>、<code>C(7,7)</code>、<code>C(4,2)</code>。它们分别是 10、120、1、1、6；把这五个数依次异或，得到 116。注意最后一列不是求和，而是按二进制位异或：相同为 0、不同为 1。</p>
+    <p><strong>样例输入</strong></p>
+    <pre class="sample"><code>5 10
+5 2
+10 3
+6 0
+7 7
+4 2</code></pre>
+    <p><strong>样例输出</strong></p>
+    <pre class="sample"><code>116</code></pre>
+    <table>
+        <thead>
+            <tr><th>询问</th><th>组合数</th><th>模 998244353 后的值</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>C(5, 2)</code></td><td>10</td><td>10</td></tr>
+            <tr><td><code>C(10, 3)</code></td><td>120</td><td>120</td></tr>
+            <tr><td><code>C(6, 0)</code></td><td>1</td><td>1</td></tr>
+            <tr><td><code>C(7, 7)</code></td><td>1</td><td>1</td></tr>
+            <tr><td><code>C(4, 2)</code></td><td>6</td><td>6</td></tr>
+            <tr><td>异或和</td><td>—</td><td><code>10 ^ 120 ^ 1 ^ 1 ^ 6 = 116</code></td></tr>
+        </tbody>
+    </table>
+    <p>异或可以这样手算：<code>10 ^ 120 = 114</code>，<code>114 ^ 1 = 115</code>，<code>115 ^ 1 = 114</code>，<code>114 ^ 6 = 116</code>。虽然中间结果看起来在来回变化，但异或满足交换律和结合律，所以按什么顺序合并都可以。</p>
+
+    <h3>11.5 边界与易错点</h3>
+    <table>
+        <thead>
+            <tr><th>测试</th><th>数据特点</th><th>输出</th><th>检查什么</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>05b.in</code></td><td>T = 1，N = 0，询问 <code>C(0,0)</code></td><td><code>1</code></td><td>0 的阶乘、最小规模是否正确</td></tr>
+            <tr><td><code>05c.in</code></td><td>N = 100，含 <code>C(100,50) = 198626801</code> 这样的大组合数</td><td><code>198626800</code></td><td>四条询问异或；乘法取模、逆元是否正确</td></tr>
+            <tr><td><code>05d.in</code></td><td>N = 5×10<sup>6</sup>，含 <code>C(5000000,2500000)</code></td><td><code>633445101</code></td><td>两条询问异或；最大预处理规模、数组大小、运行时间</td></tr>
+        </tbody>
+    </table>
+    <div class="warn">
+        <strong>四个易错点。</strong>第一，把 <code>1LL * fac[n] * ifac[m]</code> 写成 <code>fac[n] * ifac[m]</code>，两个 <code>int</code> 相乘会先溢出再取模；第二，把模数写成 <code>1e9+7</code>，和题目的 998244353 不一致；第三，把异或写成加法，或者在读入 T、N 时把顺序弄反；第四，数组只开到 <code>5×10<sup>6</sup></code>，但最大下标是 <code>5×10<sup>6</sup></code>，必须多开几个位置，否则会越界。
+    </div>
+
+    <h3>11.6 复杂度</h3>
+    <p>预处理 <code>fac</code> 是 O(N)，求 <code>ifac[N]</code> 的快速幂是 O(log MOD)，倒推 <code>ifac</code> 是 O(N)，每条询问 O(1)，总时间复杂度 O(N + T + log MOD)。空间上需要两个长度为 N+1 的 <code>int</code> 数组，N = 5×10<sup>6</sup> 时约占 40 MB，再加上输入缓冲和邻接表之外的少量变量，在常见内存限制内。如果内存特别紧，可以把 <code>fac</code> 和 <code>ifac</code> 合并成一个数组，但可读性会下降；本页优先保证代码清楚。</p>
+</section>
+
+<section id="p2158">
+    <h2>12. P2158 仪仗队与欧拉函数</h2>
+    <p>P2158 的故事是：一个 N×N 的方阵里站满了学生，观察者站在方阵的左下角，问能看到多少个学生。这里的“看到”不是指没有遮挡物，而是指两个学生和观察者三点共线时，离观察者近的那个会把远的挡住。把观察者放在原点 <code>(0, 0)</code>，每个学生放在整数坐标 <code>(x, y)</code>，问题就变成：有多少个整数点 <code>(x, y)</code> 满足从原点到它的线段上不再经过其他整数点。</p>
+
+    <h3>12.1 谁能被看见：gcd 的作用</h3>
+    <p>结论很干净：点 <code>(x, y)</code> 能被看见，当且仅当 <code>gcd(x, y) = 1</code>（这里 <code>x、y</code> 不同时为 0）。先看为什么。如果 <code>d = gcd(x, y) &gt; 1</code>，那么 <code>(x/d, y/d)</code> 也是一个整数点，它正好位于原点到 <code>(x, y)</code> 的线段上，而且离原点更近，于是 <code>(x, y)</code> 被它挡住了。反过来，如果 <code>gcd(x, y) = 1</code>，假设线段上还有一个整数点 <code>(a, b)</code> 在两者之间，那么 <code>(x, y) = k(a, b)</code> 对某个整数 <code>k ≥ 2</code> 成立，这说明 <code>k</code> 同时整除 <code>x</code> 和 <code>y</code>，即 <code>k</code> 是 <code>x、y</code> 的公约数，与 <code>gcd(x, y) = 1</code> 矛盾。</p>
+    <p>这个结论把“几何遮挡”变成了“数论计数”。例如 <code>(2, 1)</code> 的 gcd 是 1，它可见；<code>(2, 2)</code> 的 gcd 是 2，它被 <code>(1, 1)</code> 挡住；<code>(4, 2)</code> 的 gcd 是 2，它被 <code>(2, 1)</code> 挡住。图 5 画的就是这三种情况：从原点出发的射线上，最近的那个整数点可见，后面的点都被挡住。</p>
+    <figure>
+        <svg width="760" height="300" viewBox="0 0 760 300" role="img" aria-labelledby="sight-title sight-desc">
+            <title id="sight-title">视线上的最近整数点</title>
+            <desc id="sight-desc">原点在左下角；(2,1) 的 gcd 是 1，可见；(2,2) 的 gcd 是 2，被 (1,1) 挡住。</desc>
+            <text x="30" y="26" font-size="15" fill="#173d2c">从原点看出去：线段上最近的整数点会挡住后面的点</text>
+            <line x1="90" y1="255" x2="620" y2="255" stroke="#555" stroke-width="2"></line>
+            <line x1="90" y1="255" x2="90" y2="45" stroke="#555" stroke-width="2"></line>
+            <line x1="190" y1="255" x2="190" y2="45" stroke="#d8ddd6" stroke-width="1"></line>
+            <line x1="290" y1="255" x2="290" y2="45" stroke="#d8ddd6" stroke-width="1"></line>
+            <line x1="390" y1="255" x2="390" y2="45" stroke="#d8ddd6" stroke-width="1"></line>
+            <line x1="490" y1="255" x2="490" y2="45" stroke="#d8ddd6" stroke-width="1"></line>
+            <line x1="90" y1="155" x2="620" y2="155" stroke="#d8ddd6" stroke-width="1"></line>
+            <line x1="90" y1="55" x2="620" y2="55" stroke="#d8ddd6" stroke-width="1"></line>
+            <line x1="90" y1="255" x2="290" y2="155" stroke="#2f6f4e" stroke-width="2"></line>
+            <line x1="90" y1="255" x2="390" y2="105" stroke="#b44" stroke-width="2" stroke-dasharray="7 5"></line>
+            <circle cx="90" cy="255" r="6" fill="#173d2c"></circle>
+            <text x="62" y="278" font-size="13" fill="#173d2c">O(0,0)</text>
+            <circle cx="190" cy="205" r="6" fill="#2f6f4e"></circle>
+            <text x="165" y="228" font-size="13" fill="#2f6f4e">(1,1) 可见</text>
+            <circle cx="290" cy="205" r="6" fill="#2f6f4e"></circle>
+            <text x="265" y="228" font-size="13" fill="#2f6f4e">(2,1) 可见</text>
+            <circle cx="290" cy="155" r="6" fill="#b44"></circle>
+            <text x="300" y="145" font-size="13" fill="#b44">(2,2) 被 (1,1) 挡住</text>
+            <text x="450" y="220" font-size="13" fill="#5b6a61">gcd(2,1)=1</text>
+            <text x="450" y="243" font-size="13" fill="#5b6a61">gcd(2,2)=2</text>
+        </svg>
+        <figcaption>图 5：可见性由 gcd 决定。<code>(2,1)</code> 的 gcd 是 1，射线上没有更近的整数点；<code>(2,2)</code> 的 gcd 是 2，射线先经过 <code>(1,1)</code>，所以被挡住。</figcaption>
+    </figure>
+
+    <h3>12.2 把方阵拆成对称的两半</h3>
+    <p>直接枚举 N<sup>2</sup> 个点、对每个点求 gcd，时间复杂度是 O(N<sup>2</sup> log N)；N 到 40000 时 N<sup>2</sup> 已经是 16 亿，太慢。利用对称性可以把问题降成一维：如果 <code>(x, y)</code> 可见，那么交换坐标得到的 <code>(y, x)</code> 也可见，所以可以只统计 <code>x &lt; y</code> 的一半，再乘以 2。两条坐标轴方向各有一个最近的可见点，对角线上的 <code>(1,1)</code> 只算一次；把这些基础贡献合起来是 3，于是答案写成：</p>
+    <div class="formula">
+        <code>ans = 3 + 2 × (φ(2) + φ(3) + … + φ(N−1))</code>（N ≥ 2）
+    </div>
+    <p>这里的 <code>φ(i)</code> 是欧拉函数，表示 1 到 i 中与 i 互质的数的个数。为什么它会出现？固定 <code>x = i</code>，在 <code>1 ≤ y &lt; i</code> 中，满足 <code>gcd(i, y) = 1</code> 的 y 的个数正好是 <code>φ(i)</code>；把这些 <code>(i, y)</code> 按 <code>x、y</code> 互换再算一次，就得到两倍的 <code>φ(i)</code>。对 <code>i = 2</code> 到 <code>N−1</code> 累加，再加上 3 个基础点，就是全部可见点。</p>
+    <table>
+        <thead>
+            <tr><th>N</th><th>φ(2) + … + φ(N−1)</th><th>答案</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>—</td><td><code>0</code></td><td>只有观察者自己，没有学生</td></tr>
+            <tr><td>2</td><td>0</td><td><code>3</code></td><td>公式的最小非平凡情况</td></tr>
+            <tr><td>3</td><td>φ(2) = 1</td><td><code>5</code></td><td>3 + 2 × 1</td></tr>
+            <tr><td>4</td><td>φ(2) + φ(3) = 3</td><td><code>9</code></td><td>3 + 2 × 3，对应主样例</td></tr>
+            <tr><td>5</td><td>φ(2) + φ(3) + φ(4) = 5</td><td><code>13</code></td><td>3 + 2 × 5</td></tr>
+            <tr><td>40000</td><td>约 4.86×10<sup>8</sup></td><td><code>972659433</code></td><td>需要用 long long 保存中间和</td></tr>
+        </tbody>
+    </table>
+
+    <h3>12.3 欧拉函数与容斥</h3>
+    <p>计算 <code>φ(n)</code> 有两条常用路线。第一条是分解质因数，用公式 <code>φ(n) = n × (1 − 1/p<sub>1</sub>) × (1 − 1/p<sub>2</sub>) × … × (1 − 1/p<sub>k</sub>)</code>，其中 p<sub>i</sub> 是 n 的所有不同质因子；第二条是直接数“1 到 n 中与 n 互质的数”，用容斥把“能被某个质因子整除”的并集减掉。P2158 的代码采用第二条，因为它和页面前面的容斥公式完全对应，也方便解释 <code>count_union</code> 的作用。</p>
+    <p>以 n = 12 为例，不同质因子是 2 和 3。1 到 12 中能被 2 整除的有 6 个，能被 3 整除的有 4 个，同时能被 2 和 3 整除（也就是能被 6 整除）的有 2 个；根据容斥，能被 2 或 3 整除的共有 6 + 4 − 2 = 8 个，所以与 12 互质的有 12 − 8 = 4 个，它们分别是 1、5、7、11。这个例子说明：容斥算的是“不互质”的并集，最后要用 n 减去它。</p>
+    <p>实现时先分解 n，把不同的质因子放进一个数组 <code>p</code>，然后枚举 <code>p</code> 的所有非空子集。子集中质因子的乘积就是“同时能被这些质因子整除”的数的间隔，1 到 n 中这样的数有 <code>n / 乘积</code> 个。子集大小为奇数时加上，为偶数时减去，正是容斥的“奇加偶减”。由于 n ≤ 40000，最多只有 6 个不同质因子，枚举 63 个子集完全够用。</p>
+
+    <h3>12.4 最小质因子筛</h3>
+    <p>如果对每个 i 都用试除法分解，单个 i 可能要试到 <code>√i</code>，总共 O(N√N)，对 40000 虽然能过，但不够漂亮。代码改用最小质因子筛：<code>spf[x]</code> 记录 x 的最小质因子。从小到大枚举 i，如果 <code>spf[i] == 0</code>，说明 i 是质数，令 <code>spf[i] = i</code>，然后从 <code>i<sup>2</sup></code> 开始把 i 的倍数中还没有被标记过的数的 <code>spf</code> 设成 i。这样每个合数只会被它的最小质因子标记一次，预处理是 O(N log log N)，之后分解任意 x 时不断取 <code>spf[x]</code> 并除掉它，复杂度与质因子个数有关。</p>
+    <p>分解时要注意“不同质因子”这四个字：比如 12 = 2<sup>2</sup> × 3，质因子 2 只应记录一次。代码在记录 <code>d = spf[x]</code> 之后，用 <code>while (x % d == 0) x /= d;</code> 把 d 的幂全部除干净，再继续处理下一个质因子；如果只除一次，12 会被当成 2 × 6，后面又把 2 记录一遍，容斥的子集就会重复，结果会出错。</p>
+
+    <h3>12.5 完整程序</h3>
+    <p>下面的程序把最小质因子筛、容斥计数和欧拉函数串在一起。主函数先特判 N ≤ 1，然后预处理到 N−1，累加 φ(2) 到 φ(N−1)，最后输出 <code>2 × sum + 3</code>。所有中间和都用 <code>long long</code>，因为 N = 40000 时答案约为 9.7×10<sup>8</sup>，虽然还能放进 <code>int</code>，但用 <code>long long</code> 更稳妥。</p>
+    <pre class="code"><code>#include &lt;iostream&gt;                    // 标准输入输出
+#include &lt;vector&gt;                      // 保存不同质因子
+using namespace std;                   // 使用标准命名空间
+
+const int MAXN = 40005;                // N 最大 40000，多开一点
+
+int spf[MAXN];                         // spf[x] = x 的最小质因子
+
+void init_spf(int n) {                 // 用筛法预处理 2 到 n 的最小质因子
+    for (int i = 2; i &lt;= n; ++i) {     // 从小到大枚举每个数
+        if (spf[i] == 0) {             // i 还没有被更小的质数标记
+            spf[i] = i;                // i 是质数，最小质因子就是自己
+            for (long long j = 1LL * i * i; j &lt;= n; j += i) { // 从 i² 开始标记倍数
+                if (spf[j] == 0) {     // 只标记第一次遇到的质因子
+                    spf[j] = i;        // j 的最小质因子是 i
+                }                      // 标记判断结束
+            }                          // 倍数标记结束
+        }                              // 质数判断结束
+    }                                  // 筛法结束
+}                                      // init_spf 函数结束
+
+long long count_union(int n, const vector&lt;int&gt; &amp;p) { // 统计 1..n 中能被 p 中至少一个数整除的个数
+    long long ans = 0;                 // 并集大小
+    int k = (int)p.size();             // 不同质因子的个数
+    for (int mask = 1; mask &lt; (1 &lt;&lt; k); ++mask) { // 枚举所有非空子集
+        long long prod = 1;            // 当前子集质因子的乘积
+        int cnt = 0;                   // 当前子集的大小
+        for (int j = 0; j &lt; k; ++j) {  // 检查第 j 个质因子是否被选中
+            if (mask &amp; (1 &lt;&lt; j)) {     // 这一位为 1，表示选中
+                prod *= p[j];          // 把质因子乘进乘积
+                ++cnt;                 // 子集大小加一
+                if (prod &gt; n) {        // 乘积已经超过 n
+                    break;             // 后面的数不会再产生贡献，提前退出
+                }                      // 乘积判断结束
+            }                          // 选中判断结束
+        }                              // 子集枚举结束
+        if (prod &gt; n) {                // 这个子集对 1..n 没有贡献
+            continue;                  // 直接处理下一个子集
+        }                              // 无贡献判断结束
+        if (cnt &amp; 1) {                 // 子集大小为奇数
+            ans += n / prod;           // 奇加
+        } else {                       // 子集大小为偶数
+            ans -= n / prod;           // 偶减
+        }                              // 奇偶判断结束
+    }                                  // 所有子集处理完毕
+    return ans;                        // 返回并集大小
+}                                      // count_union 函数结束
+
+int get_phi(int n) {                   // 用容斥计算欧拉函数 φ(n)
+    int x = n;                         // 拷贝一份 n 用来分解
+    vector&lt;int&gt; p;                     // 保存 n 的不同质因子
+    while (x &gt; 1) {                    // 还没分解完
+        int d = spf[x];                // 取出 x 的最小质因子
+        p.push_back(d);                // 记录这个质因子
+        while (x % d == 0) {           // 把这个质因子的幂全部除掉
+            x /= d;                    // 去掉一个 d
+        }                              // 去重结束
+    }                                  // 质因数分解结束
+    return n - (int)count_union(n, p); // φ(n) = n - 不互质的个数
+}                                      // get_phi 函数结束
+
+int main() {                           // 主函数
+    ios::sync_with_stdio(false);       // 关闭 C 与 C++ 的输入同步
+    cin.tie(nullptr);                  // 解除 cin 与 cout 的绑定
+    int N;                             // 方阵大小
+    if (!(cin &gt;&gt; N)) {                 // 读入 N
+        return 0;                      // 没有输入时直接结束
+    }                                  // 读入判断结束
+    if (N &lt;= 1) {                      // 只有观察者自己
+        cout &lt;&lt; 0 &lt;&lt; '\n';             // 看不到其他学生
+        return 0;                      // 直接结束
+    }                                  // 特殊情况处理结束
+    init_spf(N - 1);                   // 预处理到 N-1
+    long long sum = 0;                 // 累加 φ(2) 到 φ(N-1)
+    for (int i = 2; i &lt; N; ++i) {      // 枚举 2 到 N-1
+        sum += get_phi(i);             // 累加当前的欧拉函数值
+    }                                  // 累加结束
+    cout &lt;&lt; 2 * sum + 3 &lt;&lt; '\n';       // 两条坐标轴与对角线贡献 3
+    return 0;                          // 程序正常结束
+}                                      // main 函数结束</code></pre>
+
+    <h3>12.6 样例与边界</h3>
+    <p>主样例 N = 4：φ(2) = 1，φ(3) = 2，所以答案是 <code>3 + 2 × (1 + 2) = 9</code>。程序输出的 9 与手算一致。下面的表格给出从 N = 1 到 N = 5 以及最大规模的结果，其中 N = 1 必须单独处理，否则 <code>init_spf(0)</code> 不会建立任何质因子表，后面的循环虽然不执行，但公式中的 3 会产生错误答案。</p>
+    <p><strong>样例输入</strong></p>
+    <pre class="sample"><code>4</code></pre>
+    <p><strong>样例输出</strong></p>
+    <pre class="sample"><code>9</code></pre>
+    <table>
+        <thead>
+            <tr><th>测试</th><th>N</th><th>输出</th><th>检查什么</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>06b.in</code></td><td>1</td><td><code>0</code></td><td>N = 1 的特判</td></tr>
+            <tr><td><code>06c.in</code></td><td>2</td><td><code>3</code></td><td>公式的最小非平凡值</td></tr>
+            <tr><td><code>06d.in</code></td><td>5</td><td><code>13</code></td><td>φ(2)、φ(3)、φ(4) 的累加</td></tr>
+            <tr><td><code>06e.in</code></td><td>40000</td><td><code>972659433</code></td><td>最大规模、筛法与 long long</td></tr>
+        </tbody>
+    </table>
+    <div class="warn">
+        <strong>四个易错点。</strong>第一，忘记 N = 1 的特判，输出 3；第二，分解质因数时没有去重，把 12 的质因子记成 2、2、3；第三，容斥的符号写反，或者枚举子集时从 0 开始，把空集也算进去；第四，<code>spf</code> 数组只开到 40000，但 <code>init_spf(N−1)</code> 在 N = 40000 时最大下标是 39999，没问题，若题目把 N 放大就要同步调整数组。
+    </div>
+
+    <h3>12.7 复杂度</h3>
+    <p>最小质因子筛的预处理是 O(N log log N)，对每个 i 分解质因子的代价与它的质因子个数有关，最坏 O(log i)，因此计算所有 φ(i) 的总代价可以写成 O(N log N) 的上界；N = 40000 时实际运行非常快。空间复杂度是 O(N)，主要花在 <code>spf</code> 数组和每个数临时保存质因子的 <code>vector</code> 上。与直接枚举 N<sup>2</sup> 个点相比，这个做法把平方级降到了线性对数级，是本题能通过的关键。</p>
+</section>
+
+<section id="corrections">
+    <h2>13. 课件代码订正清单</h2>
+    <p>课件里的六段代码算法都是正确的，但把它们拼成一个可以独立运行、能在 g++14 下稳定编译的程序时，会遇到一些约定不一致、头文件不全、边界没有处理的问题。下面把这些问题逐条列出，并说明本页采用的统一写法。需要强调的是，这些修改主要涉及完整性、可移植性和边界处理，不改变任何算法的核心逻辑；理解“为什么要改”比记住“改了哪一行”更重要。</p>
+    <table>
+        <thead>
+            <tr><th>位置</th><th>课件的写法</th><th>可能的问题</th><th>本页的统一写法</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>第 1 页与第 4、7 页</td>
+                <td>第 1 页说根深度为 1、根的祖先是虚拟节点 0；第 4 页说根深度为 0；第 7 页代码把根的父节点设成根自己，<code>fa[root][j] = root</code>。</td>
+                <td>三处约定混用。若根深度为 0 又把父节点设成 0，虚拟节点 0 和根会拥有相同深度，对齐深度的不等式需要额外讨论；若根父节点设成自己，<code>return fa[u][0]</code> 在根上的语义也不同。</td>
+                <td>统一为 <code>depth[root] = 1</code>、<code>fa[root][0] = 0</code>、<code>depth[0] = 0</code>、<code>fa[0][k] = 0</code>；所有程序按这一套约定书写。</td>
+            </tr>
+            <tr>
+                <td>第 1 页与第 7 页</td>
+                <td>第 1 页用 <code>K = 20</code>、<code>fa[N][K + 1]</code>，循环到 <code>k &lt;= K</code>；第 7 页用 <code>LOG = 20</code>、<code>fa[N][LOG]</code>，循环到 <code>j &lt; LOG</code>。</td>
+                <td>两套下标范围不同，前者有 21 列，后者有 20 列；如果照抄时混用，可能少填一列或数组越界。</td>
+                <td>统一 <code>LOG = 20</code>，下标 0 到 19；<code>2<sup>19</sup> = 524288 &gt; 500000</code>，组合跳跃可覆盖到 <code>2<sup>20</sup>−1</code>，足够本题。</td>
+            </tr>
+            <tr>
+                <td>第 7 页</td>
+                <td>使用 <code>#include &lt;bits/stdc++.h&gt;</code>，没有单独写 <code>&lt;queue&gt;</code>。</td>
+                <td><code>bits/stdc++.h</code> 不是 C++ 标准头文件，换到某些编译器或严格环境会失败；BFS 用到的 <code>queue</code> 也应当显式包含。</td>
+                <td>写成 <code>&lt;iostream&gt;</code>、<code>&lt;vector&gt;</code>、<code>&lt;queue&gt;</code>、<code>&lt;algorithm&gt;</code>，不依赖万能头。</td>
+            </tr>
+            <tr>
+                <td>第 5、7 页</td>
+                <td>对齐深度写成 <code>dep[u] - dep[v] &gt;= (1 &lt;&lt; j)</code>，用移位构造步长。</td>
+                <td>这个写法本身正确，但需要保证 <code>1 &lt;&lt; j</code> 不溢出；若把 LOG 改到 31 以上，<code>int</code> 移位会出问题。根深度的约定变化时，还要单独处理深度 0。</td>
+                <td>改用 <code>depth[fa[u][k]] &gt;= depth[v]</code>，借助虚拟节点 0 的深度 0 自然处理越界，不再直接移位。</td>
+            </tr>
+            <tr>
+                <td>第 7 页 BFS</td>
+                <td>用 <code>if (v == fa[u][0]) continue;</code> 跳过父亲，没有 <code>visited</code> 数组。</td>
+                <td>在“输入是一棵树”的前提下正确；如果输入带环，仅跳过父亲会重复访问节点，甚至死循环。</td>
+                <td>保留这一写法，并在正文明确说明它依赖“树”的保证；如果题目不是树，必须补访问标记。</td>
+            </tr>
+            <tr>
+                <td>第 11 页 P1330</td>
+                <td>使用 <code>bits/stdc++.h</code>，用 <code>min(cnt1, cnt2)</code> 但没有显式包含 <code>&lt;algorithm&gt;</code>。</td>
+                <td>换到严格环境时，<code>min</code> 可能没有声明；依赖万能头会掩盖这个问题。</td>
+                <td>显式包含 <code>&lt;iostream&gt;</code>、<code>&lt;vector&gt;</code>、<code>&lt;algorithm&gt;</code>，其余逻辑保持不变。</td>
+            </tr>
+            <tr>
+                <td>第 11 页 P1330</td>
+                <td>递归 DFS，最坏递归深度 O(n)，本题 n 可达 10000。</td>
+                <td>在栈空间很小的环境里，10000 层递归有风险；这不是算法错误，但属于运行环境差异。</td>
+                <td>保留递归写法（便于与课件对照），并在正文提示：若 n 更大或栈更小，可改成显式栈或 BFS。</td>
+            </tr>
+            <tr>
+                <td>第 3 页与第 13 页 P3386</td>
+                <td>第 3 页每轮用 <code>memset(vis, 0, sizeof(vis))</code> 清空；第 13 页核心代码用时间戳 <code>tim</code>。</td>
+                <td>两种写法都正确，但同一份材料里出现两套风格，容易在拼代码时混用，导致访问标记失效或反复清空。</td>
+                <td>统一采用时间戳：每轮 <code>++tim</code>，判断 <code>vis[v] == tim</code>；<code>vis</code> 用 <code>int</code>，不用 <code>bool</code>。</td>
+            </tr>
+            <tr>
+                <td>第 11 页 P1330</td>
+                <td>每个连通分量分别取 <code>min(cnt1, cnt2)</code>，正文也强调了这一点。</td>
+                <td>这不是代码错误，而是最容易理解错的地方：如果先全局累加再取最小，会得到错误答案。</td>
+                <td>保持“每个分量分别取最小再累加”，并用 1/100 与 100/1 的反例说明。</td>
+            </tr>
+            <tr>
+                <td>第 4 页组合数代码</td>
+                <td>定义 <code>N = 100005</code>、<code>MOD = 1e9 + 7</code>，并默认 n 只有十万级。</td>
+                <td>B3717 的 n 可达 5×10<sup>6</sup>，数组会越界；题目模数是 998244353，不是 1e9+7，直接套用会得到完全不同的答案。</td>
+                <td>单独定义 <code>MAXN = 5000005</code> 和 <code>MOD = 998244353</code>；阶乘数组按题目上限开，不与其他题的数组混用。</td>
+            </tr>
+            <tr>
+                <td>第 17 页 B3717</td>
+                <td>使用 <code>bits/stdc++.h</code>；读入方式没有针对 T 可达 5×10<sup>6</sup> 做特别处理。</td>
+                <td>一千万个整数的输入量很大，普通 <code>cin</code> 可能成为瓶颈；万能头在严格环境也不保证存在。</td>
+                <td>显式包含 <code>&lt;iostream&gt;</code>、<code>&lt;cstdio&gt;</code>，用 <code>getchar</code> 手写快速读入；乘法统一用 <code>1LL</code> 提升到 <code>long long</code>。</td>
+            </tr>
+            <tr>
+                <td>第 21 页 P2158</td>
+                <td>容斥里的乘积用 <code>int</code> 保存，枚举子集时没有在乘积超过 n 时提前停下。</td>
+                <td>质因子的乘积可能超过 <code>int</code> 范围；虽然本题 n 很小，但把模板复用到更大的数据时会溢出。</td>
+                <td>乘积用 <code>long long</code>；一旦 <code>prod &gt; n</code> 就跳出内层循环并跳过这个子集，既防溢出又减少无用计算。</td>
+            </tr>
+            <tr>
+                <td>六段代码的输入</td>
+                <td>课件代码默认输入一定合法，没有检查 <code>cin</code> 是否成功。</td>
+                <td>比赛数据通常合法，不检查也能通过；但本地测试空文件时，未初始化的变量可能产生随机结果。</td>
+                <td>在 <code>main</code> 里加 <code>if (!(cin &gt;&gt; ...)) return 0;</code>，不影响正常评测，也方便本地排查。</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>除了表中列出的点，还有两个“看起来像错、其实不是错”的地方需要说明。第一，P3386 的 <code>match</code> 数组只开右部大小，因为左部点通过递归参数传递，不需要单独存“左部匹配了谁”；第二，P1330 的 <code>color</code> 数组既表示访问状态又表示阵营，因此不能在多组数据之间复用而不清空。把这些语义记清楚，比死记模板更可靠。</p>
+    <p>本页的六个程序都使用同一套根节点约定和同一套数组规模约定，彼此之间可以互相参照。所有程序都用 <code>g++ -std=c++14 -O2 -Wall -Wextra -pedantic</code> 编译过，没有错误和警告；样例输出也与程序实际运行结果核对过。课件的算法框架没有改变，改变的是“把框架变成完整程序”时需要的那些细节。</p>
+</section>
+
+<section id="summary">
+    <h2>14. 总结与练习</h2>
+    <p>把这一页的内容压缩成一句话：倍增用“二进制拆分”加速向上跳，二分图用“交替染色”判断结构，匈牙利用“增广路”不断扩大匹配，组合数用“阶乘 + 逆元”把 O(n) 的式子压成 O(1)，欧拉函数用“容斥”数出与 n 互质的数。它们看起来分属图论、组合数学和数论，但共同点都是先找一个可以重复利用的结构，再把大量询问分摊到这个结构上。下面的表格把六类问题的复杂度放在一起，方便复习时快速回忆。</p>
+    <table>
+        <thead>
+            <tr><th>问题</th><th>预处理 / 单次操作</th><th>总时间复杂度</th><th>空间复杂度</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>倍增表 + LCA（P3379）</td><td>预处理 O(N log N)，单次查询 O(log N)</td><td>O((N + M) log N)</td><td>O(N log N)</td></tr>
+            <tr><td>二分图判定（交替染色）</td><td>一次遍历 O(N + M)</td><td>O(N + M)</td><td>O(N + M)</td></tr>
+            <tr><td>P1330 封锁阳光大学</td><td>一次遍历并统计两种颜色</td><td>O(N + M)</td><td>O(N + M)</td></tr>
+            <tr><td>二分图最大匹配（匈牙利）</td><td>每个左部点一次 DFS</td><td>O(n × e)</td><td>O(n + m + e)</td></tr>
+            <tr><td>B3717 组合数问题</td><td>预处理阶乘与逆阶乘，单次 O(1)</td><td>O(N + T + log MOD)</td><td>O(N)</td></tr>
+            <tr><td>P2158 仪仗队（欧拉函数）</td><td>最小质因子筛 + 容斥，逐个求 φ</td><td>O(N log N) 上界</td><td>O(N)</td></tr>
+        </tbody>
+    </table>
+
+    <h3>14.1 写代码前的检查清单</h3>
+    <ol>
+        <li>LCA 的根深度、根的父节点、虚拟节点 0 的深度是否使用了同一套约定？本页统一为根深度 1、父节点 0、<code>depth[0] = 0</code>。</li>
+        <li><code>LOG</code> 是否足够覆盖最大深度？N = 500000 时取 20，下标 0 到 19。</li>
+        <li>BFS 是否跳过了父亲？如果输入不是树，是否补了 <code>visited</code> 数组？</li>
+        <li>LCA 的两个循环是否都从 <code>LOG - 1</code> 开始，并且都是从大到小？</li>
+        <li>二分图染色是否枚举了所有未染色的起点，而不是只从 1 开始？</li>
+        <li>遇到同色邻居时是否立即返回 <code>false</code>，并且把失败沿递归一路传回？</li>
+        <li>P1330 是否对每个连通分量分别取 <code>min(cnt1, cnt2)</code>，而不是全局取最小？</li>
+        <li>孤立点是否被正确统计为 0？它的两种颜色数量是 1 和 0。</li>
+        <li>匈牙利算法是否只把边从左部连向右部？<code>match[v] == 0</code> 是否表示右部点未匹配？</li>
+        <li>每轮增广前是否更新了访问标记？用时间戳时，<code>vis</code> 必须是 <code>int</code>。</li>
+        <li>邻接表、<code>match</code>、<code>color</code>、<code>depth</code> 的数组大小是否比最大编号多开了一点？</li>
+        <li>多组数据时，是否在每组开始前清空了所有与上一组有关的状态？</li>
+        <li>组合数的 <code>fac</code>、<code>ifac</code> 是否开到 <code>N+1</code>？是否确认了 <code>N &lt; MOD</code>，没有在模数为 0 的情况下求逆元？</li>
+        <li>组合数乘法是否用 <code>1LL</code> 提升到 <code>long long</code>？模数是否逐题确认，没有把 998244353 和 1e9+7 混用？</li>
+        <li>容斥的符号是否是“奇数个集合相加、偶数个集合相减”？分解质因数时是否把重复的质因子去掉了？</li>
+        <li>P2158 是否特判了 N = 1？答案的中间和是否用了 <code>long long</code>？</li>
+    </ol>
+
+    <h3>14.2 八道练习</h3>
+    <p>下面的练习都建立在页内的模板上，建议先自己写，再对照提示检查。每道题都不需要新的算法，只是把某个模板稍微改写或组合。</p>
+    <ol>
+        <li><strong>树上两点距离。</strong>给定一棵树和 M 次询问，每次求 u 到 v 的边数。提示：先求 <code>w = lca(u, v)</code>，答案是 <code>depth[u] + depth[v] - 2 × depth[w]</code>；注意本页根深度为 1，公式里的深度差仍然是边数。</li>
+        <li><strong>求第 k 级祖先。</strong>给定节点 u 和整数 k，求 u 向上走 k 步到达的节点，k 可达 500000。提示：把 k 看成二进制，从低位到高位或从高位到低位枚举，若第 j 位为 1 就令 <code>u = fa[u][j]</code>；越界时落到 0。</li>
+        <li><strong>输出一种二分染色。</strong>给定无向图，若能二分，输出每个点的颜色（1 或 2）；否则输出 <code>No</code>。提示：在 <code>dfs_color</code> 成功返回后，直接输出 <code>color[1..n]</code>；注意不连通图的每个分量都要处理。</li>
+        <li><strong>P1330 的输出方案。</strong>在求最少河蟹数的基础上，额外输出一种具体的放置方案。提示：对每个分量比较 <code>cnt1</code> 和 <code>cnt2</code>，选择较小的颜色集合；如果 <code>cnt1 &lt;= cnt2</code> 就选颜色 1，否则选颜色 2，把选中的点编号存下来。</li>
+        <li><strong>匈牙利算法输出匹配边。</strong>在 P3386 的基础上，输出每一对匹配的左右部编号，按左部编号升序。提示：<code>match[v] = u</code> 表示右部 v 匹配左部 u；枚举 v，若 <code>match[v] != 0</code>，就输出 <code>match[v] v</code>，最后按左部编号排序。</li>
+        <li><strong>多次询问组合数。</strong>给定 T 条询问，每条给出 n、m，要求输出 <code>C(n,m) mod 1000000007</code>；n 不超过 10<sup>6</sup>。提示：直接搬 B3717 的阶乘 + 逆阶乘模板，只把模数换掉；注意 10<sup>6</sup> 仍小于新的模数，可以继续用费马小定理。</li>
+        <li><strong>可见点对的数量。</strong>给定 N，求 1 ≤ x, y ≤ N 且 <code>gcd(x,y)=1</code> 的数对个数。提示：这和 P2158 的公式只差边界约定；先写出 N = 4、N = 5 的小表，确认公式里的常数 3 和 φ 的累加范围，再写代码。</li>
+        <li><strong>容斥的通用版本。</strong>给定 N 和 m 个互不相同的质数，求 1 到 N 中至少能被其中一个质数整除的数的个数。提示：用二进制 mask 枚举非空子集，乘积用 <code>long long</code>，超过 N 就提前退出；比较一下“容斥”和“对每个数试除”的时间差距。</li>
+    </ol>
+    <p>如果这八道题都能独立完成，说明已经掌握了页内六个模板的“输入输出、边界、状态数组、递归返回值、模运算、容斥符号”这几个关键点。接下来可以去看更难的树上问题（如树上差分、树链剖分）、匹配问题（如带权匹配、网络流）或数论问题（如莫比乌斯反演、杜教筛），但那些内容都建立在今天这套遍历、递推与计数的基础上。</p>
+    <div class="note">
+        <strong>学习建议。</strong>不要只抄代码，先用手算一遍小样例，再把代码里的数组画在纸上，最后才去敲键盘。遇到错误时，先检查“数组有没有越界、状态有没有清空、递归有没有返回值、边界有没有特判”，这四类问题能解释初学阶段的大部分错误。
+    </div>
+</section>
+
+
+
+<footer>
+    <h2>参考资料</h2>
+    <p>OI Wiki：<a href="https://oi-wiki.org/basic/binary-lifting/" target="_blank" rel="noopener">倍增</a>、<a href="https://oi-wiki.org/graph/lca/" target="_blank" rel="noopener">最近公共祖先</a>、<a href="https://oi-wiki.org/graph/bi-graph/" target="_blank" rel="noopener">二分图</a>、<a href="https://oi-wiki.org/graph/graph-matching/bigraph-match/" target="_blank" rel="noopener">二分图最大匹配</a>、<a href="https://oi-wiki.org/math/combinatorics/combination/" target="_blank" rel="noopener">组合数</a>、<a href="https://oi-wiki.org/math/combinatorics/inclusion-exclusion/" target="_blank" rel="noopener">容斥原理</a>、<a href="https://oi-wiki.org/math/number-theory/euler/" target="_blank" rel="noopener">欧拉函数</a>。</p>
+    <p>洛谷题目：<a href="https://www.luogu.com.cn/problem/P3379" target="_blank" rel="noopener">P3379 最近公共祖先</a>、<a href="https://www.luogu.com.cn/problem/P1330" target="_blank" rel="noopener">P1330 封锁阳光大学</a>、<a href="https://www.luogu.com.cn/problem/P3386" target="_blank" rel="noopener">P3386 二分图最大匹配</a>、<a href="https://www.luogu.com.cn/problem/B3717" target="_blank" rel="noopener">B3717 组合数问题</a>、<a href="https://www.luogu.com.cn/problem/P2158" target="_blank" rel="noopener">P2158 仪仗队</a>。</p>
+    <p>本页所有程序均在 <code>g++ -std=c++14 -O2 -Wall -Wextra -pedantic</code> 下编译并运行过，样例输出与程序实际输出一致。</p>
+</footer>
+</main>
+</body>
+</html>

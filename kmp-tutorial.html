@@ -1,0 +1,2005 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="面向信息学竞赛初学者的 KMP 算法详细讲解：从暴力匹配、最长公共前后缀、next 数组，到 C++ 模板和可交互演示。">
+<title>KMP 算法 · 从暴力到线性匹配</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --paper: #ffffff;
+    --ink: #172033;
+    --muted: #5b6b82;
+    --line: #dfe5ef;
+    --line-soft: #edf1f7;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --accent-soft: #eaf1ff;
+    --green: #0f9f6e;
+    --green-soft: #e8f8f0;
+    --amber: #d97706;
+    --amber-soft: #fff4df;
+    --red: #dc2626;
+    --red-soft: #feecec;
+    --code-bg: #0f172a;
+    --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --cell: 38px;
+    --radius: 18px;
+    --shadow: 0 10px 30px rgba(23, 32, 51, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 74px;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.8;
+    background:
+      radial-gradient(900px 500px at 8% -8%, rgba(37, 99, 235, 0.07), transparent 60%),
+      radial-gradient(700px 420px at 96% 4%, rgba(15, 159, 110, 0.05), transparent 58%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid rgba(37, 99, 235, 0.35); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .page {
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    padding: 28px 20px 64px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 100;
+    padding: 8px 14px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 8px;
+    transition: top 0.15s;
+  }
+  .skip-link:focus { top: 12px; text-decoration: none; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.16fr) minmax(280px, 0.84fr);
+    gap: 36px;
+    align-items: center;
+    padding: 46px 44px;
+    border: 1px solid #dbe6f7;
+    border-radius: 26px;
+    background: linear-gradient(135deg, #eef5ff 0%, #f8fbff 52%, #fffaf2 100%);
+    box-shadow: 0 18px 50px rgba(37, 99, 235, 0.08);
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -90px;
+    top: -110px;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.13), transparent 68%);
+    pointer-events: none;
+  }
+  .hero-copy { position: relative; z-index: 1; }
+
+  .kicker {
+    margin: 0 0 10px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+
+  h1 {
+    margin: 0 0 14px;
+    font-size: 42px;
+    line-height: 1.16;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+  }
+  h1 span { color: var(--accent); }
+
+  .lead {
+    max-width: 50ch;
+    margin: 0;
+    color: #40516b;
+    font-size: 17px;
+    line-height: 1.8;
+  }
+  .lead strong { color: var(--ink); }
+
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .hero-tags span {
+    padding: 4px 10px;
+    border: 1px solid #cfe0fb;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #31527f;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .hero-art {
+    position: relative;
+    z-index: 1;
+    padding: 18px 18px 14px;
+    border: 1px solid #dce8f8;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.09);
+  }
+  .hero-art-title {
+    margin-bottom: 10px;
+    color: #5c7292;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .hero-pre {
+    margin: 0;
+    overflow-x: auto;
+    color: #28405f;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+    white-space: pre;
+  }
+  .hero-pre .lab { color: #94a3b8; }
+  .hero-pre .bad { color: var(--red); font-weight: 700; }
+  .hero-pre .good { color: var(--green); font-weight: 700; }
+  .hero-caption {
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px dashed #dce8f8;
+    color: #5c7292;
+    font-size: 12.5px;
+    line-height: 1.65;
+  }
+
+  /* ---------- TOC ---------- */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 18px -20px 0;
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(219, 230, 247, 0.85);
+    background: rgba(245, 247, 251, 0.92);
+    backdrop-filter: blur(10px);
+  }
+  .toc-inner {
+    display: flex;
+    gap: 6px;
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc-inner::-webkit-scrollbar { display: none; }
+  .toc a {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border-radius: 9px;
+    color: #53657f;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .toc a:hover { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+  .toc a.active { background: var(--accent); color: #fff; }
+
+  /* ---------- Sections ---------- */
+  .section { margin: 26px 0; }
+  .card {
+    padding: 30px 32px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+  }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .sec-num {
+    flex: 0 0 auto;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  h2 {
+    margin: 0;
+    font-size: 25px;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+  }
+  h3 {
+    margin: 26px 0 10px;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  p { margin: 0 0 14px; }
+  .prose > :last-child { margin-bottom: 0; }
+  .lead-in { color: #33445e; font-size: 17px; }
+  .muted { color: var(--muted); }
+  strong { font-weight: 700; }
+
+  code {
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: #eef3fa;
+    color: #1e3a5f;
+    font-family: var(--mono);
+    font-size: 0.92em;
+  }
+  pre code { padding: 0; background: none; color: inherit; font-size: inherit; }
+
+  .callout {
+    margin: 18px 0;
+    padding: 15px 18px;
+    border-left: 4px solid var(--line);
+    border-radius: 0 12px 12px 0;
+    background: #f8fafc;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.key { border-color: var(--accent); background: #f2f7ff; }
+  .callout.warn { border-color: var(--amber); background: #fffaf0; }
+  .callout.tip { border-color: var(--green); background: #f1fbf7; }
+  .callout-title {
+    display: block;
+    margin-bottom: 5px;
+    color: #52657f;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  /* ---------- Static string demo ---------- */
+  .string-demo {
+    margin: 16px 0;
+    padding: 16px;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fafc;
+  }
+  .sd-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: max-content;
+    margin: 5px 0;
+  }
+  .sd-label {
+    flex: 0 0 34px;
+    width: 34px;
+    color: #8494aa;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+  }
+  .sd-cells {
+    display: grid;
+    grid-template-columns: repeat(9, 30px);
+    gap: 4px;
+  }
+  .sd-cells span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    border: 1px solid #dbe5f2;
+    border-radius: 6px;
+    background: #fff;
+    color: #2b3e57;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .sd-cells span.hit {
+    border-color: #a7e3c8;
+    background: var(--green-soft);
+    color: #0f7a55;
+  }
+  .sd-index span {
+    height: 18px;
+    border: 0;
+    background: transparent;
+    color: #9aa9bc;
+    font-size: 10px;
+    font-weight: 400;
+  }
+  .sd-pattern {
+    grid-template-columns: repeat(5, 30px);
+    margin-left: 136px;
+  }
+  .sd-pattern span {
+    border-color: #a7e3c8;
+    background: var(--green-soft);
+    color: #0f7a55;
+  }
+
+  /* ---------- Diagram and formulas ---------- */
+  .diagram {
+    margin: 16px 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.9;
+    white-space: pre;
+  }
+  .diagram .dim { color: #94a3b8; }
+  .diagram .good { color: var(--green); font-weight: 700; }
+  .diagram .bad { color: var(--red); font-weight: 700; }
+  .diagram .accent { color: var(--accent); font-weight: 700; }
+  .diagram-caption {
+    margin: -8px 0 18px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .pseudo {
+    margin: 16px 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    border: 1px solid #dce9fb;
+    border-radius: 12px;
+    background: #f7fbff;
+    color: #25456b;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.85;
+    white-space: pre;
+  }
+
+  .formula {
+    margin: 16px 0;
+    padding: 18px;
+    border: 1px solid #dce9fb;
+    border-radius: 12px;
+    background: #f7fbff;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e3a5f;
+  }
+  .formula small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 400;
+  }
+
+  /* ---------- Border overlap demo ---------- */
+  .overlap {
+    margin: 16px 0;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fafc;
+    overflow-x: auto;
+  }
+  .overlap-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 42px);
+    gap: 5px;
+    width: max-content;
+    margin: 0 auto;
+  }
+  .overlap-grid .ch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #dbe5f2;
+    border-radius: 8px;
+    background: #fff;
+    color: #2b3e57;
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .overlap-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    margin-top: 4px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .bar-prefix { background: #dcfce7; color: #15803d; }
+  .bar-suffix { background: #dbeafe; color: #1d4ed8; }
+  .overlap-result {
+    margin-top: 6px;
+    color: #52657f;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap {
+    margin: 16px 0;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f7f9fd;
+    color: #52657f;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: 0; }
+  .table-center th, .table-center td { text-align: center; }
+  .mono { font-family: var(--mono); }
+  .nowrap { white-space: nowrap; }
+
+  /* ---------- Code ---------- */
+  .code-card {
+    margin: 18px 0;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    background: var(--code-bg);
+  }
+  .code-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #1e293b;
+    color: #93a4bd;
+    font-size: 12px;
+  }
+  .code-head .lang { color: #7dd3fc; font-family: var(--mono); }
+  pre.code {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    color: #dbe7f6;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.75;
+    tab-size: 4;
+  }
+  .cm { color: #7f9bb8; }
+  .pp { color: #fca5a5; }
+  .kw { color: #93c5fd; }
+  .num { color: #fbbf24; }
+  .str { color: #86efac; }
+
+  .io {
+    margin: 16px 0;
+    padding: 15px 18px;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.8;
+    white-space: pre;
+  }
+  .io .io-label { color: #8494aa; font-size: 11px; }
+
+  /* ---------- Lab ---------- */
+  .lab {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  .lab-tabs {
+    display: flex;
+    gap: 5px;
+    width: max-content;
+    max-width: 100%;
+    padding: 4px;
+    border-radius: 12px;
+    background: #f1f5fb;
+  }
+  .tab {
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #5c6f88;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .tab.active {
+    background: #fff;
+    color: var(--accent);
+    box-shadow: 0 2px 6px rgba(23, 32, 51, 0.08);
+  }
+  .lab-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0 16px;
+  }
+  .lab-inputs label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #5c6f88;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .lab-inputs input {
+    width: 220px;
+    max-width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #ced9e9;
+    border-radius: 9px;
+    background: #fbfdff;
+    color: #1e293b;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+  .lab-inputs input:focus { border-color: var(--accent); background: #fff; }
+  .input-hint { color: #93a3b8; font-size: 11px; font-weight: 400; }
+
+  .stage {
+    padding: 16px;
+    border: 1px solid #e6edf7;
+    border-radius: 14px;
+    background: #f8fafc;
+  }
+  .stage-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stage-mode {
+    color: #5c6f88;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .step-label {
+    color: #71829a;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .track-scroll { overflow-x: auto; padding-bottom: 4px; }
+  .row-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 10px 0 6px;
+    color: #6a7c94;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .row-head:first-child { margin-top: 0; }
+  .row-hint { color: #93a3b8; font-weight: 400; letter-spacing: 0; }
+  .ruler {
+    display: grid;
+    gap: 5px;
+    width: max-content;
+    margin-bottom: 5px;
+  }
+  .ruler-cell {
+    height: 14px;
+    color: #9aa9bc;
+    font-size: 10px;
+    line-height: 14px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .track {
+    display: grid;
+    gap: 5px;
+    width: max-content;
+  }
+  .cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--cell);
+    height: var(--cell);
+    border: 1px solid #d7e1ee;
+    border-radius: 9px;
+    background: #fff;
+    color: #2b3e57;
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    transition: background 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s;
+  }
+  .cell .ch { line-height: 1; }
+  .cell.is-matched { border-color: #a7e3c8; background: var(--green-soft); color: #0f7a55; }
+  .cell.is-hit { box-shadow: inset 0 -3px 0 #34d399; }
+  .cell.is-current {
+    border-color: #f0b35d;
+    background: var(--amber-soft);
+    color: #9a5b00;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  }
+  .cell.is-bad {
+    border-color: #f3a6a6;
+    background: var(--red-soft);
+    color: #b91c1c;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  }
+  .cell.is-found {
+    border-color: #34d399;
+    background: #d9f7e8;
+    color: #047857;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+  }
+  .cell.is-keep { border-color: #34d399; background: #d9f7e8; color: #047857; }
+  .cell.is-drop { border-color: #f2cf9a; background: #fff7e8; color: #a16207; }
+  .pattern-track .cell { border-style: dashed; }
+  .cell.is-prefix { border-color: #a7e3c8; background: var(--green-soft); color: #0f7a55; }
+  .cell.is-suffix { border-color: #a9c8f7; background: #e8f2ff; color: #1d4ed8; }
+  .cell.is-both {
+    border-color: #9db8dc;
+    background: linear-gradient(135deg, var(--green-soft) 50%, #e8f2ff 50%);
+    color: #1e3a5f;
+  }
+  .cell.is-target { box-shadow: inset 0 0 0 2px #93c5fd; }
+
+  .next-wrap {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed #dbe5f2;
+  }
+  .next-grid {
+    display: grid;
+    gap: 5px;
+    width: max-content;
+  }
+  .nchip {
+    width: var(--cell);
+    padding: 4px 0 5px;
+    border: 1px solid #d7e1ee;
+    border-radius: 8px;
+    background: #fff;
+    text-align: center;
+    transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+  }
+  .nidx {
+    display: block;
+    color: #9aa9bc;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+  .nval {
+    display: block;
+    color: #2b3e57;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .nchip.is-unknown .nval { color: #b6c2d2; }
+  .nchip.is-current { border-color: #f0b35d; background: #fff7e8; }
+  .nchip.is-jump {
+    border-color: #f59e0b;
+    background: #fff1d6;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+  }
+  .nchip.just-set { border-color: #34d399; background: var(--green-soft); }
+
+  .note {
+    min-height: 48px;
+    margin-top: 14px;
+    padding: 13px 15px;
+    border: 1px solid #dce9fb;
+    border-radius: 10px;
+    background: #f2f7ff;
+    color: #2d4768;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .result-label { color: #5c6f88; }
+  .hit-chip {
+    padding: 3px 9px;
+    border: 1px solid #a7e3c8;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #047857;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .empty-state {
+    padding: 28px 12px;
+    color: #8494aa;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .btn {
+    padding: 8px 14px;
+    border: 1px solid #cfdbea;
+    border-radius: 9px;
+    background: #fff;
+    color: #344b68;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .btn:hover:not(:disabled) { border-color: #9db8dc; background: #f7fbff; }
+  .btn.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .btn.primary:hover:not(:disabled) { border-color: var(--accent-dark); background: var(--accent-dark); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.is-playing { border-color: #f0b35d; background: #fff7e8; color: #9a5b00; }
+
+  /* ---------- Mistake cards ---------- */
+  .mistakes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .mistake {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fbfcfe;
+  }
+  .mistake h3 { margin: 0 0 6px; font-size: 15px; }
+  .mistake p { margin: 0; color: #52657f; font-size: 14px; }
+
+  /* ---------- Practice ---------- */
+  .practice-list { display: grid; gap: 12px; }
+  .practice {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+  .practice .q { margin: 0; font-weight: 650; }
+  details { margin-top: 10px; }
+  summary {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  summary::marker { color: var(--accent); }
+  .answer {
+    margin-top: 8px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #40516b;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  .answer p:last-child { margin-bottom: 0; }
+
+  /* ---------- Summary ---------- */
+  .summary-card {
+    border-color: #d8e8fb;
+    background: linear-gradient(135deg, #eef5ff, #f4fbf8);
+  }
+  .summary-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: summary;
+  }
+  .summary-list li {
+    position: relative;
+    padding-left: 38px;
+  }
+  .summary-list li::before {
+    counter-increment: summary;
+    content: counter(summary);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #cfe0fb;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
+  }
+  .mnemonic {
+    margin: 20px 0;
+    padding: 18px;
+    border: 1px dashed #b9d3f5;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.6);
+    color: #214a7c;
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.9;
+    text-align: center;
+  }
+  .checklist {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .checklist li {
+    padding: 4px 0 4px 28px;
+    position: relative;
+  }
+  .checklist li::before {
+    content: "□";
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    color: var(--accent);
+    font-size: 16px;
+  }
+
+  footer {
+    padding: 30px 0 10px;
+    color: #8a9bb0;
+    font-size: 12px;
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  @media (max-width: 820px) {
+    .page { padding: 18px 14px 44px; }
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 30px 22px;
+    }
+    .hero-art { max-width: 430px; }
+    .card { padding: 24px 20px; }
+    .toc { margin-left: -14px; margin-right: -14px; padding-left: 14px; padding-right: 14px; }
+    .mistakes { grid-template-columns: 1fr; }
+    .lab { padding: 18px 14px; }
+    .lab-inputs label { flex: 1 1 100%; }
+    .lab-inputs input { width: 100%; }
+    .sd-pattern { margin-left: 136px; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+
+<div class="page">
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="kicker">信息学竞赛 · 字符串算法</p>
+      <h1>KMP <span>算法</span></h1>
+      <p class="lead">让文本指针一直向前。这一页只讲一件事：<strong>模式串失配时，怎样利用已经匹配过的信息，少做重复比较。</strong>全文围绕 <code>ABABC</code> 这个短模式串展开。</p>
+      <div class="hero-tags">
+        <span>零基础友好</span>
+        <span>一步一步演示</span>
+        <span>可交互实验室</span>
+        <span>C++ 模板</span>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="hero-art-title">一次失配，两次对齐</div>
+      <pre class="hero-pre">T   A B A B <span class="bad">A</span> B A B C
+P   A B A B <span class="bad">C</span>
+            <span class="bad">✗ 失配</span>
+
+P       A B A B C
+        <span class="good">└─AB─┘</span></pre>
+      <div class="hero-caption">j 从 4 跳到 2，模式串右移 2 格；已经相等的 <code>AB</code> 不再比较。</div>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="页面目录">
+    <div class="toc-inner">
+      <a href="#problem">先看问题</a>
+      <a href="#brute">暴力匹配</a>
+      <a href="#idea">核心想法</a>
+      <a href="#next">next 表</a>
+      <a href="#match">匹配过程</a>
+      <a href="#build">构建 next</a>
+      <a href="#code">完整代码</a>
+      <a href="#lab">实验室</a>
+      <a href="#complexity">复杂度</a>
+      <a href="#pitfalls">常见错误</a>
+      <a href="#practice">练习</a>
+      <a href="#summary">总结</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="section" id="problem">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">01</span><h2>先看问题：在长串里找短串</h2></div>
+        <p class="lead-in">字符串匹配，就是问：短串 P 在长串 T 里出现过几次？每次从第几个字符开始？</p>
+        <p>先看一个具体例子：文本 <code>T = ABABABABC</code>，模式 <code>P = ABABC</code>。</p>
+
+        <div class="string-demo" aria-label="文本 ABABABABC 从第 5 个字符开始匹配模式 ABABC">
+          <div class="sd-row">
+            <span class="sd-label">T</span>
+            <div class="sd-cells">
+              <span>A</span><span>B</span><span>A</span><span>B</span><span class="hit">A</span><span class="hit">B</span><span class="hit">A</span><span class="hit">B</span><span class="hit">C</span>
+            </div>
+          </div>
+          <div class="sd-row">
+            <span class="sd-label">下标</span>
+            <div class="sd-cells sd-index">
+              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+            </div>
+          </div>
+          <div class="sd-row">
+            <span class="sd-label">P</span>
+            <div class="sd-cells sd-pattern">
+              <span>A</span><span>B</span><span>A</span><span>B</span><span>C</span>
+            </div>
+          </div>
+        </div>
+
+        <p>答案是：<strong>出现 1 次，从第 5 个字符开始。</strong>因为 <code>T[5..9]</code> 正好是 <code>ABABC</code>。</p>
+        <p>下面统一把长串 T 叫<strong>文本</strong>，长度记作 <code>n</code>；短串 P 叫<strong>模式</strong>，长度记作 <code>m</code>。本文讲解时，下标从 1 开始。</p>
+
+        <div class="callout key">
+          <span class="callout-title">名词小抄</span>
+          <p><strong>前缀</strong>：从第 1 个字符开始的一段。比如 <code>ABAB</code> 的前缀有 <code>A</code>、<code>AB</code>、<code>ABA</code>、<code>ABAB</code>。<strong>真前缀</strong>是不包括整个串的那些。</p>
+          <p><strong>后缀</strong>：到最后一个字符结束的一段。比如 <code>ABAB</code> 的后缀有 <code>B</code>、<code>AB</code>、<code>BAB</code>、<code>ABAB</code>。<strong>真后缀</strong>同样不包括整个串。</p>
+          <p><strong>border</strong>：一个串的真前缀，恰好也是它的真后缀。比如 <code>ABAB</code> 的 border 是 <code>AB</code>。</p>
+          <p><strong>失配</strong>：两个字符不相等。还有，本文里的 <code>i</code>、<code>j</code> 只是下标数字，不是 C++ 的指针类型。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="brute">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">02</span><h2>暴力匹配：每次失配都从头再来</h2></div>
+        <p>最直接的办法：把 P 放到 T 的每一个起点，逐字比较。一旦不相等，就把起点右移一格，<code>j</code> 回到 0，重新开始。</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>起点</th><th>比较过程</th><th>结果</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td class="mono">A=A，B=B，A=A，B=B，A≠C</td><td>失败</td></tr>
+              <tr><td class="mono">2</td><td class="mono">B≠A</td><td>失败</td></tr>
+              <tr><td class="mono">3</td><td class="mono">A=A，B=B，A=A，B=B，A≠C</td><td>失败</td></tr>
+              <tr><td class="mono">4</td><td class="mono">B≠A</td><td>失败</td></tr>
+              <tr><td class="mono">5</td><td class="mono">A=A，B=B，A=A，B=B，C=C</td><td><strong>成功</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>这个例子看起来还不算慢，但 Worst Case 很吓人。比如：</p>
+        <div class="diagram">T = A A A A A ... A A A A A   （10 万个 A）
+P = A A A A A ... A A A A B   （5 万个 A，最后一个是 B）</div>
+        <p>前 5 万个字符都比对成功，最后一个失败；起点右移一格，又重新比 5 万个……时间会达到 <code>O(nm)</code>，可能是几十亿次比较。</p>
+
+        <div class="callout warn">
+          <span class="callout-title">问题在哪里</span>
+          <p>不是“比较”本身慢，而是<strong>重复比较</strong>慢。每次失败后，我们已经知道前面一些字符是什么，却把它们全丢了。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="idea">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">03</span><h2>核心想法：已经匹配的部分不要浪费</h2></div>
+        <p>先看模式串 <code>P = ABABC</code> 的前 4 个字符 <code>ABAB</code>。如果这 4 个字符已经和 T 匹配，那么 T 中对应的 4 个字符也一定是 <code>ABAB</code>。</p>
+        <p><code>ABAB</code> 的真前缀有 <code>A</code>、<code>AB</code>、<code>ABA</code>；真后缀有 <code>B</code>、<code>AB</code>、<code>BAB</code>。最长相同的是 <code>AB</code>，长度是 2。</p>
+
+        <div class="overlap">
+          <div class="overlap-grid">
+            <div class="ch">A</div><div class="ch">B</div><div class="ch">A</div><div class="ch">B</div>
+            <div class="overlap-bar bar-prefix" style="grid-column:1 / 3">前缀 AB</div>
+            <div class="overlap-bar bar-suffix" style="grid-column:3 / 5">后缀 AB</div>
+            <div class="overlap-result" style="grid-column:1 / -1">最长相同前后缀长度 = 2 → nxt[4] = 2</div>
+          </div>
+        </div>
+
+        <p>所以 P 不用回到起点。它可以向右滑 2 格，让前缀 <code>AB</code> 直接对准刚才的后缀 <code>AB</code>。这两个字符已经相等，不用再比。</p>
+
+        <div class="diagram">失配前：
+T   A B A B <span class="bad">A</span> B A B C
+P   A B A B <span class="bad">C</span>
+            <span class="bad">✗</span>
+
+右移 2 格：
+T   A B A B <span class="bad">A</span> B A B C
+P       A B A B C
+        <span class="good">└─AB─┘</span></div>
+        <div class="diagram-caption">模式串右移后，P 的前两个字符 AB 正好落在刚才已经匹配的 AB 上。接下来从 P[3] 和 T[5] 继续比。</div>
+
+        <div class="callout key">
+          <span class="callout-title">一句话记住</span>
+          <p>KMP 让<strong>文本指针 <code>i</code> 不回头</strong>，只让<strong>模式指针 <code>j</code> 往回跳</strong>。跳多远，由“最长相同前后缀”决定。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="next">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">04</span><h2>next 表：把“跳多远”提前算好</h2></div>
+        <p>我们把“<code>P[1..i]</code> 的最长 border 长度”记作 <code>nxt[i]</code>。这就是本文使用的 next 表定义。</p>
+
+        <div class="formula">nxt[i] = P[1..i] 的最长 border 长度
+          <small>border 必须既是真前缀，又是真后缀；不能是整个串本身</small>
+        </div>
+
+        <p>例如 <code>P[1..4] = ABAB</code>，最长 border 是 <code>AB</code>，长度 2，所以 <code>nxt[4] = 2</code>。特别地，<code>nxt[1] = 0</code>，因为长度为 1 的串没有真前缀。</p>
+
+        <h3>用 ABABC 算一遍</h3>
+        <div class="table-wrap">
+          <table class="table-center">
+            <thead><tr><th>i</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
+            <tbody>
+              <tr><td><strong>P[1..i]</strong></td><td class="mono">A</td><td class="mono">AB</td><td class="mono">ABA</td><td class="mono">ABAB</td><td class="mono">ABABC</td></tr>
+              <tr><td><strong>最长 border</strong></td><td>空</td><td>空</td><td class="mono">A</td><td class="mono">AB</td><td>空</td></tr>
+              <tr><td><strong>nxt[i]</strong></td><td class="mono">0</td><td class="mono">0</td><td class="mono">1</td><td class="mono">2</td><td class="mono">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>逐个看：</p>
+        <ul>
+          <li><code>A</code>：没有真前缀，<code>nxt[1] = 0</code>。</li>
+          <li><code>AB</code>：前缀只有 <code>A</code>，后缀只有 <code>B</code>，不相等，<code>nxt[2] = 0</code>。</li>
+          <li><code>ABA</code>：前缀 <code>A</code> 等于后缀 <code>A</code>，长度 1，<code>nxt[3] = 1</code>。</li>
+          <li><code>ABAB</code>：前缀 <code>AB</code> 等于后缀 <code>AB</code>，长度 2，<code>nxt[4] = 2</code>。</li>
+          <li><code>ABABC</code>：以 <code>C</code> 结尾，找不到以 <code>C</code> 结尾的真前缀，<code>nxt[5] = 0</code>。</li>
+        </ul>
+
+        <p>这张表只和模式 P 有关。换一个文本 T，next 表不用重新算，所以它可以重复使用。</p>
+
+        <div class="callout warn">
+          <span class="callout-title">定义警告</span>
+          <p>网上还有另一种写法，把 <code>next[0]</code> 设成 <code>-1</code>，含义和下标整体错一位。两种写法都能 AC，但<strong>初学先只掌握一种</strong>，不要混着写。本文统一使用：<code>nxt[i]</code> 是长度，失配时跳 <code>nxt[j]</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="match">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">05</span><h2>用 next 匹配：i 向前，j 回跳</h2></div>
+        <p>匹配时，<code>j</code> 表示“已经匹配了几个字符”。所以下一个要比较的是 <code>P[j+1]</code>，不是 <code>P[j]</code>。这一点很容易写错。</p>
+
+        <div class="pseudo">i = 1, j = 0
+while i &lt;= n:
+    if T[i] == P[j + 1]:
+        j = j + 1
+        if j == m:
+            记录起点 i - m + 1
+            j = nxt[j]
+        i = i + 1
+    else if j &gt; 0:
+        j = nxt[j]
+    else:
+        i = i + 1</div>
+
+        <p>三条规则，逐条看：</p>
+        <ul>
+          <li><strong>相等</strong>：<code>j++</code>，继续比下一个；如果 <code>j == m</code>，说明找到一个完整匹配。</li>
+          <li><strong>不相等，且 <code>j &gt; 0</code></strong>：<code>j = nxt[j]</code>，<code>i</code> 不动。用同一个 <code>T[i]</code> 去比新的 <code>P[j+1]</code>。</li>
+          <li><strong>不相等，且 <code>j == 0</code></strong>：连第一个字符都对不上，<code>i++</code>，换下一个文本字符。</li>
+        </ul>
+
+        <p>为什么失配时用 <code>nxt[j]</code>？因为此时 <code>T[i-j..i-1]</code> 已经等于 <code>P[1..j]</code>。我们要找 <code>P[1..j]</code> 的最长 border，长度正好是 <code>nxt[j]</code>。把模式串右移 <code>j - nxt[j]</code> 格，就能让前缀接上后缀。</p>
+
+        <h3>把 ABABABABC 和 ABABC 走一遍</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>i</th><th>比较前 j</th><th>比较</th><th>动作</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="mono">1</td><td class="mono">0</td><td class="mono">T1=A，P1=A</td><td>相等，j=1</td></tr>
+              <tr><td>2</td><td class="mono">2</td><td class="mono">1</td><td class="mono">T2=B，P2=B</td><td>相等，j=2</td></tr>
+              <tr><td>3</td><td class="mono">3</td><td class="mono">2</td><td class="mono">T3=A，P3=A</td><td>相等，j=3</td></tr>
+              <tr><td>4</td><td class="mono">4</td><td class="mono">3</td><td class="mono">T4=B，P4=B</td><td>相等，j=4</td></tr>
+              <tr><td>5</td><td class="mono">5</td><td class="mono">4</td><td class="mono">T5=A，P5=C</td><td>失配，j=nxt[4]=2</td></tr>
+              <tr><td>6</td><td class="mono">5</td><td class="mono">2</td><td class="mono">T5=A，P3=A</td><td>相等，j=3</td></tr>
+              <tr><td>7</td><td class="mono">6</td><td class="mono">3</td><td class="mono">T6=B，P4=B</td><td>相等，j=4</td></tr>
+              <tr><td>8</td><td class="mono">7</td><td class="mono">4</td><td class="mono">T7=A，P5=C</td><td>失配，j=nxt[4]=2</td></tr>
+              <tr><td>9</td><td class="mono">7</td><td class="mono">2</td><td class="mono">T7=A，P3=A</td><td>相等，j=3</td></tr>
+              <tr><td>10</td><td class="mono">8</td><td class="mono">3</td><td class="mono">T8=B，P4=B</td><td>相等，j=4</td></tr>
+              <tr><td>11</td><td class="mono">9</td><td class="mono">4</td><td class="mono">T9=C，P5=C</td><td>j=5=m，记录起点 5；j=nxt[5]=0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>注意第 6 步：<code>i</code> 仍然是 5。失配后 <code>i</code> 不动，用同一个 <code>T[5]</code> 去比新的 <code>P[3]</code>。这就是“<code>i</code> 不回头”。</p>
+
+        <div class="callout tip">
+          <span class="callout-title">再看一次数字</span>
+          <p>第 5 步：<code>j = 4</code>，失配，查 <code>nxt[4] = 2</code>，所以 <code>j</code> 变成 2。第 6 步比较 <code>P[2+1] = P[3]</code>。不是 <code>P[2]</code>，也不是 <code>P[4]</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="build">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">06</span><h2>next 怎么算：让模式串和自己匹配</h2></div>
+        <p>求 next 的过程，本质上是让 P 自己当文本、又当模式：看“前缀”能匹配到“后缀”多长。</p>
+        <p>先看代码框架。这里用 <code>j</code> 表示当前 border 长度，也是前缀最后一个字符的下标；<code>P[j+1]</code> 是前缀的下一个字符，<code>P[i]</code> 是新加进来的字符。</p>
+
+        <div class="pseudo">nxt[1] = 0
+j = 0
+for i = 2 .. m:
+    while j &gt; 0 and P[i] != P[j + 1]:
+        j = nxt[j]
+    if P[i] == P[j + 1]:
+        j = j + 1
+    nxt[i] = j</div>
+
+        <p>三个关键点：</p>
+        <ul>
+          <li><code>i</code> 从 2 开始，因为 <code>nxt[1]</code> 已经知道是 0。</li>
+          <li>相等时 <code>j++</code>：border 从长度 <code>j</code> 延长到 <code>j+1</code>。</li>
+          <li>不等时 <code>j = nxt[j]</code>：换一个更短的 border 再试，直到能匹配或 <code>j = 0</code>。</li>
+        </ul>
+
+        <h3>用 ABABC 走一遍</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>i</th><th>比较</th><th>j 的变化</th><th>nxt[i]</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">2</td><td class="mono">P2=B 与 P1=A，不相等</td><td class="mono">0</td><td class="mono">0</td></tr>
+              <tr><td class="mono">3</td><td class="mono">P3=A 与 P1=A，相等</td><td class="mono">0 → 1</td><td class="mono">1</td></tr>
+              <tr><td class="mono">4</td><td class="mono">P4=B 与 P2=B，相等</td><td class="mono">1 → 2</td><td class="mono">2</td></tr>
+              <tr><td class="mono">5</td><td class="mono">P5=C 与 P3=A，失配；j=nxt[2]=0；再比 C 与 P1=A，仍不等</td><td class="mono">2 → 0</td><td class="mono">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>第 5 行的过程值得多看一眼：<code>j</code> 原来等于 2，说明 <code>P[1..4] = ABAB</code> 的最长 border 是 <code>AB</code>。现在加入 <code>C</code>，<code>P[5] = C</code> 和 <code>P[3] = A</code> 不相等，所以 border 不能从 2 延长。于是退到 <code>nxt[2] = 0</code>，再比较 <code>C</code> 和 <code>P[1] = A</code>，还是不相等，最终 <code>nxt[5] = 0</code>。</p>
+
+        <div class="callout key">
+          <span class="callout-title">下一轮为什么还能接着比</span>
+          <p>因为 <code>nxt[j]</code> 是 <code>P[1..j]</code> 的最长 border。这个 border 既是前缀，又是后缀；把前缀移到后缀的位置后，前面的字符仍然匹配。KMP 就是不断利用这一点，避免从头比较。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="code">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">07</span><h2>完整 C++ 模板</h2></div>
+        <p>先看整体结构，不用一口气背下来。代码里的字符串使用 C++ 的 0 开始下标，所以逻辑第 <code>i</code> 个字符写成 <code>p[i-1]</code>；<code>nxt</code> 数组仍然使用 <code>1..m</code>。</p>
+
+        <div class="code-card">
+          <div class="code-head"><span class="lang">C++17</span><span>buildNext + kmp</span></div>
+          <pre class="code"><code><span class="pp">#include &lt;bits/stdc++.h&gt;</span>
+using namespace std;
+
+<span class="cm">// p 是模式串，返回 nxt[1..m]</span>
+vector&lt;int&gt; buildNext(const string &amp;p) {
+    int m = (int)p.size();
+    vector&lt;int&gt; nxt(m + 1, 0);          <span class="cm">// nxt[1..m]</span>
+    for (int i = 2, j = 0; i &lt;= m; ++i) {
+        while (j &gt; 0 &amp;&amp; p[i - 1] != p[j]) j = nxt[j];
+        if (p[i - 1] == p[j]) ++j;
+        nxt[i] = j;
+    }
+    return nxt;
+}
+
+vector&lt;int&gt; kmp(const string &amp;t, const string &amp;p) {
+    int n = (int)t.size(), m = (int)p.size();
+    vector&lt;int&gt; ans;
+    if (m == 0 || m &gt; n) return ans;
+
+    vector&lt;int&gt; nxt = buildNext(p);
+    for (int i = 1, j = 0; i &lt;= n; ++i) {
+        while (j &gt; 0 &amp;&amp; t[i - 1] != p[j]) j = nxt[j];
+        if (t[i - 1] == p[j]) ++j;
+        if (j == m) {
+            ans.push_back(i - m);        <span class="cm">// 0-based 起点</span>
+            j = nxt[j];
+        }
+    }
+    return ans;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    string t, p;
+    cin &gt;&gt; t &gt;&gt; p;
+
+    vector&lt;int&gt; pos = kmp(t, p);
+    cout &lt;&lt; pos.size() &lt;&lt; '\n';
+    for (int x : pos) cout &lt;&lt; x + 1 &lt;&lt; ' ';  <span class="cm">// 转成 1-based 输出</span>
+    cout &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+        </div>
+
+        <h3>输入输出示例</h3>
+        <div class="io"><span class="io-label">输入</span>
+ABABABABC
+ABABC
+
+<span class="io-label">输出</span>
+1
+5</div>
+
+        <p>如果题目要求输出所有出现位置，就循环输出 <code>x + 1</code>；如果只要求第一次，找到后直接返回 <code>i - m + 1</code> 即可。</p>
+
+        <div class="callout warn">
+          <span class="callout-title">三个下标提醒</span>
+          <p>1. <code>nxt</code> 开 <code>m + 1</code> 个，使用 <code>nxt[1..m]</code>。</p>
+          <p>2. 逻辑第 <code>i</code> 个字符是 <code>p[i-1]</code>，逻辑第 <code>j+1</code> 个字符是 <code>p[j]</code>。</p>
+          <p>3. <code>ans</code> 里存的是 0-based 起点，输出时加 1。下标是 KMP 最容易错的地方。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="lab">
+      <div class="card">
+        <div class="sec-head"><span class="sec-num">08</span><h2>KMP 实验室</h2></div>
+        <p>点“下一步”，看 <code>i</code> 和 <code>j</code> 怎么移动；也可以修改字符串，自己出题。两个标签页分别演示“匹配”和“构建 next”。</p>
+
+        <div class="lab">
+          <div class="lab-tabs" role="group" aria-label="演示模式">
+            <button type="button" class="tab active" data-mode="match" aria-pressed="true">匹配演示</button>
+            <button type="button" class="tab" data-mode="build" aria-pressed="false">构建 next</button>
+          </div>
+
+          <div class="lab-inputs" id="matchInputs">
+            <label>文本 T
+              <input id="textInput" type="text" value="ABABABABC" maxlength="40" spellcheck="false" autocomplete="off">
+              <span class="input-hint">最多 40 个字符，空格会被忽略</span>
+            </label>
+            <label>模式 P
+              <input id="patternInput" type="text" value="ABABC" maxlength="20" spellcheck="false" autocomplete="off">
+              <span class="input-hint">最多 20 个字符</span>
+            </label>
+          </div>
+
+          <div class="lab-inputs" id="buildInputs" hidden>
+            <label>模式 P
+              <input id="buildPatternInput" type="text" value="ABABC" maxlength="40" spellcheck="false" autocomplete="off">
+              <span class="input-hint">修改后会自动重新计算 next</span>
+            </label>
+          </div>
+
+          <div class="stage">
+            <div class="stage-top">
+              <span class="stage-mode" id="stageMode">匹配演示</span>
+              <span class="step-label" id="stepLabel">第 0 / 0 步</span>
+            </div>
+            <div id="stageCanvas"></div>
+          </div>
+
+          <div class="note" id="noteBox" aria-live="polite">准备开始。</div>
+          <div class="result" id="resultBox" hidden></div>
+
+          <div class="controls">
+            <button type="button" class="btn" id="prevBtn">上一步</button>
+            <button type="button" class="btn primary" id="nextBtn">下一步</button>
+            <button type="button" class="btn" id="playBtn">自动播放</button>
+            <button type="button" class="btn" id="resetBtn">重置</button>
+          </div>
+        </div>
+
+        <div class="callout tip" style="margin-bottom:0">
+          <span class="callout-title">怎么看颜色</span>
+          <p><strong>绿色</strong>是已经匹配的部分，<strong>橙色</strong>是当前正在比较的字符，<strong>红色</strong>是失配字符。构建 next 时，<strong>蓝色</strong>表示当前后缀，和绿色前缀对照着看。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="complexity">
+      <div class="card prose">
+        <div class="sec-head"><span class="sec-num">09</span><h2>复杂度：为什么不是 O(nm)</h2></div>
+        <p>KMP 的代码里有 <code>for</code> 又有 <code>while</code>，看起来可能很慢。但 <code>j</code> 的移动有一个重要性质：</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>阶段</th><th>时间</th><th>额外空间</th></tr></thead>
+            <tbody>
+              <tr><td>构建 next</td><td class="mono">O(m)</td><td class="mono">O(m)</td></tr>
+              <tr><td>匹配</td><td class="mono">O(n)</td><td class="mono">O(1)（不算答案）</td></tr>
+              <tr><td><strong>总计</strong></td><td class="mono"><strong>O(n + m)</strong></td><td class="mono">O(m)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>把 <code>j</code> 想成一个小球：每次匹配成功，小球升高 1 格；每次回跳，小球下降至少 1 格。小球总共只能升高 <code>n</code> 次，所以总共也只能下降 <code>n</code> 次。</p>
+        <p>因此，整个匹配过程中 <code>while</code> 的总执行次数是 <code>O(n)</code>，不是每次都有很多次。构建 next 时同理，总次数是 <code>O(m)</code>。</p>
+
+        <div class="callout key">
+          <span class="callout-title">对比暴力</span>
+          <p>暴力匹配可能让文本指针 <code>i</code> 回头，最坏 <code>O(nm)</code>；KMP 的 <code>i</code> 只向前走，<code>j</code> 的回跳被“升高次数”限制住，所以总共 <code>O(n+m)</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pitfalls">
+      <div class="card">
+        <div class="sec-head"><span class="sec-num">10</span><h2>常见错误：这些坑很真实</h2></div>
+        <div class="mistakes">
+          <div class="mistake">
+            <h3>1. 把 next 的定义记混</h3>
+            <p>本文 <code>nxt[i]</code> 是 <code>P[1..i]</code> 的最长 border 长度，失配时跳 <code>nxt[j]</code>。另一种写法把 <code>next[i]</code> 定义成“失配后跳到的位置”，整体错一位。两种都对，但不要混。</p>
+          </div>
+          <div class="mistake">
+            <h3>2. 0 开始和 1 开始混用</h3>
+            <p>逻辑第 <code>i</code> 个字符是 <code>p[i-1]</code>。如果代码里写 <code>p[i]</code>，整体就会错位，尤其是 <code>p[j]</code> 和 <code>p[j+1]</code>。</p>
+          </div>
+          <div class="mistake">
+            <h3>3. while 忘了 j &gt; 0</h3>
+            <p><code>j = 0</code> 时 <code>nxt[0]</code> 没有意义，可能越界或死循环。条件要写完整：<code>while (j &gt; 0 &amp;&amp; ...)</code>。</p>
+          </div>
+          <div class="mistake">
+            <h3>4. 匹配成功后忘了 j = nxt[j]</h3>
+            <p>像 <code>T = AAAA</code>、<code>P = AA</code> 这种有重叠的匹配，会漏掉后面的答案。找到一个后要接着找。</p>
+          </div>
+          <div class="mistake">
+            <h3>5. nxt[i] = j 放错位置</h3>
+            <p>每一轮 <code>for</code> 结束都要写 <code>nxt[i] = j</code>，不能只写在 <code>if</code> 里面。无论这次是否匹配成功，<code>nxt[i]</code> 都要有值。</p>
+          </div>
+          <div class="mistake">
+            <h3>6. 以为 next 只对当前文本有效</h3>
+            <p><code>next</code> 只依赖模式串 P，和 T 无关。换一个文本，同一张 next 表可以继续用。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="practice">
+      <div class="card">
+        <div class="sec-head"><span class="sec-num">11</span><h2>小练习：先自己做，再展开答案</h2></div>
+        <div class="practice-list">
+          <div class="practice">
+            <p class="q">1. 求 <code>P = ABABAB</code> 的 next 数组。</p>
+            <details><summary>看答案</summary><div class="answer"><p><code>nxt = [0, 0, 1, 2, 3, 4]</code>（下标 1 到 6）。<code>ABABAB</code> 的最长 border 是 <code>ABAB</code>，长度 4。</p></div></details>
+          </div>
+          <div class="practice">
+            <p class="q">2. 求 <code>P = AAAA</code> 的 next 数组。</p>
+            <details><summary>看答案</summary><div class="answer"><p><code>nxt = [0, 1, 2, 3]</code>（下标 1 到 4）。全是 <code>A</code> 时，前缀和后缀可以一直重叠。</p></div></details>
+          </div>
+          <div class="practice">
+            <p class="q">3. <code>T = ABCABCABD</code>，<code>P = ABCABD</code>，第一次匹配从第几个字符开始？</p>
+            <details><summary>看答案</summary><div class="answer"><p>从第 <strong>4</strong> 个字符开始。</p><p>前 5 个字符匹配后，<code>j = 5</code>；在 <code>T[6] = C</code> 和 <code>P[6] = D</code> 处失配，<code>j = nxt[5] = 2</code>。接着 <code>T[6] = C</code> 和 <code>P[3] = C</code> 匹配，继续走到 <code>T[9] = D</code> 和 <code>P[6] = D</code>，找到起点 <code>9 - 6 + 1 = 4</code>。</p></div></details>
+          </div>
+          <div class="practice">
+            <p class="q">4. 为什么 KMP 的文本指针 <code>i</code> 可以不回头？</p>
+            <details><summary>看答案</summary><div class="answer"><p>因为失配时，<code>T[i-j..i-1]</code> 已经等于 <code>P[1..j]</code>。而 <code>P[1..j]</code> 的最长 border 长度为 <code>nxt[j]</code>，这个 border 同时是前缀和后缀。把模式串右移到前缀对准后缀的位置，前面这一段仍然匹配，所以不需要重新检查已经确认过的文本字符。</p></div></details>
+          </div>
+          <div class="practice">
+            <p class="q">5. <code>T = AAAA</code>，<code>P = AA</code>，一共有几个匹配？起点分别是多少？</p>
+            <details><summary>看答案</summary><div class="answer"><p>3 个，起点分别是 1、2、3。</p><p>找到一个后，<code>j = nxt[2] = 1</code>，而不是直接清 0；这样起点 2 和 3 的重叠匹配才不会漏掉。</p></div></details>
+          </div>
+          <div class="practice">
+            <p class="q">6. 编程练习：在洛谷 P3375【模板】KMP 上写一遍。</p>
+            <details><summary>看提示</summary><div class="answer"><p>先自己写 <code>buildNext</code> 和 <code>kmp</code>，不要直接抄模板。写完用这组数据检查：<code>T = ABABABABC</code>，<code>P = ABABC</code>，答案应为 1 个匹配，起点 5。然后再试 <code>T = AAAA</code>，<code>P = AA</code>，答案应为 3 个匹配。</p></div></details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="summary">
+      <div class="card summary-card">
+        <div class="sec-head"><span class="sec-num">12</span><h2>把 KMP 收进脑子里</h2></div>
+        <ol class="summary-list">
+          <li><code>nxt[i]</code> 是 <code>P[1..i]</code> 的最长 border 长度，<code>nxt[1] = 0</code>。</li>
+          <li>失配时 <code>j = nxt[j]</code>，文本指针 <code>i</code> 不回头。</li>
+          <li>构建 next 和匹配都是线性的，总复杂度 <code>O(n+m)</code>。</li>
+        </ol>
+
+        <div class="mnemonic">失配不要从头来，最长前后缀接上来；<br>文本指针向前走，模式指针往回跳。</div>
+
+        <h3>提交代码前，检查这 5 件事</h3>
+        <ul class="checklist">
+          <li><code>nxt[1] = 0</code> 写了吗？</li>
+          <li><code>while</code> 里有 <code>j &gt; 0</code> 吗？</li>
+          <li><code>nxt[i] = j</code> 每一轮都执行了吗？</li>
+          <li>找到一个匹配后，写 <code>j = nxt[j]</code> 了吗？</li>
+          <li>输出起点时，把 0-based 转成 1-based 了吗？</li>
+        </ul>
+
+        <p style="margin-top:22px;margin-bottom:0" class="muted">下一步可以学：Z 函数、字符串哈希、AC 自动机。先把 KMP 手写三遍，再往前走。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    KMP 算法学习页 · 用 ABABC 走完一遍，你就懂了<br>
+    页面中的演示会忽略空格；代码为 C++17 写法。
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const esc = (value) => String(value).replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+
+  const state = {
+    mode: 'match',
+    timer: null,
+    match: { text: 'ABABABABC', pattern: 'ABABC', steps: [], idx: 0, meta: null },
+    build: { pattern: 'ABABC', steps: [], idx: 0, meta: null }
+  };
+
+  const ui = {
+    tabs: $$('.tab'),
+    matchInputs: $('#matchInputs'),
+    buildInputs: $('#buildInputs'),
+    textInput: $('#textInput'),
+    patternInput: $('#patternInput'),
+    buildPatternInput: $('#buildPatternInput'),
+    stageCanvas: $('#stageCanvas'),
+    stageMode: $('#stageMode'),
+    stepLabel: $('#stepLabel'),
+    noteBox: $('#noteBox'),
+    resultBox: $('#resultBox'),
+    prevBtn: $('#prevBtn'),
+    nextBtn: $('#nextBtn'),
+    playBtn: $('#playBtn'),
+    resetBtn: $('#resetBtn')
+  };
+
+  function makeNext(pattern) {
+    const m = pattern.length;
+    const nxt = new Array(m + 1).fill(0);
+    for (let i = 2, j = 0; i <= m; i++) {
+      while (j > 0 && pattern[i - 1] !== pattern[j]) j = nxt[j];
+      if (pattern[i - 1] === pattern[j]) j++;
+      nxt[i] = j;
+    }
+    return nxt;
+  }
+
+  function makeMatchSteps(textRaw, patternRaw) {
+    const text = Array.from(textRaw);
+    const pattern = Array.from(patternRaw);
+    const n = text.length;
+    const m = pattern.length;
+    if (!n || !m) return null;
+
+    const nxt = makeNext(pattern);
+    const steps = [];
+    const matches = [];
+
+    steps.push({
+      type: 'start',
+      i: 1,
+      jBefore: 0,
+      jAfter: 0,
+      start: 1,
+      matches: [],
+      note: m > n
+        ? `模式串比文本长（m=${m} > n=${n}），不可能匹配。下面仍然演示指针移动。`
+        : `准备开始：i = 1，j = 0。比较 T[1] 和 P[1]。`
+    });
+
+    let i = 1;
+    let j = 0;
+    let guard = 0;
+
+    while (i <= n && guard++ < 20000) {
+      if (j > 0 && text[i - 1] !== pattern[j]) {
+        const old = j;
+        j = nxt[j];
+        steps.push({
+          type: 'fallback',
+          i,
+          jBefore: old,
+          jAfter: j,
+          start: i - old,
+          matches: matches.slice(),
+          note: `T[${i}] = ${text[i - 1]}，P[${old + 1}] = ${pattern[old]}，不相等。j 从 ${old} 跳到 nxt[${old}] = ${j}。`
+        });
+      } else if (text[i - 1] === pattern[j]) {
+        const before = j;
+        j++;
+        if (j === m) {
+          const start = i - m + 1;
+          matches.push(start);
+          steps.push({
+            type: 'found',
+            i,
+            jBefore: before,
+            jAfter: j,
+            start,
+            matches: matches.slice(),
+            note: `T[${i}] = P[${m}]，j 增加到 ${m}，找到一个匹配！起点 = ${i} - ${m} + 1 = ${start}。`
+          });
+          j = nxt[j];
+          i++;
+        } else {
+          steps.push({
+            type: 'match',
+            i,
+            jBefore: before,
+            jAfter: j,
+            start: i - before,
+            matches: matches.slice(),
+            note: `T[${i}] = P[${before + 1}] = ${text[i - 1]}，匹配成功，j 增加到 ${j}。`
+          });
+          i++;
+        }
+      } else {
+        steps.push({
+          type: 'skip',
+          i,
+          jBefore: 0,
+          jAfter: 0,
+          start: i,
+          matches: matches.slice(),
+          note: `j = 0，T[${i}] = ${text[i - 1]} 和 P[1] = ${pattern[0]} 不相等。i 向右走一步。`
+        });
+        i++;
+      }
+    }
+
+    return { steps, meta: { n, m, nxt, text, pattern } };
+  }
+
+  function makeBuildSteps(patternRaw) {
+    const pattern = Array.from(patternRaw);
+    const m = pattern.length;
+    if (!m) return null;
+
+    const nxt = new Array(m + 1).fill(0);
+    const known = new Array(m + 1).fill(false);
+    known[1] = true;
+    const steps = [];
+
+    steps.push({
+      type: 'bstart',
+      i: 2,
+      jBefore: 0,
+      jAfter: 0,
+      nxt: nxt.slice(),
+      known: known.slice(),
+      note: m === 1
+        ? '模式串只有一个字符。nxt[1] = 0，已经算完了。'
+        : 'nxt[1] = 0。现在算 nxt[2]：比较 P[2] 和 P[1]。'
+    });
+
+    if (m === 1) return { steps, meta: { m, pattern } };
+
+    let j = 0;
+    for (let i = 2; i <= m; i++) {
+      while (j > 0 && pattern[i - 1] !== pattern[j]) {
+        const old = j;
+        j = nxt[j];
+        steps.push({
+          type: 'bfallback',
+          i,
+          jBefore: old,
+          jAfter: j,
+          nxt: nxt.slice(),
+          known: known.slice(),
+          note: `P[${i}] = ${pattern[i - 1]}，P[${old + 1}] = ${pattern[old]}，不相等。j 从 ${old} 跳到 nxt[${old}] = ${j}。`
+        });
+      }
+
+      if (pattern[i - 1] === pattern[j]) {
+        const before = j;
+        j++;
+        nxt[i] = j;
+        known[i] = true;
+        steps.push({
+          type: 'bmatch',
+          i,
+          jBefore: before,
+          jAfter: j,
+          nxt: nxt.slice(),
+          known: known.slice(),
+          note: `P[${i}] = P[${before + 1}] = ${pattern[i - 1]}，border 可以延长。nxt[${i}] = ${j}。`
+        });
+      } else {
+        nxt[i] = 0;
+        known[i] = true;
+        steps.push({
+          type: 'bmiss',
+          i,
+          jBefore: 0,
+          jAfter: 0,
+          nxt: nxt.slice(),
+          known: known.slice(),
+          note: `j = 0，P[${i}] = ${pattern[i - 1]} 和 P[1] = ${pattern[0]} 不相等。nxt[${i}] = 0。`
+        });
+      }
+    }
+
+    return { steps, meta: { m, pattern } };
+  }
+
+  function currentData() {
+    return state.mode === 'match' ? state.match : state.build;
+  }
+
+  function nextChipsHTML(values, m, opts = {}) {
+    const { known, current, jump, justSet } = opts;
+    let html = `<div class="next-grid" style="grid-template-columns:repeat(${m}, var(--cell))">`;
+    for (let k = 1; k <= m; k++) {
+      const isKnown = known ? known[k] : true;
+      const cls = ['nchip'];
+      if (!isKnown) cls.push('is-unknown');
+      if (k === current) cls.push('is-current');
+      if (k === jump) cls.push('is-jump');
+      if (k === justSet) cls.push('just-set');
+      html += `<div class="${cls.join(' ')}"><span class="nidx">${k}</span><span class="nval">${isKnown ? values[k] : '?'}</span></div>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderMatch(step, meta) {
+    const { n, m, nxt, text, pattern } = meta;
+    const start = step.start;
+    const cols = Math.max(n, start + m - 1, 1);
+    let html = '<div class="track-scroll">';
+
+    html += '<div class="row-head"><span>文本 T</span><span class="row-hint">i 只向右走</span></div>';
+    html += `<div class="ruler" style="grid-template-columns:repeat(${cols}, var(--cell))">`;
+    for (let k = 1; k <= cols; k++) {
+      html += `<span class="ruler-cell">${k <= n ? k : ''}</span>`;
+    }
+    html += '</div>';
+
+    html += `<div class="track" style="grid-template-columns:repeat(${cols}, var(--cell))">`;
+    for (let k = 1; k <= n; k++) {
+      const cls = ['cell'];
+      const inMatch = k >= start && k < start + step.jBefore;
+      if (inMatch) cls.push('is-matched');
+      if (step.matches.some((s) => k >= s && k < s + m)) cls.push('is-hit');
+      if (step.type === 'found' && k >= start && k < start + m) {
+        cls.push('is-found');
+      } else if (k === step.i) {
+        cls.push(step.type === 'fallback' || step.type === 'skip' ? 'is-bad' : 'is-current');
+      }
+      html += `<div class="${cls.join(' ')}"><span class="ch">${esc(text[k - 1])}</span></div>`;
+    }
+    html += '</div>';
+
+    html += `<div class="row-head"><span>模式 P</span><span class="row-hint">当前对齐起点：${start}</span></div>`;
+    html += `<div class="track pattern-track" style="grid-template-columns:repeat(${cols}, var(--cell))">`;
+    for (let k = 0; k < m; k++) {
+      const cls = ['cell', 'pattern-cell'];
+      if (k < step.jBefore) cls.push('is-matched');
+      if (step.type === 'fallback') {
+        if (k < step.jAfter) cls.push('is-keep');
+        else if (k < step.jBefore) cls.push('is-drop');
+        if (k === step.jBefore) cls.push('is-bad');
+      } else if (step.type === 'found') {
+        cls.push('is-found');
+      } else if (k === step.jBefore) {
+        cls.push(step.type === 'skip' ? 'is-bad' : 'is-current');
+      }
+      html += `<div class="${cls.join(' ')}" style="grid-column:${start + k}"><span class="ch">${esc(pattern[k])}</span></div>`;
+    }
+    html += '</div></div>';
+
+    html += '<div class="next-wrap"><div class="row-head"><span>next 数组</span><span class="row-hint">失配时查 nxt[j]</span></div>';
+    html += nextChipsHTML(nxt, m, { jump: step.type === 'fallback' ? step.jBefore : undefined });
+    html += '</div>';
+
+    return html;
+  }
+
+  function renderBuild(step, meta) {
+    const { m, pattern } = meta;
+    const i0 = step.i - 1;
+    let html = '<div class="track-scroll">';
+
+    html += '<div class="row-head"><span>模式 P</span><span class="row-hint">让 P 和自己匹配</span></div>';
+    html += `<div class="ruler" style="grid-template-columns:repeat(${m}, var(--cell))">`;
+    for (let k = 1; k <= m; k++) {
+      html += `<span class="ruler-cell">${k}</span>`;
+    }
+    html += '</div>';
+
+    html += `<div class="track" style="grid-template-columns:repeat(${m}, var(--cell))">`;
+    for (let k = 0; k < m; k++) {
+      const cls = ['cell', 'pattern-cell'];
+      const isPrefix = k < step.jBefore;
+      const suffixStart = step.i - 1 - step.jBefore;
+      const isSuffix = step.jBefore > 0 && k >= suffixStart && k <= step.i - 2;
+      if (isPrefix && isSuffix) cls.push('is-both');
+      else if (isPrefix) cls.push('is-prefix');
+      else if (isSuffix) cls.push('is-suffix');
+      if (step.i <= m && k === i0) cls.push('is-current');
+      if (step.i <= m && k === step.jBefore && k !== i0) cls.push('is-target');
+      html += `<div class="${cls.join(' ')}"><span class="ch">${esc(pattern[k])}</span></div>`;
+    }
+    html += '</div></div>';
+
+    html += '<div class="next-wrap"><div class="row-head"><span>next 数组</span><span class="row-hint">答案先记成 ?，算到哪填到哪</span></div>';
+    html += nextChipsHTML(step.nxt, m, {
+      known: step.known,
+      current: step.i <= m ? step.i : undefined,
+      jump: step.type === 'bfallback' ? step.jBefore : undefined,
+      justSet: step.type === 'bmatch' ? step.i : undefined
+    });
+    html += '</div>';
+
+    return html;
+  }
+
+  function updateControls() {
+    const data = currentData();
+    const has = data.steps.length > 0;
+    const last = data.steps.length - 1;
+    ui.prevBtn.disabled = !has || data.idx <= 0;
+    ui.nextBtn.disabled = !has || data.idx >= last;
+    ui.playBtn.disabled = !has;
+    ui.playBtn.textContent = state.timer ? '暂停' : '自动播放';
+    ui.playBtn.classList.toggle('is-playing', Boolean(state.timer));
+    ui.resetBtn.disabled = !has;
+  }
+
+  function renderResult(step, atEnd) {
+    if (state.mode !== 'match') {
+      ui.resultBox.hidden = true;
+      ui.resultBox.innerHTML = '';
+      return;
+    }
+
+    ui.resultBox.hidden = false;
+    const matches = step.matches || [];
+    if (matches.length) {
+      ui.resultBox.innerHTML = `<span class="result-label">已找到 ${matches.length} 处：</span>` +
+        matches.map((s) => `<span class="hit-chip">起点 ${s}</span>`).join('');
+    } else {
+      ui.resultBox.innerHTML = `<span class="result-label">${atEnd ? '演示结束：没有找到匹配' : '还没有找到匹配'}</span>`;
+    }
+  }
+
+  function render() {
+    const data = currentData();
+
+    if (!data.steps.length) {
+      ui.stageMode.textContent = state.mode === 'match' ? '匹配演示' : '构建 next';
+      ui.stageCanvas.innerHTML = '<div class="empty-state">输入非空字符串后，这里会显示逐步演示。</div>';
+      ui.stepLabel.textContent = '第 0 / 0 步';
+      ui.noteBox.textContent = state.mode === 'match'
+        ? '请先输入文本 T 和模式 P。'
+        : '请先输入模式串 P。';
+      ui.resultBox.hidden = true;
+      updateControls();
+      return;
+    }
+
+    const step = data.steps[data.idx];
+    const last = data.steps.length - 1;
+    const atEnd = data.idx === last;
+
+    ui.stageMode.textContent = state.mode === 'match' ? '匹配演示' : '构建 next';
+    ui.stepLabel.textContent = `第 ${data.idx} / ${last} 步`;
+    ui.stageCanvas.innerHTML = state.mode === 'match'
+      ? renderMatch(step, data.meta)
+      : renderBuild(step, data.meta);
+    ui.noteBox.textContent = step.note + (atEnd ? ' 演示结束。' : '');
+    renderResult(step, atEnd);
+    updateControls();
+  }
+
+  function stopPlay() {
+    if (state.timer !== null) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
+    ui.playBtn.textContent = '自动播放';
+    ui.playBtn.classList.remove('is-playing');
+  }
+
+  function startPlay() {
+    const data = currentData();
+    if (!data.steps.length) return;
+
+    stopPlay();
+    if (data.idx >= data.steps.length - 1) {
+      data.idx = 0;
+      render();
+    }
+
+    state.timer = setInterval(() => {
+      const d = currentData();
+      if (d.idx >= d.steps.length - 1) {
+        stopPlay();
+        render();
+        return;
+      }
+      d.idx++;
+      render();
+    }, 900);
+
+    updateControls();
+  }
+
+  function stepBy(delta) {
+    stopPlay();
+    const data = currentData();
+    if (!data.steps.length) return;
+    data.idx = Math.max(0, Math.min(data.steps.length - 1, data.idx + delta));
+    render();
+  }
+
+  function rebuildMatch() {
+    const text = ui.textInput.value.replace(/\s+/g, '');
+    const pattern = ui.patternInput.value.replace(/\s+/g, '');
+    state.match.text = text;
+    state.match.pattern = pattern;
+    const built = makeMatchSteps(text, pattern);
+    state.match.steps = built ? built.steps : [];
+    state.match.meta = built ? built.meta : null;
+    state.match.idx = 0;
+    if (state.mode === 'match') render();
+  }
+
+  function rebuildBuild() {
+    const pattern = ui.buildPatternInput.value.replace(/\s+/g, '');
+    state.build.pattern = pattern;
+    const built = makeBuildSteps(pattern);
+    state.build.steps = built ? built.steps : [];
+    state.build.meta = built ? built.meta : null;
+    state.build.idx = 0;
+    if (state.mode === 'build') render();
+  }
+
+  ui.tabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.mode === state.mode) return;
+      stopPlay();
+      state.mode = btn.dataset.mode;
+      ui.tabs.forEach((b) => {
+        const active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', String(active));
+      });
+      const isMatch = state.mode === 'match';
+      ui.matchInputs.hidden = !isMatch;
+      ui.buildInputs.hidden = isMatch;
+      render();
+    });
+  });
+
+  ui.textInput.addEventListener('input', () => {
+    stopPlay();
+    rebuildMatch();
+  });
+
+  ui.patternInput.addEventListener('input', () => {
+    stopPlay();
+    rebuildMatch();
+  });
+
+  ui.buildPatternInput.addEventListener('input', () => {
+    stopPlay();
+    rebuildBuild();
+  });
+
+  ui.prevBtn.addEventListener('click', () => stepBy(-1));
+  ui.nextBtn.addEventListener('click', () => stepBy(1));
+  ui.resetBtn.addEventListener('click', () => {
+    stopPlay();
+    const data = currentData();
+    data.idx = 0;
+    render();
+  });
+  ui.playBtn.addEventListener('click', () => {
+    if (state.timer) {
+      stopPlay();
+      updateControls();
+    } else {
+      startPlay();
+    }
+  });
+
+  if ('IntersectionObserver' in window) {
+    const links = $$('.toc a');
+    const sections = [];
+    links.forEach((link) => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        const section = document.getElementById(href.slice(1));
+        if (section) sections.push({ section, link });
+      }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        links.forEach((link) => link.classList.remove('active'));
+        const hit = sections.find((item) => item.section === entry.target);
+        if (hit) hit.link.classList.add('active');
+      });
+    }, { rootMargin: '-18% 0px -68% 0px', threshold: 0 });
+
+    sections.forEach((item) => observer.observe(item.section));
+  }
+
+  rebuildMatch();
+  rebuildBuild();
+  state.mode = 'match';
+  render();
+})();
+</script>
+</body>
+</html>

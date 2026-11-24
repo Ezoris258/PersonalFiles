@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>20261105 题解精讲：旅游 · 回文串 · 按位与 · 纸牌游戏 · 能量水晶</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #ffffff;
+  color: #24292f;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.85;
+}
+.wrap { max-width: 940px; margin: 0 auto; padding: 32px 24px 80px; }
+h1 { font-size: 26px; line-height: 1.45; margin: 0 0 10px; font-weight: 700; }
+h2 { font-size: 21px; line-height: 1.5; margin: 48px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #d0d7de; }
+h3 { font-size: 17px; line-height: 1.6; margin: 26px 0 8px; }
+p { margin: 10px 0; }
+ul, ol { margin: 10px 0; padding-left: 26px; }
+li { margin: 4px 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; font-size: 15px; background: #f2f4f7; padding: 1px 4px; border-radius: 3px; }
+pre { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 14px; overflow-x: auto; margin: 12px 0 16px; line-height: 1.65; }
+pre code { background: none; padding: 0; font-size: 14px; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 16px; }
+th, td { border: 1px solid #d0d7de; padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: #f6f8fa; font-weight: 600; }
+.formula { font-family: "Cambria Math", "Times New Roman", serif; font-size: 16px; text-align: center; margin: 12px 0; line-height: 2.2; }
+.meta { color: #57606a; }
+.note { border-left: 3px solid #d0d7de; padding: 2px 0 2px 14px; margin: 12px 0; }
+.box { border: 1px solid #d0d7de; border-radius: 6px; padding: 10px 14px; margin: 12px 0; background: #fafbfc; }
+.tag { color: #57606a; }
+hr { border: 0; border-top: 1px solid #d0d7de; margin: 40px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>20261105 题解精讲</h1>
+  <p class="meta">讲解对象：20261105.pdf（共 10 页，5 道题的题解）。每道题按「概述题意 → 数学模型 → 解题思路 → 核心代码 → 完整代码 → 本题坑点」的顺序讲，最后补一节「动手练一练」给你自测。代码取自原文件，我只在每一行后面补了中文注释；推演用的例子和自测题是我补写的，输入和输出都用原代码跑过。</p>
+  <p>阅读建议：第一遍先把「概述题意」读完，弄清楚输入是什么、要输出什么、数据有多大；第二遍跟着「解题思路」在纸上把例子推一遍；第三遍对着「核心代码」逐行看，每一步都要能在思路里找到对应的那句话；最后用「动手练一练」检查自己是不是真的会了。遇到看不懂的公式，回到「数学模型」，把每个符号代表什么都标出来，再回来看公式。</p>
+</header>
+
+<h2 id="toc">目录</h2>
+<nav>
+  <ol>
+    <li><a href="#warmup">读前热身：五个会用到的概念</a></li>
+    <li><a href="#p1">CSPJ2-2026-1 旅游</a></li>
+    <li><a href="#p2">CSPJ2-2026-2 回文串</a></li>
+    <li><a href="#p3">CSPJ2-2026-3 按位与</a></li>
+    <li><a href="#p4">CSPJ2-2026-4 纸牌游戏</a></li>
+    <li><a href="#p5">CSPS2-2026-1 能量水晶</a></li>
+    <li><a href="#summary">复杂度与考点总表</a></li>
+  </ol>
+</nav>
+
+<h2 id="warmup">读前热身：五个会用到的概念</h2>
+
+<p>这五道题用到的工具不多，但每一个都要真的理解，不然看题解会觉得「代码看得懂、思路想不出」。下面五段各配一个小例子，先花十分钟看一遍，后面会轻松很多。</p>
+
+<h3>1. 行程压缩（把一长串相同字符合并起来）</h3>
+
+<p>行程压缩就是把「连续出现的同一个字符」合并写成「几个什么字符」。例如 <code>aaabbbbaa</code> 里依次是 3 个 <code>a</code>、4 个 <code>b</code>、2 个 <code>a</code>，压缩后可以写成 <code>3a 4b 2a</code>，一共只有三段，却代表 9 个字符。题 2 就是用这种形式给你一个长度最多到 2×10¹⁴ 的字符串：它只说「第 1 段是 a₁ 个 c₁，第 2 段是 a₂ 个 c₂……」，你不需要（也没法）把字符一个个展开存下来。</p>
+
+<p>做行程压缩的题，第一件事永远是：<strong>把总长度算出来</strong>，并且用 <code>long long</code> 存。题 2 里总长 L 可以到 2×10¹⁴，<code>int</code> 最大才 2.1×10⁹，会直接溢出。</p>
+
+<h3>2. 回文串与对称位置</h3>
+
+<p>回文串是正着读和倒着读完全一样的串，比如 <code>abba</code>、<code>abcba</code>、<code>aa</code>。判断一个长度为 L 的串是不是回文，只要检查每一对「对称位置」：从左数第 1 个对从右数第 1 个，第 2 个对从右数第 2 个……用下标写就是位置 x 与位置 L+1−x 要相等。x 只要取到 ⌊L/2⌋（L 除以 2 向下取整）就够了：L 是偶数时 2x = L 时正好检查完所有对；L 是奇数时最中间那个字符（位置 (L+1)/2）和自己配对，永远相等，不用检查。</p>
+
+<p>一个小提醒：<strong>每对位置只会被数一次</strong>。x 从 1 数到 ⌊L/2⌋，位置 x 和位置 L+1−x 组成一对，这一对不会再在别的 x 里出现，所以后面算「有多少对不相同」时不会重复计数。</p>
+
+<h3>3. 按位与（AND）</h3>
+
+<p>把一个数写成二进制，第 0 位是最低位（权值 1），第 1 位权值 2，第 2 位权值 4……第 b 位权值是 2<sup>b</sup>。按位与 <code>&amp;</code> 的规则是「两个数同一位都是 1，结果的这一位才是 1，否则是 0」。例如 6 的二进制是 <code>0110</code>，3 是 <code>0011</code>，6 &amp; 3 = <code>0010</code> = 2。</p>
+
+<p>按位与有两个必须记住的性质，题 3 全靠它们：第一，多个数相与时，某一位是 1 当且仅当所有数的这一位都是 1，所以与运算只会让 1 变少、不会凭空变出 1；第二，高位的权值比所有低位加起来还大，比如 2<sup>29</sup> 等于 2<sup>29</sup>−1 加 1，而 2<sup>29</sup>−1 正好是第 0 到第 28 位全部为 1 的和。所以「第 29 位是 1」比「低 29 位全是 1」还大，这就是按位贪心的底气。</p>
+
+<p>还有一个常用的判断：条件 <code>(x &amp; target) == target</code> 的意思是「target 里所有等于 1 的位，x 在这些位上也都是 1」。例如 target = 6（<code>0110</code>）时，7（<code>0111</code>）满足，3（<code>0011</code>）不满足。</p>
+
+<h3>4. 前缀和</h3>
+
+<p>前缀和是为了快速算「一段连续区间的和」。设 P<sub>0</sub> = 0，P<sub>i</sub> = a<sub>1</sub> + a<sub>2</sub> + … + a<sub>i</sub>，那么区间 [l, r] 的和就是 P<sub>r</sub> − P<sub>l−1</sub>。预处理一遍 O(n)，之后每次求区间和只要 O(1)，不用再从头加一遍。题 5 用它把「把一段水晶都升到 a<sub>r</sub> 要花多少次操作」这一步变成一次减法。</p>
+
+<h3>5. 双指针 / 双游标</h3>
+
+<p>双指针是用两个下标一起在数组或字符串上移动，通常是为了把「枚举所有区间」的 O(n²) 变成 O(n)。它有两种常见形态：一种像题 5，维护一个滑动窗口 [l, r]，r 往右走、窗口代价超了就推 l 往右，两个指针都只往右走，所以总共 O(n)；另一种像题 2，两个指针分别指向两个不同的字符串（原串和反转串），每次比较两个指针所在的那一段，谁先走完谁就前进到下一段。共同点是：<strong>指针不会往回退</strong>，这是复杂度的保证。</p>
+
+<hr>
+
+<h2 id="p1">CSPJ2-2026-1 旅游（travel）</h2>
+
+<p class="tag">原文件位置：第 1–2 页。考点：字符串解析、递进式的布尔判断。难度：入门。</p>
+
+<h3>一、概述题意</h3>
+
+<p>题目给的是两张二等座车票的信息：每张票有「车厢号」和「座位号」，座位号由两位数字表示的<strong>排号</strong>和一个字母表示的<strong>列号</strong>组成，列号只可能是 A、B、C、D、F 五个之一。车厢里一排的座位排成这样：</p>
+
+<pre><code>过道
+A    B    C  ‖  D    F
+└── 左侧 ──┘  ‖  └─ 右侧 ─┘</code></pre>
+
+<p>也就是说，同一排有 5 个座位，A、B、C 在过道左边，D、F 在过道右边，字母 E 不存在（这和字母表不一样）。题目要求你依次回答四个问题，把答案按顺序拼成一个长度为 4 的 01 字符串输出。这四个问题是层层递进的：</p>
+
+<ol>
+  <li>两个座位是不是在<strong>同一节车厢</strong>？</li>
+  <li>两个座位是不是在同一节车厢的<strong>同一排</strong>？</li>
+  <li>两个座位是不是在同一节车厢、同一排，并且<strong>在过道的同一侧</strong>（A、B、C 算左侧，D、F 算右侧）？</li>
+  <li>两个座位是不是<strong>紧挨着</strong>？所谓紧挨着，就是先满足第 3 问，并且两个列号在各自那一侧里是相邻的，也就是只有 A 与 B、B 与 C、D 与 F 这三种组合（左右顺序无所谓）。</li>
+</ol>
+
+<p>数据范围：车厢号 c₁、c₂ 取自 01 到 17（原文件写作 <code>c₁,c₂ ∈ [01,17] ∖ {01,16}</code>，这几个数取哪些值不影响做法，算法只比较两个车厢号是否相等）；排号 01 到 18；列号 A、B、C、D、F；题目保证两张票不会完全相同，即 c₁ ≠ c₂ 或 s₁ ≠ s₂。</p>
+
+<p>输入输出格式（原文件没有单独写，这里按代码的读入顺序说明）：一次读入四个字符串，依次是第一个座位的车厢号 c₁、座位号 s₁，第二个座位的车厢号 c₂、座位号 s₂；输出一个 4 位的 01 字符串，第 1 位回答第 1 问，第 2 位回答第 2 问，依此类推。</p>
+
+<h3>二、数学模型</h3>
+
+<p>设第 i 张票（i = 1, 2）的车厢号是 c<sub>i</sub>，排号是 r<sub>i</sub>（座位号的前两位），列号是 p<sub>i</sub>（座位号的第三个字符）。为了让「同侧」和「相邻」能用统一的式子表达，题目定义了两个辅助映射：</p>
+
+<ul>
+  <li><strong>侧边映射</strong> g：g(p) = 0 当 p ∈ {A, B, C}，g(p) = 1 当 p ∈ {D, F}。它把「在过道哪一边」变成一个 0 或 1，两个座位同侧就是 g(p₁) = g(p₂)。</li>
+  <li><strong>列坐标映射</strong> x：x(A) = 1，x(B) = 2，x(C) = 3，x(D) = 4，x(F) = 5。它把座位在「整排里的第几个位置」编成连续的号码，这样「两个座位紧挨着」就可以写成 |x(p₁) − x(p₂)| = 1。</li>
+</ul>
+
+<p>四个问题的布尔表达式是：</p>
+
+<p class="formula">q<sub>1</sub> = [c<sub>1</sub> = c<sub>2</sub>]</p>
+<p class="formula">q<sub>2</sub> = q<sub>1</sub> ∧ [r<sub>1</sub> = r<sub>2</sub>]</p>
+<p class="formula">q<sub>3</sub> = q<sub>2</sub> ∧ [g(p<sub>1</sub>) = g(p<sub>2</sub>)]</p>
+<p class="formula">q<sub>4</sub> = q<sub>3</sub> ∧ [|x(p<sub>1</sub>) − x(p<sub>2</sub>)| = 1]</p>
+
+<p>最终输出 Q = q<sub>1</sub>q<sub>2</sub>q<sub>3</sub>q<sub>4</sub>。这里的方括号 [条件] 表示「条件成立就取 1，不成立就取 0」，∧ 表示「并且」。注意 q₄ 写成 |x(p₁) − x(p₂)| = 1 是有一个前提的：x(C) = 3 和 x(D) = 4 相差也是 1，可 C 和 D 明明隔着过道，并不相邻。之所以不会算错，是因为 q₄ 里先有 q₃，而 q₃ 要求同侧，C 与 D 不同侧，q₃ 已经是 0，q₄ 自然也是 0。这就是为什么要「层层递进」地判断：单独的相邻判断会跨过过道。</p>
+
+<h3>三、解题思路</h3>
+
+<p>第一步，比较两个车厢号。车厢号是以字符串形式读进来的，两位数字带前导零，直接比字符串是否完全相等最省事。如果车厢号不同，那么「同一排」「同一侧」「相邻」都不可能成立，所以后面三问不用再算，全为 0。</p>
+
+<p>第二步，比较排号。座位号是「两位排号 + 一位列号」，所以排号就是座位号的前两个字符，用 <code>substr(0, 2)</code> 取出来比较即可。第 2 问必须同时满足第 1 问，所以写成 <code>q2 = q1 &amp;&amp; (排号相等)</code>。</p>
+
+<p>第三步，判断过道的哪一侧。座位号的第三个字符是列号，也就是字符串下标 2（因为下标从 0 开始：0 是排号第一位，1 是排号第二位，2 是列号）。A、B、C 属于左侧，D、F 属于右侧，把「是不是右侧」写成一个函数 <code>side</code>，两个座位同侧就等价于 <code>side(列号1) == side(列号2)</code>。</p>
+
+<p>第四步，判断相邻。先把两个列号按字母顺序排好，这样只需要写 3 种情况：A 与 B、B 与 C、D 与 F。这里最容易错的是 D 与 F：字母表里 D 和 F 中间隔着一个 E，但车厢里没有 E 座，所以 D 和 F 是紧挨着的。</p>
+
+<p>把四个例子手算一遍，确认自己理解了这个「层层递进」：</p>
+
+<table>
+  <tr><th>输入（c₁ s₁ c₂ s₂）</th><th>q₁</th><th>q₂</th><th>q₃</th><th>q₄</th><th>输出</th><th>说明</th></tr>
+  <tr><td><code>03 12D 03 12F</code></td><td>1</td><td>1</td><td>1</td><td>1</td><td><code>1111</code></td><td>同车厢、同一排（12）、都在右侧（D、F），而且 D 与 F 紧挨着</td></tr>
+  <tr><td><code>03 12C 03 12D</code></td><td>1</td><td>1</td><td>0</td><td>0</td><td><code>1100</code></td><td>C 与 D 隔着过道，虽然字母挨着但不同侧，所以 q₃ 是 0</td></tr>
+  <tr><td><code>01 05A 01 06B</code></td><td>1</td><td>0</td><td>0</td><td>0</td><td><code>1000</code></td><td>同车厢，但排号 05 与 06 不同，后面全为 0</td></tr>
+  <tr><td><code>05 11C 05 11B</code></td><td>1</td><td>1</td><td>1</td><td>1</td><td><code>1111</code></td><td>同车厢同排，B 与 C 都在左侧并且紧挨着</td></tr>
+</table>
+
+<p>注意第三个例子：一旦排号不同，即使列号是 A 与 B 这种紧挨着的组合，q₄ 也必须是 0。这就是「递进」的含义——后面的问题都以前面的问题成立为前提。</p>
+
+<p>时间复杂度是 O(1)：只做了几次字符串比较和字符判断，和数据范围无关。空间复杂度也是 O(1)，只用了四个短字符串和几个 bool 变量。</p>
+
+<h3>四、核心代码（逐行注释）</h3>
+
+<pre><code>// side(c)：判断列号 c 是不是在过道右侧。A、B、C 在左侧（返回 false），D、F 在右侧（返回 true）。
+bool side(char c) {
+    return c == 'D' || c == 'F';          // 只有 D 和 F 属于右侧，其余列号都算左侧
+}
+
+// adj(c1, c2)：判断两个列号是否紧挨着（中间不隔别的座位），左右顺序无所谓。
+bool adj(char c1, char c2) {
+    if (c1 &gt; c2) swap(c1, c2);            // 先按字母顺序排好，这样只需要写 3 种组合，不用写 6 种
+    return (c1 == 'A' &amp;&amp; c2 == 'B')       // A 与 B 相邻
+        || (c1 == 'B' &amp;&amp; c2 == 'C')       // B 与 C 相邻
+        || (c1 == 'D' &amp;&amp; c2 == 'F');      // D 与 F 相邻：注意车厢里没有 E 座
+}
+
+void solve() {
+    string c1, s1, c2, s2;                // 两个车厢号、两个座位号，都用字符串读入，前导零不会丢
+    cin &gt;&gt; c1 &gt;&gt; s1 &gt;&gt; c2 &gt;&gt; s2;          // 读入四段，顺序是：车厢号1 座位号1 车厢号2 座位号2
+
+    bool q1 = (c1 == c2);                 // 第 1 问：两个车厢号字符串完全相等，才是同一节车厢
+    bool q2 = q1 &amp;&amp; (s1.substr(0, 2) == s2.substr(0, 2));
+                                          // 第 2 问：先同车厢，再比座位号的前两位（排号）
+                                          // substr(0, 2) 从下标 0 开始取 2 个字符，正好是排号
+    bool q3 = q2 &amp;&amp; (side(s1[2]) == side(s2[2]));
+                                          // 第 3 问：先同排，再比下标 2 的字符（列号）在哪一侧
+    bool q4 = q3 &amp;&amp; adj(s1[2], s2[2]);    // 第 4 问：先同侧，再看两个列号是否紧挨着
+
+    cout &lt;&lt; q1 &lt;&lt; q2 &lt;&lt; q3 &lt;&lt; q4 &lt;&lt; "\n";   // bool 输出就是 0 或 1，四个连写正好拼成 4 位答案
+}</code></pre>
+
+<h3>五、完整代码（逐行注释）</h3>
+
+<p>完整代码比核心代码多了头文件、输入输出加速和主函数。逻辑和上面完全相同，只是把 <code>solve</code> 里的内容放进了 <code>main</code>，并且用 <code>if (cin &gt;&gt; ...)</code> 判断有没有读到数据，这样即使输入为空也不会乱输出。</p>
+
+<pre><code>#include &lt;bits/stdc++.h&gt;                // 万能头文件，一次性包含常用的 C++ 标准库
+using namespace std;                     // 省去到处写 std::
+
+bool side(char c) {                      // 判断列号在过道哪一侧：右侧返回 true
+    return c == 'D' || c == 'F';         // D、F 在右侧
+}
+
+bool adj(char c1, char c2) {             // 判断两个列号是否紧挨着
+    if (c1 &gt; c2) swap(c1, c2);            // 统一成字典序小的在前，简化下面的判断
+    return (c1 == 'A' &amp;&amp; c2 == 'B')
+        || (c1 == 'B' &amp;&amp; c2 == 'C')
+        || (c1 == 'D' &amp;&amp; c2 == 'F');      // 只有这三种组合是相邻的
+}
+
+int main() {
+    ios::sync_with_stdio(false);         // 关闭 C 与 C++ 输入输出流的同步，读入更快
+    cin.tie(nullptr);                    // 解除 cin 与 cout 的绑定，减少刷新开销
+
+    string c1, s1, c2, s2;               // 两个车厢号、两个座位号
+    if (cin &gt;&gt; c1 &gt;&gt; s1 &gt;&gt; c2 &gt;&gt; s2) {   // 读入四个字符串；读失败（比如没有数据）就不进入分支
+        bool q1 = (c1 == c2);            // 第 1 问：车厢号是否相同
+        bool q2 = q1 &amp;&amp; (s1.substr(0, 2) == s2.substr(0, 2));   // 第 2 问：同车厢且同排
+        bool q3 = q2 &amp;&amp; (side(s1[2]) == side(s2[2]));          // 第 3 问：同排且同侧
+        bool q4 = q3 &amp;&amp; adj(s1[2], s2[2]);                     // 第 4 问：同侧且列号相邻
+
+        cout &lt;&lt; q1 &lt;&lt; q2 &lt;&lt; q3 &lt;&lt; q4 &lt;&lt; "\n";                    // 依次输出四个 0/1
+    }
+    return 0;                            // 正常结束
+}</code></pre>
+
+<h3>六、本题坑点</h3>
+
+<p><strong>坑点一：D 与 F 是相邻的。</strong>字母表里 D 后面是 E、再后面是 F，很多人下意识觉得「D 与 F 中间还隔着一个 E，应该不相邻」。但车厢的座位编号里没有 E 座，D 和 F 就是右侧紧挨着的两个座位。如果按「字母表第几个字母」去算距离，x(D) = 4、x(F) = 6，|4 − 6| = 2，就会把 D 与 F 判成不相邻，输出 1110。</p>
+
+<pre><code>// 错误写法：把 F 当成字母表第 6 个字母
+int x(char p) { return p - 'A' + 1; }        // F 得到 6，D 得到 4，|4 - 6| = 2，判成不相邻
+// 正确写法一：显式列出三种相邻组合（原文件的做法）
+return (c1 == 'A' &amp;&amp; c2 == 'B') || (c1 == 'B' &amp;&amp; c2 == 'C') || (c1 == 'D' &amp;&amp; c2 == 'F');
+// 正确写法二：自己编号，跳过 E 座
+int x(char p) { return p &lt;= 'C' ? p - 'A' + 1 : (p == 'D' ? 4 : 5); }</code></pre>
+
+<p><strong>坑点二：四个判断必须层层依赖。</strong>如果四个判断各写各的，就会出现「不同车厢但列号相邻」被判成相邻的情况。原文件用 q₂ 依赖 q₁、q₃ 依赖 q₂、q₄ 依赖 q₃ 的写法，自然保证了这一点。请记住：<strong>后一问成立必须以前一问成立为前提</strong>，这也是题目说「依次回答」的原因。</p>
+
+<p><strong>坑点三：区分「排号相等」和「列号相等」。</strong>座位号是 3 个字符，前两位是排号、第三位是列号，别把整个座位号直接比较。两个座位号相等只不过意味着两张票完全一样，而题目保证两张票不完全相同，所以那样写会永远输出 0000。</p>
+
+<div class="box">
+<p><strong>一句话记住：</strong>先比车厢、再比排号、再比过道哪一侧、最后比字母是否紧挨；四步一步不能少，D 与 F 中间没有 E。</p>
+</div>
+
+<h3>七、动手练一练（补充）</h3>
+
+<p>下面三组输入，先自己在纸上写出答案，再看后面的参考答案。想不清楚的时候，回到上面那张 4 列的示例表，照它的思路一步步判断。</p>
+
+<table>
+  <tr><th>输入（c₁ s₁ c₂ s₂）</th><th>参考答案</th><th>关键点</th></tr>
+  <tr><td><code>02 07B 02 07A</code></td><td><code>1111</code></td><td>同车厢同排，A 与 B 都在左侧且相邻</td></tr>
+  <tr><td><code>05 11C 05 11D</code></td><td><code>1100</code></td><td>同排，但 C 在左侧、D 在右侧，跨过道</td></tr>
+  <tr><td><code>07 18F 06 18F</code></td><td><code>1000</code></td><td>车厢不同，后面全部为 0</td></tr>
+</table>
+
+<h2 id="p2">CSPJ2-2026-2 回文串（string）</h2>
+
+<p class="tag">原文件位置：第 2–4 页。考点：行程压缩、双指针（双游标）。难度：普及组第二题，重点是「不展开也要能比对」。</p>
+
+<h3>一、概述题意</h3>
+
+<p>题目给一个很长的字符串 S，但它不是直接给你的，而是用 n 段「行程压缩」的形式给出：第 1 段是 a₁ 个字符 c₁，第 2 段是 a₂ 个字符 c₂，……，第 n 段是 a<sub>n</sub> 个字符 c<sub>n</sub>。把每一段接起来就是 S，所以 S 的总长度 L = a₁ + a₂ + … + a<sub>n</sub>。</p>
+
+<p>你可以把 S 里任意位置的字符改成任意小写字母，每改一个字符算一次操作。要求用最少的操作次数把 S 变成回文串，输出这个最少次数。</p>
+
+<p>数据范围：n ≤ 2×10⁵，a<sub>i</sub> ≤ 10⁹，c<sub>i</sub> 是小写字母。注意 L 最大是 2×10⁵ × 10⁹ = 2×10¹⁴，这个数非常大，绝对不能把 S 真的展开成一串字符存起来。</p>
+
+<p>输入输出格式（按代码的读入方式）：先读一个整数 n，然后读 n 行，每行一个整数 a<sub>i</sub> 和一个字符 c<sub>i</sub>；输出一个整数，表示最少修改次数。</p>
+
+<table>
+  <tr><th>输入</th><th>展开后的 S</th><th>输出</th><th>说明</th></tr>
+  <tr><td><code>3<br>1 a<br>2 b<br>1 c</code></td><td><code>abbc</code></td><td><code>1</code></td><td>把第一个 a 改成 c（或把最后的 c 改成 a）就变成 <code>cbbc</code> 或 <code>abba</code></td></tr>
+  <tr><td><code>2<br>2 a<br>3 b</code></td><td><code>aabbb</code></td><td><code>2</code></td><td>两对对称位置分别是 a 与 b、a 与 b，都要改</td></tr>
+  <tr><td><code>3<br>2 a<br>1 b<br>2 a</code></td><td><code>aabaa</code></td><td><code>0</code></td><td>本来就是回文，一次都不用改</td></tr>
+</table>
+
+<h3>二、数学模型</h3>
+
+<p>设 S 从 1 开始编号，第 x 个字符记作 S[x]。S 是回文串，等价于对每一个 1 ≤ x ≤ ⌊L/2⌋，都有 S[x] = S[L+1−x]（位置 x 和它关于中点的对称位置字符相同）。如果某一对不相等，就必须把其中一个字符改掉，恰好花 1 次操作；改完之后这一对就相等了，而且改动不会影响其他对（因为每个位置只属于一对）。所以最少总修改次数就是「不相等的对称对」的个数：</p>
+
+<p class="formula">Ans = ∑<sub>x=1</sub><sup>⌊L/2⌋</sup> [S[x] ≠ S[L+1−x]]</p>
+
+<p>公式里的方括号 [条件] 表示条件成立取 1、不成立取 0，∑ 就是把 x 从 1 到 ⌊L/2⌋ 的这些 0/1 全部加起来。为什么只到 ⌊L/2⌋ 就够了：x 取到这个范围时，每一对位置 (x, L+1−x) 只会被算一次；L 是奇数时最中间那个字符和自己配对，永远相等，不需要算。</p>
+
+<h3>三、解题思路</h3>
+
+<p>直接照公式做，需要一个位置一个位置地访问 S[x]，但 L 最大 2×10¹⁴，既存不下也跑不完。不过这里有一个很重要的观察：S 是「一段一段相同字符」拼起来的，是分段常量函数；把 S 整个倒过来得到的字符串 S<sup>R</sup>（第 x 个字符是 S[L+1−x]），同样是分段常量函数，而且它的段就是把 S 的段倒过来——段的顺序倒过来、每段的长度和字符跟着一起倒过来。所以只要能把 S 和 S<sup>R</sup> 逐位对齐着走，就根本不用展开。</p>
+
+<p>于是用两个游标：游标 i 指向 S 当前正在看的那一段（字符 ch[i]，这一段还剩 rem1 个字符没比），游标 j 指向 S<sup>R</sup> 当前那一段（字符 rch[j]，还剩 rem2 个字符没比）。每一轮，我们同时从两个游标处各取若干个字符来比较，能取几个取决于三个数：S 这一段还剩多少（rem1）、S<sup>R</sup> 这一段还剩多少（rem2）、以及离中点还差多少（target − proc），取三者最小值：</p>
+
+<p class="formula">cur = min(rem1, rem2, target − proc)</p>
+
+<p>这 cur 个位置是一一对应的：S 这边它们是同一个字符 ch[i]，S<sup>R</sup> 那边它们是同一个字符 rch[j]。如果 ch[i] 和 rch[j] 不同，那么这 cur 对全部不相等，答案加上 cur；如果相同，就一对都不用改。比较完这 cur 个位置后，把 proc 加上 cur、rem1 和 rem2 各减去 cur；哪一边先用完了（rem 变成 0），就把它推进到下一段，载入下一段的长度和字符。循环一直做到 proc 到达中点 target = ⌊L/2⌋ 为止。</p>
+
+<p>为什么把「S 的第 x 位」和「S<sup>R</sup> 的第 x 位」比较，就等于比较「S[x] 和 S[L+1−x]」？因为按定义 S<sup>R</sup>[x] = S[L+1−x]。这两个串同时从左往右走，位置自然就对上了。</p>
+
+<p>下面把 <code>abbc</code>（压缩形式是 1 a、2 b、1 c）完整推一遍：L = 4，target = 2。S<sup>R</sup> 的段是 1 c、2 b、1 a。开始时 i = 1、j = 1，rem1 = 1（a）、rem2 = 1（c）、proc = 0。</p>
+
+<table>
+  <tr><th>轮次</th><th>cur 的计算</th><th>比较</th><th>ans</th><th>proc</th><th>游标变化</th></tr>
+  <tr><td>第 1 轮</td><td>min(1, 1, 2) = 1</td><td>'a' ≠ 'c'</td><td>0 + 1 = 1</td><td>1</td><td>两段都用完，i 变成 2（b，剩 2），j 变成 2（b，剩 2）</td></tr>
+  <tr><td>第 2 轮</td><td>min(2, 2, 1) = 1</td><td>'b' = 'b'</td><td>保持 1</td><td>2</td><td>proc 到达 target，循环结束</td></tr>
+</table>
+
+<p>所以答案是 1，和展开后手算的结果一致。再看 <code>abbccd</code>（1 a、2 b、2 c、1 d）：L = 6，target = 3。第 1 轮 a 与 d 不同，加上 1；第 2 轮 b 与 c 不同，cur = 2，加上 2；proc 到 3 结束，答案是 3。而 <code>aabaa</code>（2 a、1 b、2 a）：L = 5，target = 2，第 1 轮 a 与 a 相同，cur = 2，proc 直接到 2，答案是 0。</p>
+
+<p>复杂度：正向串和反向串各扫一遍，每个段最多被推进一次，所以总时间是 O(n)；要存 n 个段的信息，空间是 O(n)。注意答案本身可能很大（最坏情况下每对都要改，约 10¹⁴），所以答案也要用 <code>long long</code>。</p>
+
+<h3>四、核心代码（逐行注释）</h3>
+
+<p>这段代码假设 <code>len[1..n]</code> 和 <code>ch[1..n]</code> 已经读好了，表示「第 i 段有 len[i] 个字符 ch[i]」。函数返回最少修改次数。</p>
+
+<pre><code>long long solve_string(int n) {
+    long long tot = 0;                          // tot 记录 S 的总长度
+    for (int i = 1; i &lt;= n; ++i) {
+        tot += len[i];                          // 把每一段的长度加起来，就是总长度 L
+    }                                           // 注意用 long long：L 可以到 2×10^14，int 装不下
+
+    for (int i = 1; i &lt;= n; ++i) {
+        rlen[i] = len[n - i + 1];               // 反向串 SR 的第 i 段，对应原串的第 n-i+1 段
+        rch[i] = ch[n - i + 1];                 // 段的顺序要倒过来，长度和字符要跟着一起倒过来
+    }
+
+    long long target = tot / 2, ans = 0;        // target = ⌊L/2⌋，只需要比到中点；ans 是答案
+    int i = 1, j = 1;                           // i 指正向串的段，j 指反向串的段
+    long long rem1 = len[1], rem2 = rlen[1], proc = 0;
+                                                // rem1：正向串当前段还剩多少个字符没比
+                                                // rem2：反向串当前段还剩多少个字符没比
+                                                // proc：目前已经比较过多少个位置
+    while (proc &lt; target &amp;&amp; i &lt;= n &amp;&amp; j &lt;= n) {
+                                                // 还没比到中点，并且两个游标都还没越界，就继续
+        long long cur = min({rem1, rem2, target - proc});
+                                                // 这一轮最多能比 cur 个位置：两个段各自的剩余量，
+                                                // 以及离中点还差的位置数，取最小
+        if (ch[i] != rch[j]) ans += cur;        // 两边字符不同，这 cur 对全都要改，一次加上去
+        proc += cur;                            // 已比较的位置数增加 cur
+        rem1 -= cur;                            // 正向段用掉 cur 个
+        rem2 -= cur;                            // 反向段用掉 cur 个
+        if (rem1 == 0 &amp;&amp; ++i &lt;= n) rem1 = len[i];
+                                                // 正向当前段用完了：先 ++i 换下一段，再载入新段的长度
+                                                // ++i 放前面是为了让下一轮的 ch[i] 直接可用
+        if (rem2 == 0 &amp;&amp; ++j &lt;= n) rem2 = rlen[j];
+                                                // 反向段同理
+    }
+    return ans;                                 // 返回最少修改次数
+}</code></pre>
+
+<h3>五、完整代码（逐行注释）</h3>
+
+<pre><code>#include &lt;bits/stdc++.h&gt;                // 万能头文件
+using namespace std;
+
+const int MAXN = 200005;                 // 段数上限 2×10^5，多开一点防越界
+long long len[MAXN], rlen[MAXN];         // len：正向每段的长度；rlen：反向每段的长度（都要 long long）
+char ch[MAXN], rch[MAXN];                // ch：正向每段的字符；rch：反向每段的字符
+
+int main() {
+    ios::sync_with_stdio(false);         // 加快读入
+    cin.tie(nullptr);                    // 解除 cin 与 cout 的绑定
+
+    int n;                               // 段数
+    cin &gt;&gt; n;
+
+    long long tot = 0;                   // S 的总长度，用 long long
+    for (int i = 1; i &lt;= n; ++i) {
+        cin &gt;&gt; len[i] &gt;&gt; ch[i];           // 读入第 i 段：len[i] 个字符 ch[i]
+        tot += len[i];                   // 顺便累加总长度
+    }
+
+    for (int i = 1; i &lt;= n; ++i) {
+        rlen[i] = len[n - i + 1];         // 构造反向串：第 i 段来自原串倒数第 i 段
+        rch[i] = ch[n - i + 1];           // 字符也一起倒过来
+    }
+
+    long long target = tot / 2, ans = 0; // 只需要比较前 ⌊L/2⌋ 个位置
+    int i = 1, j = 1;                    // 正向、反向的两个游标
+    long long rem1 = len[1], rem2 = rlen[1], proc = 0;
+                                         // rem1/rem2 是当前段剩余字符数，proc 是已比较位置数
+    while (proc &lt; target &amp;&amp; i &lt;= n &amp;&amp; j &lt;= n) {
+        long long cur = min({rem1, rem2, target - proc});
+                                         // 本轮能比 cur 个位置；target - proc 保证不越过中点
+        if (ch[i] != rch[j]) ans += cur; // 两边字符不同，这 cur 对全部要改
+        proc += cur;                     // 更新已比较数
+        rem1 -= cur;                     // 正向段消耗 cur 个字符
+        rem2 -= cur;                     // 反向段消耗 cur 个字符
+
+        // 若当前正向段消耗完毕，则推进左指针并加载下一段长度
+        if (rem1 == 0 &amp;&amp; ++i &lt;= n) rem1 = len[i];
+        if (rem2 == 0 &amp;&amp; ++j &lt;= n) rem2 = rlen[j];
+    }
+
+    cout &lt;&lt; ans &lt;&lt; "\n";                // 输出最少修改次数
+    return 0;                            // 正常结束
+}</code></pre>
+
+<h3>六、本题坑点</h3>
+
+<p><strong>坑点一：长度相关的一切都必须用 <code>long long</code>。</strong>S 的总长度 L 最大 2×10¹⁴，答案最大也接近 L/2，用 <code>int</code> 会在读入 a<sub>i</sub> 累加、算 target、累加 ans 这些地方悄悄溢出，最后输出一个莫名其妙的负数。凡是和「位置、长度、次数」有关的变量，一律 <code>long long</code>。</p>
+
+<p><strong>坑点二：推到中点必须立刻截断。</strong>循环条件是 <code>proc &lt; target</code>，而且每轮的 cur 里必须包含 <code>target − proc</code>。如果只写 <code>cur = min(rem1, rem2)</code>，某一轮可能一次吃掉越过中点的字符，把右边那一半又数了一遍，答案就翻倍了。原文件坑点里说的「游标推到总长度中点时必须立即截断」正是这个意思。</p>
+
+<pre><code>// 错误写法：少了 target - proc，最后一轮可能比过头
+long long cur = min(rem1, rem2);
+// 正确写法：三个数取最小，保证正好停在中点
+long long cur = min({rem1, rem2, target - proc});</code></pre>
+
+<p><strong>坑点三：反向串要按「段」倒，不是按字符倒。</strong>rlen[i] 和 rch[i] 必须同时来自原来的第 n−i+1 段。如果只把 ch 数组倒过来、len 数组没倒，长度和字符就对不上号，后面算出来的 cur 全错。这里也不能用 <code>reverse</code> 之类的函数去翻一个「没展开的字符串」。</p>
+
+<p><strong>坑点四：游标推进要防越界。</strong><code>if (rem1 == 0 &amp;&amp; ++i &lt;= n) rem1 = len[i];</code> 这个写法把「换下一段」和「判断还有没有下一段」合成了一句：如果 i 已经超过 n，就不会再去读 len[i]。少了这个判断，最后一段用完之后会读到数组外面去。</p>
+
+<div class="box">
+<p><strong>一句话记住：</strong>原串和反转串都是「段」，两个游标同时走，每轮取三段长度的最小值一起比较，谁先走完谁换段，走到中点就停。</p>
+</div>
+
+<h3>七、动手练一练（补充）</h3>
+
+<table>
+  <tr><th>输入</th><th>展开后的 S</th><th>参考答案</th><th>关键点</th></tr>
+  <tr><td><code>2<br>1 a<br>1 a</code></td><td><code>aa</code></td><td><code>0</code></td><td>两段各 1 个字符，正好对称</td></tr>
+  <tr><td><code>3<br>1 a<br>2 b<br>1 d</code></td><td><code>abbd</code></td><td><code>1</code></td><td>a 与 d 不同要改 1 次，中间的 b 与 b 相同</td></tr>
+  <tr><td><code>3<br>1 a<br>2 b<br>1 a</code></td><td><code>abba</code></td><td><code>0</code></td><td>本来就是回文</td></tr>
+</table>
+
+<h2 id="p3">CSPJ2-2026-3 按位与（and）</h2>
+
+<p class="tag">原文件位置：第 4–6 页。考点：按位贪心（从高位到低位逐位确定答案）。难度：普及组第三题，思路巧但代码短。</p>
+
+<h3>一、概述题意</h3>
+
+<p>题目给 n 个非负整数 a₁, a₂, …, a<sub>n</sub>，再给一个正整数 m。要求从这 n 个数里<strong>恰好挑 m 个</strong>，把这 m 个数全部做「按位与」，让结果尽量大，输出这个最大的结果。</p>
+
+<p>数据范围：1 ≤ m ≤ n ≤ 2×10⁵，0 ≤ a<sub>i</sub> &lt; 2³⁰。也就是说每个数都可以写成 30 位二进制（第 0 位到第 29 位），没有第 30 位。</p>
+
+<p>输入输出格式（按代码的读入方式）：先读 n 和 m，再读 n 个整数；输出一个整数，就是最大的按位与结果。</p>
+
+<table>
+  <tr><th>输入</th><th>输出</th><th>说明</th></tr>
+  <tr><td><code>4 2<br>7 3 11 6</code></td><td><code>6</code></td><td>挑 7 和 6：7 &amp; 6 = <code>0111</code> &amp; <code>0110</code> = <code>0110</code> = 6</td></tr>
+  <tr><td><code>3 2<br>6 10 12</code></td><td><code>8</code></td><td>挑 10 和 12：<code>1010</code> &amp; <code>1100</code> = <code>1000</code> = 8（挑 6 和 12 只得 4）</td></tr>
+</table>
+
+<p>注意「恰好 m 个」这个要求：不是随便挑几个，而是必须挑满 m 个。m 越大，能挑的数越少、限制越多，答案一般越小。</p>
+
+<h3>二、数学模型</h3>
+
+<p>记挑出来的下标集合为 S，|S| = m，目标函数是这 m 个数的按位与：</p>
+
+<p class="formula">val(S) = ⋀<sub>i∈S</sub> a<sub>i</sub></p>
+
+<p>这里的 ⋀ 就是把集合里所有数依次做按位与。按位与有两个题目要用的性质：</p>
+
+<ol>
+  <li><strong>逐位独立</strong>：结果的第 b 位是 1，当且仅当所有被选的数第 b 位都是 1；只要有一个数这一位是 0，结果这一位就是 0。</li>
+  <li><strong>高位更值钱</strong>：第 b 位的权值是 2<sup>b</sup>。而所有低位加在一起是 2<sup>b−1</sup> + 2<sup>b−2</sup> + … + 2<sup>0</sup> = 2<sup>b</sup> − 1，比 2<sup>b</sup> 还小。所以「第 b 位是 1」比「比 b 低的全部位都是 1」还要大。这条性质是按位贪心的依据：能保住的高位，一定要保住，绝不用它去换低位。</li>
+</ol>
+
+<h3>三、解题思路</h3>
+
+<p>直接从高位往低位确定答案的每一位。维护一个变量 ans，表示「目前已经确定下来的高位」。初始 ans = 0。然后从第 29 位往第 0 位逐位尝试：假设这一位能变成 1，看需要什么样的数，再数一数数组里有没有足够多的数满足要求。</p>
+
+<p>具体来说，对于第 b 位，先假设把它加进答案，得到候选掩码 target = ans | (1 &lt;&lt; b)。一个数 a<sub>i</sub> 能用来凑这个 target，就必须在 target 所有为 1 的位上也为 1，用代码写就是 <code>(a[i] &amp; target) == target</code>。遍历一遍数组，数出满足这个条件的数有多少个，记作 cnt。如果 cnt ≥ m，说明可以挑出 m 个数来让 target 的每一位都是 1，于是第 b 位就保留下来，令 ans = target；如果 cnt &lt; m，说明无论如何都凑不出 m 个这样的数，第 b 位只能是 0，ans 不动。</p>
+
+<p>为什么这样做是对的？分两种情况说。如果 cnt ≥ m，那就有 m 个数在第 b 位以及所有比 b 高的已确定位上都为 1，用它们做按位与，结果在这些位上都与 target 一致，而低位我们还没决定（之后继续尝试），所以第 b 位取 1 是「可行的」，并且因为 2<sup>b</sup> 比所有低位加起来还大，取 1 一定比取 0 好，不能放弃。反向地，如果 cnt &lt; m，那么任何 m 个数的集合里都至少有一个数在第 b 位（或某个已确定的高位）上是 0，它们按位与之后第 b 位必然是 0，所以第 b 位「不可能」是 1。两种情况合起来，每一步都做对了，最终 30 位就都对了。</p>
+
+<p>那最后确定出来的 ans 是不是真的能被某 m 个数的按位与凑出来？是的：每次把一位加进 ans 时，我们都验证过「至少 m 个数满足当时的 target」；某一位没被加进去时 ans 不变，满足条件的数的集合也不变。所以最后一次加入位之后，仍然至少有 m 个数满足最终的 ans，把它们挑出来做按位与，结果的所有已定位都和 ans 相同（低位只会更多 1，不会更少），也就是说结果不小于 ans；而 ans 又是按上面的道理能取到的最大值，所以两者相等，ans 就是答案。</p>
+
+<p>把第一组样例逐位走一遍，m = 2，四个数是 7（<code>0111</code>）、3（<code>0011</code>）、11（<code>1011</code>）、6（<code>0110</code>）。第 29 位到第 4 位，四个数的这些位全是 0，target 里这些位要求为 1，所以一个数都满足不了（cnt = 0），ans 一直是 0。从第 3 位开始才可能有数满足：</p>
+
+<table>
+  <tr><th>位 b</th><th>位权</th><th>target</th><th>满足 (a<sub>i</sub> &amp; target) == target 的数</th><th>cnt</th><th>cnt ≥ m？</th><th>ans</th></tr>
+  <tr><td>29 到 4</td><td>—</td><td>含这些位</td><td>没有（四个数都小于 16）</td><td>0</td><td>否</td><td>0</td></tr>
+  <tr><td>3</td><td>8</td><td>8</td><td>11</td><td>1</td><td>否</td><td>0</td></tr>
+  <tr><td>2</td><td>4</td><td>4</td><td>7、6</td><td>2</td><td>是</td><td>4</td></tr>
+  <tr><td>1</td><td>2</td><td>6</td><td>7（7&amp;6=6）、6（6&amp;6=6）</td><td>2</td><td>是</td><td>6</td></tr>
+  <tr><td>0</td><td>1</td><td>7</td><td>7</td><td>1</td><td>否</td><td>6</td></tr>
+</table>
+
+<p>最后 ans = 6。回头验证一下：7 <code>0111</code> 与 6 <code>0110</code> 相与得 <code>0110</code> = 6，确实是所有挑法里最大的。</p>
+
+<p>复杂度：外层 30 次，内层遍历 n 个数，总共 O(30n)；空间只要存下数组，O(n)。30 是个常数，所以整体可以看成 O(n)。</p>
+
+<h3>四、核心代码（逐行注释）</h3>
+
+<p>这段代码假设 <code>a[0..n-1]</code> 已经读好了，m 也读好了，结果存在 ans 里。</p>
+
+<pre><code>long long ans = 0;                          // ans 保存已经确定的高位，开始时什么位都没确定
+for (int b = 29; b &gt;= 0; --b) {             // 从最高位 29 位开始，一直试到最低位 0 位
+    long long target = ans | (1LL &lt;&lt; b);    // 假设第 b 位也能是 1：把 b 位加进候选答案
+                                            // 1LL &lt;&lt; b 是「只有第 b 位为 1」的数；用 1LL 保证在 64 位里移位
+    int cnt = 0;                            // cnt 记录有多少个数能满足 target 的所有 1 位
+    for (int i = 0; i &lt; n; ++i) {           // 遍历整个数组
+        if ((a[i] &amp; target) == target) {    // 这个数在 target 为 1 的每一位上也是 1
+                                            // 注意括号：&amp; 的优先级比 == 低，不加括号就变成
+                                            // a[i] &amp; (target == target)，结果完全错误
+            cnt++;                          // 满足条件的数多了一个
+        }
+    }
+    if (cnt &gt;= m) {                         // 至少有 m 个数支持，这一位可以确定为 1
+        ans = target;                       // 把这一位固定进答案
+    }                                       // 否则这一位只能是 0，ans 保持不变
+}                                           // 30 位全部试完，ans 就是最大按位与</code></pre>
+
+<h3>五、完整代码（逐行注释）</h3>
+
+<pre><code>#include &lt;bits/stdc++.h&gt;                // 万能头文件
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);         // 加快读入
+    cin.tie(nullptr);                    // 解除 cin 与 cout 的绑定
+
+    int n, m;                            // n 是数的个数，m 是必须挑的个数
+    cin &gt;&gt; n &gt;&gt; m;
+
+    vector&lt;long long&gt; a(n);              // 存下所有 a[i]，用 long long 便于位运算
+    for (int i = 0; i &lt; n; ++i) {
+        cin &gt;&gt; a[i];                     // 读入每个数
+    }
+
+    long long ans = 0;                   // 已经确定的高位掩码
+    for (int b = 29; b &gt;= 0; --b) {      // 从第 29 位到第 0 位逐位确定
+        long long target = ans | (1LL &lt;&lt; b);   // 候选掩码：已确定的位 + 第 b 位
+        int cnt = 0;                     // 有多少个数能支持 target
+        for (int i = 0; i &lt; n; ++i) {
+            if ((a[i] &amp; target) == target) {   // 这个数包含 target 的所有 1 位
+                cnt++;                   // 计数
+            }
+        }
+        if (cnt &gt;= m) {                  // 够 m 个数就保留这一位
+            ans = target;                // 第 b 位确定为 1
+        }
+    }
+
+    cout &lt;&lt; ans &lt;&lt; "\n";                // 输出最大按位与
+    return 0;
+}</code></pre>
+
+<p>上面完整代码里读入那一行我按原文件写成 <code>for (int i = 0; i &lt; n; ++i) cin &gt;&gt; a[i];</code>，另外补的一句 <code>i &gt;&gt;(void)0</code> 只是这个页面在排版时留下的痕迹，实际提交时请按原文件那一行写，不要带上它。</p>
+
+<h3>六、本题坑点</h3>
+
+<p><strong>坑点一：移位要用 <code>1LL &lt;&lt; b</code>。</strong>原文件特别强调了这一点。本题里 a<sub>i</sub> &lt; 2³⁰，b 最大 29，<code>1 &lt;&lt; 29</code> 其实还没有超出 int 的范围；但换成 <code>1 &lt;&lt; 31</code> 就是未定义行为，而且一旦数据范围改成 2³¹ 就会出错。写 <code>1LL &lt;&lt; b</code> 是 64 位移位，安全而且不费劲，养成习惯就好。</p>
+
+<p><strong>坑点二：判定条件是「大于等于 m」，不是「大于 m」。</strong>如果写成 <code>if (cnt &gt; m)</code>，那么当恰好有 m 个数支持时会被判成不可行，这一位就丢了，答案会偏小，而且很难通过看代码发现。</p>
+
+<pre><code>// 错误写法：恰好有 m 个数支持时被判成不满足
+if (cnt &gt; m) ans = target;
+// 正确写法
+if (cnt &gt;= m) ans = target;</code></pre>
+
+<p><strong>坑点三：括号不能省。</strong>C++ 里 <code>&amp;</code> 的优先级比 <code>==</code> 低，写成 <code>a[i] &amp; target == target</code> 会被解释成 <code>a[i] &amp; (target == target)</code>，也就是 <code>a[i] &amp; 1</code>，只在判断 a<sub>i</sub> 的奇偶，结果完全错。必须写成 <code>(a[i] &amp; target) == target</code>。</p>
+
+<p><strong>坑点四：target 必须包含 ans 已确定的位。</strong>如果写成 <code>target = (1LL &lt;&lt; b)</code> 而不带上 ans，就等于把之前辛苦确定的高位又放回「无所谓」的状态，前面几步白做了，后面的判定也会失效。正确的做法是 <code>target = ans | (1LL &lt;&lt; b)</code>。</p>
+
+<div class="box">
+<p><strong>一句话记住：</strong>从第 29 位试到第 0 位，每次问「把这一位也变成 1，还能凑出 m 个数吗」，能就留下，不能就放弃，高位永远不会被低位换掉。</p>
+</div>
+
+<h3>七、动手练一练（补充）</h3>
+
+<table>
+  <tr><th>输入</th><th>参考答案</th><th>关键点</th></tr>
+  <tr><td><code>4 2<br>7 3 11 6</code></td><td><code>6</code></td><td>就是正文里逐位推的那组数，可以对着表格再走一遍</td></tr>
+  <tr><td><code>2 2<br>1 1</code></td><td><code>1</code></td><td>只有两个数，必须全挑，1 &amp; 1 = 1</td></tr>
+  <tr><td><code>3 1<br>5 9 3</code></td><td><code>9</code></td><td>只挑一个数时，按位与就是它自己，所以答案就是最大值</td></tr>
+</table>
+
+<h2 id="p4">CSPJ2-2026-4 纸牌游戏（card）</h2>
+
+<p class="tag">原文件位置：第 6–8 页。考点：把一局游戏压缩成「位置跳转」，再按位置顺序递推，统计每条路径经过每个位置的次数。难度：普及组第四题，代码只有三行，难在想到这三行。</p>
+
+<h3>一、概述题意</h3>
+
+<p>有一排位置 1, 2, …, n，第 i 个位置上写着一个点数 a<sub>i</sub>，点数的取值只有 1 到 m 这 m 种。游戏这样进行：桌面上开始是空的，从某个位置 i 开始，把 a<sub>i</sub>, a<sub>i+1</sub>, …, a<sub>n</sub> 一个接一个拿到桌面上处理。处理一个点数 x 时有两种情况：如果桌面上<strong>还没有</strong> x，就把 x 放到桌面最右边；如果桌面上<strong>已经有</strong> x，就把那张 x 以及它右边的所有牌全部拿走扔掉，然后把这张新的 x 放到桌面最右边。注意第二种情况里丢掉的是「旧的 x 本身，以及它右边的全部牌」，旧的 x 不会再留在桌面上，桌面上关于点数 x 的那一张牌永远只有一张新的。</p>
+
+<p>一共要玩 n 局，第 i 局从位置 i 开始（也就是只处理后缀 a<sub>i</sub>, …, a<sub>n</sub>）。每一局玩完后，桌面上会剩下一组点数。题目要求：对每一种点数 x = 1, 2, …, m，统计有多少局的最终桌面上有 x，按 x 从小到大输出 m 个数。</p>
+
+<p>数据范围：n ≤ 5×10⁵，m ≤ 3×10⁵。输入第一行是 n 和 m，第二行是 n 个点数；输出一行，共 m 个数，第 x 个数就是「最终桌面上有 x 的局数」。</p>
+
+<table>
+  <tr><th>输入</th><th>输出</th><th>说明</th></tr>
+  <tr><td><code>4 3<br>1 2 1 3</code></td><td><code>3 1 4</code></td><td>点数 1 出现在 3 局里，点数 2 出现在 1 局里，点数 3 出现在 4 局里（下面会逐局推）</td></tr>
+</table>
+
+<p>把这个样例的四局游戏一局一局推一遍，是理解本题最重要的一步。下表里「桌面」按从左到右的顺序写出牌上的点数，右端是新牌放的位置。</p>
+
+<table>
+  <tr><th>局</th><th>处理过程</th><th>最终桌面</th></tr>
+  <tr><td>第 1 局，从位置 1 开始</td><td>处理 1：桌面上没有 1，放上 → <code>[1]</code>；处理 2：没有 2 → <code>[1,2]</code>；处理 1：桌面上有 1，删掉这个 1 和它右边的 2 → <code>[]</code>，再放上新的 1 → <code>[1]</code>；处理 3 → <code>[1,3]</code></td><td><code>{1,3}</code></td></tr>
+  <tr><td>第 2 局，从位置 2 开始</td><td>处理 2 → <code>[2]</code>；处理 1 → <code>[2,1]</code>；处理 3 → <code>[2,1,3]</code></td><td><code>{1,2,3}</code></td></tr>
+  <tr><td>第 3 局，从位置 3 开始</td><td>处理 1 → <code>[1]</code>；处理 3 → <code>[1,3]</code></td><td><code>{1,3}</code></td></tr>
+  <tr><td>第 4 局，从位置 4 开始</td><td>处理 3 → <code>[3]</code></td><td><code>{3}</code></td></tr>
+</table>
+
+<p>统计一下：点数 1 出现在第 1、2、3 局，共 3 局；点数 2 只出现在第 2 局，共 1 局；点数 3 出现在全部 4 局，共 4 局。所以输出 3 1 4，和上表一致。</p>
+
+<h3>二、数学模型</h3>
+
+<p>先记几个记号。定义 last[x] 为点数 x 在整条序列里<strong>最后一次出现</strong>的位置；因为位置 i 上就是点数 a<sub>i</sub>，所以 last[a<sub>i</sub>] 一定不小于 i。定义<strong>跳转函数</strong>：</p>
+
+<p class="formula">f(i) = last[a<sub>i</sub>] + 1</p>
+
+<p>意思是「从位置 i 出发，下一次从这里往后接着看」。例如样例里 a = [1,2,1,3]，last[1] = 3、last[2] = 2、last[3] = 4，于是 f(1) = 4、f(2) = 3、f(3) = 4、f(4) = 5。当跳到的位置超过 n 时就停。</p>
+
+<p>从起点 i 出发，反复跳转，得到一条<strong>路径</strong> i → f(i) → f(f(i)) → …，直到位置大于 n。本题的核心事实是：</p>
+
+<div class="box">
+<p><strong>第 i 局游戏最终桌面上的点数集合，正好等于这条路径上各个位置对应的点数集合 {a<sub>p</sub> : p 在这条路径上}。</strong>而且因为每次跳转都直接越过了 a<sub>p</sub> 的所有出现位置，同一条路径上不会出现两个相同的点数。</p>
+</div>
+
+<p>这条事实把「一局一局模拟」变成了「一条一条路径」，题目就变成了：对每条“路径”统计它经过哪些点数，再对每种点数统计有多少条路径经过它。样例里第 1 局的路径是 1 → 4 → 5，位置 1 和位置 4 上的点数是 1 和 3，正好就是第 1 局的最终桌面 {1,3}；第 2 局路径 2 → 3 → 4 → 5，对应点数 {2,1,3}，也是第 2 局的最终桌面。</p>
+
+<p>接下来定义两个要算的量：dp[i] 表示<strong>所有 n 局游戏里，路径经过位置 i 的局数</strong>；ans[x] 表示<strong>最终桌面上有点数 x 的局数</strong>，也就是题目要输出的东西。</p>
+
+<h3>三、解题思路</h3>
+
+<p><strong>第一步，想清楚要不要真的模拟。</strong>n 局游戏，每局最多处理 n 张牌，直接模拟是 O(n²)，n = 5×10⁵ 时会算 2.5×10¹¹ 步，肯定超时。所以必须找到每局游戏的结构。</p>
+
+<p><strong>第二步，理解为什么能跳到「最后一次出现」。</strong>看第 1 局。位置 1 是点数 1，它的最后一次出现是位置 3。处理位置 1 时桌面是 [1]；之后位置 2 的 2 加进来变成 [1,2]；等到处理位置 3 的 1 时，桌面上已经有 1，这条规则会把 1 和它右边的 2 全部删掉，然后在最右边放上新的 1，桌面变成 [1]。这一次操作的效果是：把从「上一次留下的 1」到「现在的 1」之间积累的所有牌，一次性全部清空了。也就是说，一个点数每出现一次，就会把上一次留下的同一张牌和它右边的所有牌一起清掉，所以中间那些「每次出现的间隔」根本不需要一步一步走，直接跳到 last[a<sub>i</sub>] 就够了。</p>
+
+<p>这里有个很容易踩的错：不能只跳到「这个点数的<strong>下一次</strong>出现位置」。因为一次操作删掉的是「旧 x 以及它右边的<strong>全部</strong>牌」，效果是这一段被整体清空，而不只是把旧 x 换掉。以 a = [2,1,2,1] 为例，起点 1 的点数是 2、最后一次出现在位置 3，正确路径是 1 → 4 → 5（位置 1 和位置 4 的点数 2、1）；如果错误地跳到「下一个 2」的位置 3，路径会变成 1 → 3 → 4 → 5，把点数 2 算了两遍，答案就错了。原文件把这一点列为坑点，后面还会再提醒一次。</p>
+
+<p><strong>第三步，设计递推。</strong>dp[i] 要数的是「有多少局的路径经过 i」。一条路径经过 i，只有两种可能：</p>
+
+<ol>
+  <li>这局游戏的起点就是 i。每一局起点为 i 的游戏都会经过 i，这一部分贡献正好是 1。</li>
+  <li>这局游戏从某个更小的位置 j 出发，并且路径从 j 直接跳到了 i，也就是 f(j) = i。凡是经过 j 的局都会顺着跳转来到 i，这一部分贡献是 dp[j]。</li>
+</ol>
+
+<p>所以 dp[i] = 1 + Σ<sub>f(j) = i</sub> dp[j]。又因为 f(j) = last[a<sub>j</sub>] + 1 &gt; j，跳转一定是从小位置跳到大位置，所以按 i 从 1 到 n 的顺序计算时，算到 i 的时候所有 j &lt; i 的 dp[j] 都已经算好了，递推是合法的。</p>
+
+<p><strong>第四步，把「找谁跳到我」换成「我把贡献推出去」。</strong>如果按上面的公式写，就要对每个 i 去找所有满足 f(j) = i 的 j，比较麻烦。原文件的写法反过来：算完 dp[i] 以后，直接把自己这份贡献交给它的下一个位置 f(i)，也就是执行 <code>dp[last[a[i]] + 1] += dp[i]</code>。这样每个位置只做常数次操作，总复杂度 O(n)。同时，每一局经过位置 i，最终桌面上就会留下点数 a<sub>i</sub>（因为 a<sub>i</sub> 在路径上，且路径上点数不重复），所以顺手执行 <code>ans[a[i]] += dp[i]</code>，就完成了答案的统计。</p>
+
+<p>把样例走一遍会更清楚。a = [1,2,1,3]，m = 3，n = 4，last[1] = 3、last[2] = 2、last[3] = 4。dp 一开始全是 0。</p>
+
+<table>
+  <tr><th>i</th><th>a<sub>i</sub></th><th>dp[i]++ 后</th><th>ans 累加</th><th>推到下一个位置</th></tr>
+  <tr><td>1</td><td>1</td><td>dp[1] = 1</td><td>ans[1] = 0 + 1 = 1</td><td>dp[last[1]+1] = dp[4] += 1 → dp[4] = 1</td></tr>
+  <tr><td>2</td><td>2</td><td>dp[2] = 1</td><td>ans[2] = 0 + 1 = 1</td><td>dp[last[2]+1] = dp[3] += 1 → dp[3] = 1</td></tr>
+  <tr><td>3</td><td>1</td><td>dp[3] = 1 + 1 = 2</td><td>ans[1] = 1 + 2 = 3</td><td>dp[last[1]+1] = dp[4] += 2 → dp[4] = 3</td></tr>
+  <tr><td>4</td><td>3</td><td>dp[4] = 3 + 1 = 4</td><td>ans[3] = 0 + 4 = 4</td><td>dp[last[3]+1] = dp[5] += 4（位置 5 超出 n，不用管）</td></tr>
+</table>
+
+<p>最后 ans[1] = 3、ans[2] = 1、ans[3] = 4，输出 3 1 4。再看 dp 的意义：dp[1] = 1 表示只有第 1 局经过位置 1；dp[2] = 1 表示只有第 2 局经过位置 2；dp[3] = 2 表示第 2、3 局经过位置 3；dp[4] = 4 表示四局全部经过位置 4。这和四条路径 1→4、2→3→4、3→4、4 完全对得上。</p>
+
+<p><strong>第五步，复杂度。</strong>预处理 last 数组要 O(n)；递推一遍每个位置只做常数次操作，也要 O(n)；最后输出 m 个数要 O(m)。总时间 O(n + m)，在 n ≤ 5×10⁵ 时非常快。空间上要存原序列、last、dp、ans 四个数组，是 O(n + m)。</p>
+
+<h3>四、核心代码（逐行注释）</h3>
+
+<p>整道题的核心就是下面三行，它们放在 <code>for (int i = 1; i &lt;= n; i++)</code> 的循环里，按位置从小到大执行。</p>
+
+<pre><code>dp[i]++;                   // 起点恰好是 i 的那一局也会经过 i，先给它加 1 份贡献
+ans[a[i]] += dp[i];        // 每个经过位置 i 的局，最终桌面上都会留下点数 a[i]，全部记到 ans 上
+dp[last[a[i]] + 1] += dp[i];   // 路径从 i 跳到 last[a[i]]+1，把 dp[i] 这份「经过 i 的局数」推过去</code></pre>
+
+<p>三行的顺序不能随便换，但也不难记：先把「经过 i 的局数」补全（<code>dp[i]++</code>），再用它统计答案（<code>ans</code>），最后把它推给下一个位置。因为推过去以后 <code>dp[i]</code> 本身已经用完了，后面不会再用到它。</p>
+
+<h3>五、完整代码（逐行注释）</h3>
+
+<pre><code>#include &lt;bits/stdc++.h&gt;              // 万能头文件
+using namespace std;
+using ll = long long;                // 后面 dp 和 ans 要用 long long，起个别名写起来短
+
+const int N = 500005;                // 序列长度的上限 n ≤ 5×10^5
+const int M = 300005;                // 点数种类的上限 m ≤ 3×10^5
+int n, m;                            // n 是位置数，m 是点数种类数
+int a[N], last[M];                   // a[i] 存位置 i 上的点数；last[x] 存点数 x 最后一次出现的位置
+ll dp[N + 2], ans[M];                // dp[i] 是「经过位置 i 的局数」
+                                     // 多开 2 个：因为会访问到 last[a[i]]+1，最大是 n+1
+int main() {
+    ios::sync_with_stdio(false);     // 加快输入输出
+    cin.tie(nullptr);                // 解除 cin 与 cout 的绑定
+
+    cin &gt;&gt; n &gt;&gt; m;                  // 读入位置数和点数种类数
+    for (int i = 1; i &lt;= n; i++) {   // 读入整个序列
+        cin &gt;&gt; a[i];                 // 位置 i 上的点数
+        last[a[i]] = i;              // 每读到一个 a[i]，就把它记为「目前最后一次出现」
+    }                                // 读完以后 last[x] 就是 x 在整条序列里最后出现的位置
+
+    for (int i = 1; i &lt;= n; i++) {   // 按位置从小到大递推，保证推到 i 时 dp[i] 已经完整
+        dp[i]++;                     // 起点为 i 的那一局会经过 i，贡献 +1
+        ans[a[i]] += dp[i];          // 经过 i 的每一局，最终桌上都有点数 a[i]
+        dp[last[a[i]] + 1] += dp[i]; // 路径从 i 直接跳到 last[a[i]]+1，把这批局数推过去
+    }
+
+    for (int i = 1; i &lt;= m; i++) {   // 输出点数 1 到 m 的答案
+        cout &lt;&lt; ans[i] &lt;&lt; " \n"[i == m];   // 不是最后一个数就输出空格，最后一个数输出换行
+    }
+    return 0;
+}</code></pre>
+
+<p>最后一行输出用了一个小技巧：<code>" \n"</code> 是一个长度为 3 的字符数组，里面是空格、换行和结尾的 <code>'\0'</code>。方括号里的 <code>i == m</code> 在 i 不是最后一个数时等于 0，取到的是空格；等于 m 时下标是 1，取到的是换行。<code>"</code> 前面用双引号取的是「字符数组」，写在后面才用单引号取单个字符；这句话也可以改写成 <code>if (i &lt; m) cout &lt;&lt; " "; else cout &lt;&lt; "\n";</code>，意思完全一样。</p>
+
+<h3>六、本题坑点</h3>
+
+<p><strong>坑点一：必须跳到 <code>last[a[i]] + 1</code>，不能只跳到该点数的下一次出现位置。</strong>原文件专门强调过这一点。原因在第三步已经讲清楚了：处理一次 x 会删掉旧 x 右边的所有牌，中间那几段牌实际上都被清空了，所以一次跳转就应该越过 x 的全部出现。写成「下一次出现」会让同一个点数在路径里重复出现，<code>ans</code> 就会多加，答案偏大。</p>
+
+<pre><code>// 错误写法：只跳到「下一次出现」
+// 假设 p 是 a[i] 的下一次出现位置（注意：不是最后一次）
+dp[p] += dp[i];
+// 正确写法：直接跳到「最后一次出现」的后面
+dp[last[a[i]] + 1] += dp[i];</code></pre>
+
+<p><strong>坑点二：dp 和 ans 要用 <code>long long</code>，而且 dp 要多开一位。</strong>原文件把这两点写在一起。多开的原因是跳转结果最大可以到 n+1，所以 dp 数组至少要能访问到 n+1 这个下标，原文件写的是 <code>ll dp[N + 2]</code>。用 long long 则是为了稳妥：这两个数组都是「累加量」（<code>ans[a[i]] += dp[i]</code>、<code>dp[...] += dp[i]</code>），数据范围一旦放大到 10⁹ 级别，int 会溢出而 long long 不会，多花的内存只有几 MB。在本题的数据范围里，dp 和 ans 的值其实都不会超过 n = 5×10⁵，用 int 也勉强够，但按原文件的写法用 long long 更保险，也省得以后改题时再回头算一遍。</p>
+
+<p><strong>坑点三：last 数组的下标是点数，不是位置。</strong><code>last[x]</code> 的 x 范围是 1 到 m（m ≤ 3×10⁵），所以数组要开到 M 而不是 N；如果把 last 按位置数的规模去开（5×10⁵），虽然也能过，但和常数 M 的写法不一致，容易看错。反过来，dp 的下标是位置，要开到 n+2，两者不要混淆。</p>
+
+<div class="box">
+<p><strong>一句话记住：</strong>每局游戏等价于一条跳转路径，从 i 跳到 last[a<sub>i</sub>]+1；先算经过 i 的局数（起点的一局加上从前面推过来的），再把这个数同时加到答案里和下一个位置上，整题就做完了。</p>
+</div>
+
+<h3>七、动手练一练（补充）</h3>
+
+<table>
+  <tr><th>输入</th><th>参考答案</th><th>关键点</th></tr>
+  <tr><td><code>4 3<br>1 2 1 3</code></td><td><code>3 1 4</code></td><td>正文里逐局推过的那组数，可以对着两张表再走一遍</td></tr>
+  <tr><td><code>3 2<br>2 1 2</code></td><td><code>1 3</code></td><td>起点 1 的路径是 1 → 4，对应点数 2；所以点数 2 出现在全部 3 局</td></tr>
+  <tr><td><code>5 2<br>1 1 2 1 2</code></td><td><code>3 5</code></td><td>连续出现两次 1 时，last[1] = 4，第一次出现的 1 会被后面覆盖，注意别把两处 1 分开算</td></tr>
+  <tr><td><code>4 2<br>2 1 2 1</code></td><td><code>4 2</code></td><td>就是坑点一里那个例子：若不跳到 last 而跳到「下一个 2」，点数 2 会被多算</td></tr>
+</table>
+
+<h2 id="p5">CSPS2-2026-1 能量水晶（crystal）</h2>
+
+<p class="tag">原文件位置：第 8–10 页。考点：排序 + 前缀和 + 双指针（滑动窗口），或者排序 + 二分答案。难度：提高组第一题，思路不难，但负数和 long long 两个细节容易出错。</p>
+
+<h3>一、概述题意</h3>
+
+<p>有 n 颗能量水晶，第 i 颗的初始能量是 a<sub>i</sub>。你可以进行<strong>至多</strong> m 次操作，每次操作把任意一颗水晶的能量值<strong>增加 1</strong>（只能加，不能减）。做完所有操作以后，希望你让「能量值相同的水晶」尽量多：也就是找出某个能量值 V，让最终能量恰好等于 V 的水晶颗数尽可能大，输出这个最大的颗数。</p>
+
+<p>数据范围：1 ≤ n ≤ 5×10⁵，0 ≤ m ≤ 10¹⁸，−10¹² ≤ a<sub>i</sub> ≤ 10¹²。注意能量值可以为负数，操作次数 m 可以大到 10¹⁸，这两个都是本题要小心的地方。</p>
+
+<p>输入格式：先读 n 和 m，再读 n 个整数 a<sub>1</sub> … a<sub>n</sub>。输出一个整数，就是最多能让多少颗水晶的能量相同。</p>
+
+<table>
+  <tr><th>输入</th><th>输出</th><th>说明</th></tr>
+  <tr><td><code>4 3<br>1 2 3 4</code></td><td><code>3</code></td><td>把 1、2 分别加 2 次、1 次，变成 3、3、3、4，花掉 3 次操作，有 3 颗相等</td></tr>
+  <tr><td><code>3 0<br>1 1 5</code></td><td><code>2</code></td><td>m = 0 一次都不能操作，只能数原本就相等的，两个 1 相等</td></tr>
+  <tr><td><code>3 1<br>2 3 3</code></td><td><code>3</code></td><td>把 2 加 1 次变成 3，三颗都是 3</td></tr>
+  <tr><td><code>3 0<br>-5 -5 -1</code></td><td><code>2</code></td><td>初始能量是负数，但「相等」的判断不受影响，两个 −5 相等</td></tr>
+</table>
+
+<p>要特别注意：题目说的是「<strong>至多</strong> m 次」，所以用不完的操作没关系，只要总花费不超过 m 就行；「增加 1」这个操作是单颗水晶的，不能一次给多颗水晶加。</p>
+
+<h3>二、数学模型</h3>
+
+<p>先想清楚我们要选什么。最终要凑成同一个值 V，那么被选的每颗水晶都必须满足「初始能量 ≤ V」（只能加，不能减），需要的操作次数是把它们抬到 V 的总和：</p>
+
+<p class="formula">cost(k 颗, V) = Σ<sub>j ∈ 选定集合</sub> (V − a<sub>j</sub>)</p>
+
+<p>我们要让 k 尽量大，同时 cost ≤ m。直接枚举「选哪 k 颗」是不可能的（组合太多），所以要做两步化简。</p>
+
+<p><strong>第一步化简：把数组升序排序，最优的选择一定是连续的一段。</strong>固定 V 以后，要凑 k 颗最省操作的水晶，当然是挑初始能量最大的那些——能量越接近 V，需要加的次数越少。排序以后，这些最大的、并且 ≤ V 的数，正好是数组末尾开始往前数的连续 k 个，也就是一段区间 a<sub>l</sub> … a<sub>r</sub>，其中 a<sub>r</sub> 是不超过 V 的最后一个。</p>
+
+<p><strong>第二步化简：目标值 V 直接取成 a<sub>r</sub> 最省。</strong>V 每增大 1，选定集合里每颗水晶都得多加一次，总共多花 k 次操作，却换来「颗数不变」，完全是浪费。所以在「选的这一段以 r 结尾、共 k 颗」的前提下，把目标值取成 a<sub>r</sub> 就已经够了，再高只有坏处。于是对排序后的数组，任取一段 a<sub>l</sub> … a<sub>r</sub>，把它们全部抬到 a<sub>r</sub> 的代价是：</p>
+
+<p class="formula">Cost(l, r) = Σ<sub>i=l</sub><sup>r</sup> (a<sub>r</sub> − a<sub>i</sub>) = (r − l + 1) · a<sub>r</sub> − (P<sub>r</sub> − P<sub>l−1</sub>)</p>
+
+<p>这里 P 是前缀和：P<sub>0</sub> = 0，P<sub>i</sub> = a<sub>1</sub> + … + a<sub>i</sub>，那么区间和 Σ<sub>i=l</sub><sup>r</sup> a<sub>i</sub> = P<sub>r</sub> − P<sub>l−1</sub>。公式的道理很直白：「这一段每颗都要抬到 a<sub>r</sub>」总共需要 k · a<sub>r</sub> 次，而每颗本来已经有 a<sub>i</sub>，所以再减去原来的总和，差额就是真正要花的操作次数。</p>
+
+<p>于是问题变成了：<strong>在排序后的数组里，找最长的一段 a<sub>l</sub> … a<sub>r</sub>，使得 Cost(l, r) ≤ m</strong>，输出这个长度。</p>
+
+<h3>三、解题思路</h3>
+
+<p><strong>第一步，排序。</strong>用 <code>sort</code> 把 a 从小到大排好。排序以后 a<sub>l</sub> ≤ a<sub>r</sub>（只要 l ≤ r），公式里的「减小代价」才有方向。</p>
+
+<p><strong>第二步，前缀和预处理。</strong>把 P<sub>1</sub> … P<sub>n</sub> 算出来，之后每算一次 Cost(l, r) 只要 O(1)。</p>
+
+<p><strong>第三步，双指针扫描。</strong>让右端点 r 从 1 走到 n，同时维护一个左端点 l，含义是「以 r 结尾、代价不超过 m 的最靠左的位置」。对每个 r，先看当前窗口 [l, r] 的代价：如果超过 m，就把 l 向右移动一格（窗口变小一颗），再重新算代价，一直移到代价 ≤ m 为止。这时 r − l + 1 就是以 r 结尾的最长合法窗口长度，用 ans 记下最大值。全部扫完，ans 就是答案。</p>
+
+<p>为什么 l 只往右走、不用回头？因为窗口右端 r 变大时，窗口里多了一颗更贵的（a<sub>r</sub> 最大的那颗），代价只可能变大或不变，所以原先合法的窗口可能变得不合法，需要去掉左边的牌；而去掉左边一颗 a<sub>l</sub> 之后，代价一定会变小（或不变）：原来代价是 k·a<sub>r</sub> − 区间和，去掉 a<sub>l</sub> 以后变成 (k−1)·a<sub>r</sub> − (区间和 − a<sub>l</sub>) = 原代价 − (a<sub>r</sub> − a<sub>l</sub>)，而 a<sub>r</sub> ≥ a<sub>l</sub>，这个差非负，所以代价不会变大。l 在整个过程中最多从 1 走到 n，总共移动 O(n) 次，加上 r 的 n 次，一共 O(n)。</p>
+
+<p>再想一步：为什么「以 r 结尾的最长合法窗口」取最大值就是全局最优？因为任何一段合法区间 [l, r] 都有它自己的右端点 r，而我们枚举了所有 r，并且对每个 r 都取了最长的那个，所以全局最长一定被包含在内。</p>
+
+<p>把第一组样例 <code>4 3 / 1 2 3 4</code> 走一遍。排序后 a = [1,2,3,4]，前缀和 P = [0,1,3,6,10]，m = 3。</p>
+
+<table>
+  <tr><th>r</th><th>a<sub>r</sub></th><th>当前 l</th><th>Cost(l, r)</th><th>是否超预算</th><th>ans</th></tr>
+  <tr><td>1</td><td>1</td><td>1</td><td>1×1 − (1 − 0) = 0</td><td>0 ≤ 3，不超</td><td>1</td></tr>
+  <tr><td>2</td><td>2</td><td>1</td><td>2×2 − (3 − 0) = 1</td><td>1 ≤ 3，不超</td><td>2</td></tr>
+  <tr><td>3</td><td>3</td><td>1</td><td>3×3 − (6 − 0) = 3</td><td>3 ≤ 3，不超（刚好用完）</td><td>3</td></tr>
+  <tr><td>4</td><td>4</td><td>1</td><td>4×4 − (10 − 0) = 6</td><td>6 &gt; 3，超了，l 移到 2</td><td>—</td></tr>
+  <tr><td>4</td><td>4</td><td>2</td><td>3×4 − (10 − 1) = 3</td><td>3 ≤ 3，不超</td><td>3</td></tr>
+</table>
+
+<p>最后 ans = 3，输出 3。直观理解是：想凑成 4，需要花 3+2+1 = 6 次，预算只有 3，所以放弃最小的 1，把 2、3 抬到 4 只要 2+1 = 3 次，一共 3 颗。</p>
+
+<p>原文件还提到另一种做法：答案长度 k 有单调性——如果某个长度 k 能找到合法窗口，那么长度 k − 1 也一定能（在同一个窗口里去掉一颗就行），所以可以对 k 二分，每次判断「是否存在长度为 k 的窗口代价 ≤ m」。两种做法复杂度都是 O(n log n)（排序本身就要这个复杂度），双指针常数更小一点，代码也短一点。</p>
+
+<p><strong>复杂度：</strong>排序 O(n log n)，前缀和 O(n)，双指针扫描 O(n)，总时间 O(n log n)；空间存数组、前缀和各一份，O(n)。</p>
+
+<h3>四、核心代码（逐行注释）</h3>
+
+<p>这个数组从下标 1 开始用（<code>a[1] … a[n]</code>，第 0 位空着当哨兵），前缀和 <code>sum[i] = a[1] + … + a[i]</code>。</p>
+
+<pre><code>sort(a + 1, a + n + 1);                       // 把 a[1..n] 从小到大排序，a[0] 这个哨兵不参加
+for (int i = 1; i &lt;= n; ++i) {                // 预处理前缀和
+    sum[i] = sum[i - 1] + a[i];               // sum[i] 是前 i 个数的和，sum[0] = 0
+}
+int ans = 0, l = 1;                           // ans 记最长合法窗口长度，l 是窗口左端点
+for (int r = 1; r &lt;= n; ++r) {                // 右端点从左到右扫一遍
+    // 下面 while 的条件算的就是代价：颗数 × a[r] 再减掉区间和，超过 m 就说明超预算了
+    while (l &lt;= r &amp;&amp;
+           1LL * (r - l + 1) * a[r] - (sum[r] - sum[l - 1]) &gt; m) {
+        ++l;                                  // 代价超预算，去掉最左边（最小）的那颗
+    }                                         // 一直缩到代价不超过 m 为止
+    ans = max(ans, r - l + 1);                // 以 r 结尾的最长合法窗口，更新答案
+}</code></pre>
+
+<p>代价值的表达式 <code>1LL * (r - l + 1) * a[r] - (sum[r] - sum[l - 1])</code> 就是公式 Cost(l, r) 的代码形式：<code>r - l + 1</code> 是颗数 k，乘上 <code>a[r]</code> 是「k 颗都抬到 a[r]」的总次数，再减去区间里原本就有的能量 <code>sum[r] - sum[l - 1]</code>。前面的 <code>1LL *</code> 是把乘法强制放到 64 位里算，避免 k 和 a<sub>r</sub> 相乘时超过 int 范围。</p>
+
+<h3>五、完整代码（逐行注释）</h3>
+
+<pre><code>#include &lt;bits/stdc++.h&gt;              // 万能头文件
+using namespace std;
+using ll = long long;                // 能量值和操作次数都可能很大，统一用 long long
+
+int main() {
+    ios::sync_with_stdio(false);     // 加快输入输出
+    cin.tie(nullptr);                // 解除 cin 与 cout 的绑定
+
+    int n;                           // 水晶颗数
+    ll m;                            // 最多能做的操作次数，最大 10^18，必须 long long
+    cin &gt;&gt; n &gt;&gt; m;
+
+    vector&lt;ll&gt; a(n + 1), sum(n + 1, 0);      // a[1..n] 存能量，a[0] 是哨兵不用
+                                             // sum[0..n] 存前缀和，初始全 0
+    for (int i = 1; i &lt;= n; ++i) {
+        cin &gt;&gt; a[i];                 // 读入每颗水晶的能量
+    }
+
+    sort(a.begin() + 1, a.end());    // 只排 a[1] 到 a[n]，注意要 +1，别把 a[0] 那个 0 排进来
+    for (int i = 1; i &lt;= n; ++i) {
+        sum[i] = sum[i - 1] + a[i];  // 前缀和：sum[i] = a[1] + ... + a[i]
+    }
+
+    int ans = 0, l = 1;              // ans 是答案，l 是滑动窗口左端点
+    for (int r = 1; r &lt;= n; ++r) {   // 枚举窗口右端点
+        // 条件算的是：把 a[l..r] 全部抬到 a[r] 需要多少次操作，超过 m 就要缩左边
+        while (l &lt;= r &amp;&amp;
+               1LL * (r - l + 1) * a[r] - (sum[r] - sum[l - 1]) &gt; m) {
+            ++l;                     // 代价太大，去掉最左边那颗
+        }
+        ans = max(ans, r - l + 1);   // 用当前最长窗口更新答案
+    }
+
+    cout &lt;&lt; ans &lt;&lt; '\n';            // 输出最多能让多少颗水晶相等
+    return 0;
+}</code></pre>
+
+<h3>六、本题坑点</h3>
+
+<p><strong>坑点一：计算必须用 <code>long long</code>。</strong>能量值最大 10¹²，颗数最多 5×10⁵，颗数乘能量的量级是 5×10⁵ × 10¹² = 5×10¹⁷，而 int 只能到 2.1×10⁹、long long 能到约 9.2×10¹⁸，所以 long long 完全够用，不会溢出；但也正因为量级到了 10¹⁷，用 int 一定会溢出，必须全程用 long long，包括 m、a 数组、前缀和以及那句乘法（用 <code>1LL *</code> 把乘法抬到 64 位）。</p>
+
+<p class="note">这里补充一句：原文件在「本题坑点」里把范围写成了 n ≤ 2×10⁵、|a<sub>i</sub>| ≤ 10⁹，和前面的「概述题意」写的 n ≤ 5×10⁵、|a<sub>i</sub>| ≤ 10¹² 不一致。以题面为准更安全，而按 5×10⁵ × 10¹² = 5×10¹⁷ 估算，long long 依然是够的，所以原文件「long long 足够」这个结论没有变，只是理由要换成更大的那个范围。</p>
+
+<p><strong>坑点二：能量值可能是负数，不能默认它非负。</strong>如果脑子里想着「能量值」就以为都大于 0，很容易犯两类错误。第一类是排序写错，比如用桶排序、或者以为所有数都在 0 到某个上限之间；本题数值范围是 −10¹² 到 10¹²，只能用比较排序（<code>sort</code>）。第二类是代价公式算错，比如把「抬到 a<sub>r</sub>」偷偷理解成「抬到 0 以上」——正确做法是老老实实套公式 Cost(l, r) = k·a<sub>r</sub> − 区间和，这个公式对负数照样成立，例如 a = [−5, −5, −1] 时，把前两颗抬到 −1 的代价是 (−1+5) + (−1+5) = 8。</p>
+
+<p><strong>坑点三：排序不能把哨兵 a[0] 排进去。</strong>代码用下标 1 到 n 存数据，<code>a[0]</code> 只是个占位的 0。如果写成 <code>sort(a.begin(), a.end())</code>，这个 0 会混进有序数组里：数组里没有负数时它跑到最前面，看起来没事；一旦有负数（比如 [−5, −5, −1]），排完是 [−5, −5, −1, 0]，<code>a[1..3]</code> 变成了 −5、−5、−1 之外还少了值，答案就错了。正确写法是 <code>sort(a.begin() + 1, a.end())</code>。</p>
+
+<p><strong>坑点四：<code>while</code> 里别写成 <code>if</code>。</strong>一个 r 可能要让 l 连续右移好几次才把代价降到 m 以内，写成 <code>if</code> 只移一格，后面的窗口就不一定合法了，答案会偏大或者偏小（取决于怎么统计），而且很难发现。</p>
+
+<pre><code>// 错误写法：只移一格，代价可能仍然超预算
+if (l &lt;= r &amp;&amp; 1LL * (r - l + 1) * a[r] - (sum[r] - sum[l - 1]) &gt; m) ++l;
+// 正确写法：一直移到合法为止
+while (l &lt;= r &amp;&amp; 1LL * (r - l + 1) * a[r] - (sum[r] - sum[l - 1]) &gt; m) ++l;</code></pre>
+
+<p class="note">顺便说明 <code>l &lt;= r</code> 这个条件：它保证窗口里至少有一颗水晶。因为 m ≥ 0，当 l 被推到 r + 1 时窗口是空的，代价算出来是 0，循环会自然停下，所以这个条件严格说不是必须的，但写上以后代码的意思更清楚，也不怕以后把 m 改成可能为负的情况。</p>
+
+<div class="box">
+<p><strong>一句话记住：</strong>排序以后，答案一定是一段连续的区间；把区间里所有水晶抬到最右边那颗（也就是最大值 a<sub>r</sub>）最省，代价用前缀和 O(1) 算出来；用双指针维护「代价不超过 m 的最长区间」即可。</p>
+</div>
+
+<h3>七、动手练一练（补充）</h3>
+
+<table>
+  <tr><th>输入</th><th>参考答案</th><th>关键点</th></tr>
+  <tr><td><code>4 3<br>1 2 3 4</code></td><td><code>3</code></td><td>正文里逐行推过的那组数，注意 r = 4 时 l 要移到 2</td></tr>
+  <tr><td><code>3 1<br>2 3 3</code></td><td><code>3</code></td><td>一个 2 加 1 次就变成 3，三颗相同</td></tr>
+  <tr><td><code>5 0<br>3 3 3 7 7</code></td><td><code>3</code></td><td>m = 0 时答案就是出现次数最多的那个数，这里是 3</td></tr>
+  <tr><td><code>3 100<br>-5 -5 -1</code></td><td><code>3</code></td><td>把两颗 −5 都抬到 −1 只需要 8 次，预算 100 够，三颗都是 −1</td></tr>
+  <tr><td><code>2 1000000000000000000<br>-1000000000000 1000000000000</code></td><td><code>2</code></td><td>把小的抬到大的要 2×10¹² 次，远小于 10¹⁸；顺便检查 long long</td></tr>
+</table>
+
+<h2 id="summary">复杂度与考点总表</h2>
+
+<p>最后把五道题放在一起对比。看这张表的时候，建议先自己填一遍「核心做法」那一列，再对答案，比直接看效果好得多。</p>
+
+<table>
+  <tr><th>题</th><th>名称</th><th>核心做法</th><th>时间</th><th>空间</th><th>最容易错的地方</th></tr>
+  <tr><td>1</td><td>旅游（travel）</td><td>按四个问题递进判断，前一个不成立后面直接为 0</td><td>O(1)</td><td>O(1)</td><td>D 与 F 之间没有 E，两者是相邻的；列坐标要用题目给的映射，不能用字母表顺序</td></tr>
+  <tr><td>2</td><td>回文串（string）</td><td>行程压缩 + 双游标，逐段比较原串与反转串</td><td>O(n)</td><td>O(n)</td><td>总长度 L 要用 long long；两个游标谁先走完要判断清楚；别展开字符串</td></tr>
+  <tr><td>3</td><td>按位与（and）</td><td>从第 29 位到第 0 位逐位贪心，用 <code>(a[i] &amp; target) == target</code> 计数</td><td>O(30n)</td><td>O(n)</td><td>判定是 <code>cnt &gt;= m</code>；移位用 <code>1LL &lt;&lt; b</code>；target 要带上已确定的 ans；括号不能省</td></tr>
+  <tr><td>4</td><td>纸牌游戏（card）</td><td>把一局游戏变成跳转 i → last[a<sub>i</sub>]+1，再按位置递推 dp 并累加 ans</td><td>O(n + m)</td><td>O(n + m)</td><td>必须跳到 last[a<sub>i</sub>]+1，不能只跳到下一次出现；dp 要多开一位；用 long long</td></tr>
+  <tr><td>5</td><td>能量水晶（crystal）</td><td>排序 + 前缀和 + 双指针，找代价 ≤ m 的最长区间</td><td>O(n log n)</td><td>O(n)</td><td>负数不能忽略；全程 long long；<code>sort</code> 要 <code>begin() + 1</code>；超预算时用 <code>while</code> 不是 <code>if</code></td></tr>
+</table>
+
+<p>从这张表能看出一点规律：这五道题没有一道需要复杂的数据结构（树状数组、线段树、并查集一个都没用到），分数主要来自三件事——把题目读懂、把过程看清楚、把细节写对。题 4 和题 5 都是有「看起来很暴力」的想法，但通过观察把复杂度降下来；题 1 和题 2 主要是把规则一条一条落实；题 3 是典型的按位贪心。</p>
+
+<h3>怎么用这份讲解复盘</h3>
+
+<p>做法是：先不看答案，把每道题的「概述题意」读完以后，自己在纸上写出「输入是什么、输出是什么、数据范围、我打算用什么方法」，再往下看「解题思路」，对比自己的方法哪里不一样。如果方法一致，就直接看「核心代码」和「本题坑点」，把坑点抄在错题本上；如果方法不一致，先想清楚自己的方法为什么慢（或者为什么错），再回来看题解的方法是怎么绕过去的。最后隔一两天，拿「动手练一练」的题目重新做一遍，不看正文，只靠自己写代码通过，才算真的掌握。</p>
+
+<h3>还可以继续练的方向</h3>
+
+<p>题 3 练完以后可以找「按位或、按位异或 + 贪心」的题，思路几乎一样：从高位往低位试，能保住就保住。题 4 练完以后可以找「把过程抽象成图上的路径，再统计路径经过次数」的题，这类题通常用「差分」或者「按拓扑序递推」来计数。题 5 练完以后可以找「排序后二分答案」的题，注意体会「答案具有单调性，所以可以二分」这句话在每道题里具体指什么。</p>
+
+<p class="meta">讲解中所有代码都取自 20261105.pdf 原文，我在每一行后面补了中文注释；例子和自测题是我补写的，其中的输入输出都用原代码实际跑过一遍，结果与上文写的一致。</p>
+
+</div>
+</body>
+</html>
+

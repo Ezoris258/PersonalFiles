@@ -1,0 +1,130 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+
+\begin{document}
+
+\section*{欧拉函数性质 5 和性质 6 的详细证明}
+
+在开始之前，我们先复习一下核心公式（设 \(n = p_1^{\alpha_1} p_2^{\alpha_2} \dots p_k^{\alpha_k}\)）：
+\[
+ \varphi(n) = n \prod_{i=1}^k \left(1 - \frac{1}{p_i}\right) 
+\]
+
+\subsection*{一、 性质 5 的详细证明：\(\sum_{d|n} \varphi(d) = n\)}
+
+\textbf{证明思路}：利用\textbf{分类计数}（或者说划分等价类）的思想。
+
+\begin{enumerate}
+    \item \textbf{构造集合}：\\
+    考虑集合 \(S = \{1, 2, 3, \dots, n\}\)，显然集合 \(S\) 中一共有 \(n\) 个元素，即 \(|S| = n\)。
+
+    \item \textbf{依据最大公约数分类}：\\
+    对于集合 \(S\) 中的任意一个整数 \(m\)（\(1 \le m \le n\)），设 \(m\) 和 \(n\) 的最大公约数为 \(d\)，即 \(\gcd(m, n) = d\)。
+    \begin{itemize}
+        \item 因为 \(d\) 是 \(m\) 和 \(n\) 的公约数，所以 \(d\) 必然能整除 \(n\)，即 \(d \mid n\)。
+        \item 我们将所有具有相同最大公约数 \(d\) 的 \(m\) 归为一类，记作集合 \(C_d\)：
+        \[
+ C_d = \{ m \in S \mid \gcd(m, n) = d \} 
+\]
+    \end{itemize}
+
+    \item \textbf{证明集合的划分是完备且不交的}：\\
+    \begin{itemize}
+        \item 因为每个 \(m \in S\) 都有唯一确定的 \(\gcd(m, n)\)，所以每个 \(m\) 必然会落入且只落入一个 \(C_d\) 中。
+        \item 因此，所有 \(C_d\)（其中 \(d\) 取遍 \(n\) 的所有正因数）构成了集合 \(S\) 的一个划分。
+        \item 所以，所有集合 \(C_d\) 的元素个数之和，必定等于总集合 \(S\) 的元素个数：
+        \[
+ \sum_{d|n} |C_d| = |S| = n 
+\]
+    \end{itemize}
+
+    \item \textbf{计算 \(|C_d|\) 的大小}：\\
+    \begin{itemize}
+        \item 由 \(\gcd(m, n) = d\)，等式两边同除以 \(d\)，可得：
+        \[
+ \gcd\left(\frac{m}{d}, \frac{n}{d}\right) = 1 
+\]
+        \item 又因为 \(1 \le m \le n\)，所以 \(1 \le \frac{m}{d} \le \frac{n}{d}\)。
+        \item 令 \(x = \frac{m}{d}\)，则 \(x\) 的范围是 \(1 \le x \le \frac{n}{d}\)。
+        \item 此时条件变成了：在 \(1\) 到 \(\frac{n}{d}\) 的范围内，找出与 \(\frac{n}{d}\) \textbf{互质}的整数 \(x\) 的个数。
+        \item 根据欧拉函数的定义，这个个数恰好就是 \(\varphi\left(\frac{n}{d}\right)\)。
+        \item 即 \(|C_d| = \varphi\left(\frac{n}{d}\right)\)。
+    \end{itemize}
+
+    \item \textbf{得出结论}：\\
+    代入第 3 步的求和式：
+    \[
+ \sum_{d|n} \varphi\left(\frac{n}{d}\right) = n 
+\]
+    当 \(d\) 取遍 \(n\) 的所有正因数时，\(\frac{n}{d}\) 也恰好取遍 \(n\) 的所有正因数。所以我们将变量替换为 \(d\)，即可得到：
+    \[
+ \sum_{d|n} \varphi(d) = n 
+\]
+    \textbf{证毕。}
+\end{enumerate}
+
+\subsection*{二、 性质 6 的详细证明}
+
+\textbf{前置条件}：设 \(p\) 是素数，且 \(p \mid n\)。\(n\) 的质因数分解中包含 \(p\)，设 \(p\) 的指数为 \(\alpha\)（\(\alpha \ge 1\)）。
+
+\subsubsection*{情形 1：若 \(p \mid n\) 且 \(p^2 \mid n\)}
+这意味着 \(p\) 在 \(n\) 的质因数分解中的指数 \(\alpha \ge 2\)。
+
+\begin{enumerate}
+    \item 考察 \(\varphi(n)\) 和 \(\varphi\left(\frac{n}{p}\right)\) 的质因数构成。
+    \[
+ n = p^{\alpha} \cdot p_2^{\alpha_2} \dots p_k^{\alpha_k} \quad (\alpha \ge 2) 
+\]
+    \[
+ \frac{n}{p} = p^{\alpha-1} \cdot p_2^{\alpha_2} \dots p_k^{\alpha_k} \quad (\alpha-1 \ge 1) 
+\]
+    由此可见，\(n\) 和 \(\frac{n}{p}\) \textbf{拥有完全相同的质因数种类}（即 \(p, p_2, \dots, p_k\)），区别仅在于素数 \(p\) 的指数减少了一个。
+
+    \item 根据欧拉函数公式，两者的连乘积部分 \(\prod_{i=1}^k \left(1 - \frac{1}{p_i}\right)\) 是完全相同的。
+    \[
+ \varphi(n) = n \left(1 - \frac{1}{p}\right) \left(1 - \frac{1}{p_2}\right) \dots \left(1 - \frac{1}{p_k}\right) 
+\]
+    \[
+ \varphi\left(\frac{n}{p}\right) = \frac{n}{p} \left(1 - \frac{1}{p}\right) \left(1 - \frac{1}{p_2}\right) \dots \left(1 - \frac{1}{p_k}\right) 
+\]
+
+    \item 将两式相除：
+    \[
+ \frac{\varphi(n)}{\varphi\left(\frac{n}{p}\right)} = \frac{n}{\frac{n}{p}} = p 
+\]
+    移项得：
+    \[
+ \varphi(n) = \varphi\left(\frac{n}{p}\right) \cdot p 
+\]
+    \textbf{情形 1 证毕。}
+\end{enumerate}
+
+\subsubsection*{情形 2：若 \(p \mid n\) 且 \(p^2 \nmid n\)}
+这意味着 \(p\) 能整除 \(n\)，但 \(p^2\) 不能整除 \(n\)。所以 \(p\) 在 \(n\) 的质因数分解中的指数只能是 \(\alpha = 1\)。
+
+\begin{enumerate}
+    \item 考察 \(\frac{n}{p}\) 的质因数：
+    \[
+ n = p^1 \cdot p_2^{\alpha_2} \dots p_k^{\alpha_k} 
+\]
+    \[
+ \frac{n}{p} = p_2^{\alpha_2} \dots p_k^{\alpha_k} 
+\]
+    由于素数 \(p\) 在 \(\frac{n}{p}\) 中已经不存在了，所以 \(p\) 与 \(\frac{n}{p}\) 没有相同的质因数。\\
+    即：\(\gcd\left(p, \frac{n}{p}\right) = 1\)（两者互质）。
+
+    \item 利用欧拉函数的\textbf{积性性质}（性质 3，因为两数互质）：
+    \[
+ \varphi(n) = \varphi\left(p \cdot \frac{n}{p}\right) = \varphi(p) \cdot \varphi\left(\frac{n}{p}\right) 
+\]
+
+    \item 因为 \(p\) 是素数，根据性质 1（\(\varphi(p) = p - 1\)）：
+    \[
+ \varphi(n) = \varphi\left(\frac{n}{p}\right) \cdot (p - 1) 
+\]
+    \textbf{情形 2 证毕。}
+\end{enumerate}
+
+综上所述，性质 6 的两条结论均得证。
+
+\end{document}

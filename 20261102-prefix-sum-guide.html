@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>前缀和 · 差分 · 离散化 —— 学习讲义</title>
+<style>
+  :root{
+    --bg:#fbfbfa;
+    --ink:#1f2328;
+    --muted:#5c636e;
+    --line:#e3e5e8;
+    --accent:#1f6feb;
+    --soft:#eef4ff;
+    --code:#f7f8fa;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",sans-serif;
+    font-size:16px;
+    line-height:1.8;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:30px 18px 80px}
+
+  /* ---------- 封面 ---------- */
+  header.top{padding-bottom:18px;border-bottom:2px solid var(--ink)}
+  header.top h1{font-size:24px;line-height:1.45;margin:0 0 6px;letter-spacing:.5px}
+  header.top .sub{color:var(--muted);font-size:15px;margin:0}
+  header.top .meta{color:var(--muted);font-size:13.5px;margin:10px 0 0}
+
+  /* ---------- 标题 ---------- */
+  h2{
+    font-size:19px;line-height:1.5;margin:44px 0 14px;padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  h2 .no{
+    display:inline-block;min-width:26px;margin-right:8px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  h3{font-size:16.5px;line-height:1.6;margin:24px 0 8px}
+  p{margin:10px 0}
+  em{font-style:normal;background:linear-gradient(transparent 62%,#ffe9a8 62%);padding:0 1px}
+  code.inline{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    font-size:14px;background:#f1f2f4;border:1px solid var(--line);
+    border-radius:4px;padding:1px 5px;
+  }
+
+  /* ---------- 卡片 ---------- */
+  .key{
+    border-left:3px solid var(--accent);background:var(--soft);
+    padding:10px 14px;margin:14px 0;border-radius:0 6px 6px 0;
+  }
+  .key b{color:var(--accent)}
+  .say{
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:10px 14px;margin:16px 0;font-size:15px;
+  }
+  .say::before{content:"如果只记住一句话";display:block;font-size:12.5px;color:var(--muted);letter-spacing:1px;margin-bottom:2px}
+  .note{
+    border-left:3px solid #d9a300;background:#fffaf0;
+    padding:10px 14px;margin:14px 0;border-radius:0 6px 6px 0;font-size:15px;
+  }
+
+  /* ---------- 目录 ---------- */
+  .toc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:20px 0}
+  .toc h4{margin:0 0 6px;font-size:15px;color:var(--muted);font-weight:600;letter-spacing:1px}
+  .toc ol{margin:4px 0 0;padding-left:22px}
+  .toc li{margin:3px 0}
+  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--line)}
+  .toc a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* ---------- 公式 ---------- */
+  .fml{
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:12px 10px;margin:14px 0;text-align:center;
+    font-family:"Cambria Math",Cambria,Georgia,"Times New Roman",serif;
+    font-size:17px;line-height:2.1;overflow-x:auto;
+  }
+  .fml sub,.fml sup{font-size:11px}
+  .fml .tag{color:var(--muted);font-size:13px;font-family:inherit}
+
+  /* ---------- 表格 ---------- */
+  .tbl{overflow-x:auto;margin:16px 0}
+  table{border-collapse:collapse;width:100%;min-width:460px;font-size:15px;background:#fff}
+  th,td{border:1px solid var(--line);padding:7px 11px;text-align:left;vertical-align:top}
+  th{background:#f5f6f8;font-weight:600;white-space:nowrap}
+  td code{font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
+
+  /* ---------- 代码块 ---------- */
+  .codebox{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:14px 0;background:#fff}
+  .codehead{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:6px 12px;background:#f3f4f6;border-bottom:1px solid var(--line);
+    font-size:13px;color:var(--muted);
+  }
+  .codehead .name{font-weight:600;color:#444}
+  .copy{
+    font:inherit;font-size:12.5px;color:var(--muted);background:#fff;
+    border:1px solid var(--line);border-radius:5px;padding:2px 9px;cursor:pointer;
+  }
+  .copy:hover{color:var(--accent);border-color:var(--accent)}
+  pre.code{margin:0;padding:12px 14px;overflow-x:auto;background:#fff}
+  pre.code code{
+    display:block;white-space:pre;
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono","Courier New",monospace;
+    font-size:13px;line-height:1.72;color:#24292f;
+  }
+  .cm{color:#6b737d}
+
+  /* ---------- 步骤 ---------- */
+  ol.steps{padding-left:22px}
+  ol.steps li{margin:8px 0}
+  ol.steps b{color:var(--accent)}
+
+  /* ---------- 例子 ---------- */
+  .eg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:14px 0;font-size:15px}
+  .eg .t{font-weight:600;margin:0 0 6px}
+  .eg p{margin:6px 0}
+
+  /* ---------- 折叠 ---------- */
+  details{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0}
+  summary{cursor:pointer;font-weight:600;font-size:15px}
+  details[open] summary{margin-bottom:6px}
+  details p{margin:6px 0;font-size:15px}
+
+  /* ---------- 页脚 ---------- */
+  footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+  a.jump{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>前缀和 · 差分 · 离散化</h1>
+  <p class="sub"></p>
+  <p class="meta"></p>
+</header>
+
+<div class="toc">
+  <h4>目 录</h4>
+  <ol>
+    <li><a href="#s1">前缀和：一次预处理，换来 O(1) 查区间</a></li>
+    <li><a href="#s2">差分：一次预处理，换来 O(1) 改区间</a></li>
+    <li><a href="#s3">为什么说它们是「互逆」的一对</a></li>
+    <li><a href="#s4">离散化：值域很大时把数字压缩成排名</a></li>
+    <li><a href="#s5">例题一 P8218 求区间和（前缀和）</a></li>
+    <li><a href="#s6">例题二 P2367 语文成绩（差分）</a></li>
+    <li><a href="#s7">例题三 P1496 火烧赤壁（离散化 + 差分）</a></li>
+    <li><a href="#s8">速查表：公式、模板、复杂度</a></li>
+    <li><a href="#s9"></a></li>
+  </ol>
+</div>
+
+<p></p>
+
+<!-- ================= 1 ================= -->
+<h2 id="s1"><span class="no">01</span>前缀和：一次预处理，换来 O(1) 查区间</h2>
+
+<div class="key">
+  <b>一句话结论：</b>把「从第 1 个数加到第 i 个数」的结果提前算好存进数组，以后问「第 l 个数到第 r 个数的和」，只要做一次减法。
+</div>
+
+<h3>先看一个生活里的场景</h3>
+<p>你有一个存钱罐。每天往里放一点钱，同时在旁边的小本子上记一行字：「到今天为止，罐子里一共有多少钱」。</p>
+<p>过了一个星期，妈妈问你：<em>星期三到星期五，这三天你一共放进去多少钱？</em></p>
+<p>你不需要把这三天的钱重新倒出来数一遍。小本子上已经写着「到星期五一共多少」和「到星期二一共多少」，两个数一减，就是这三天放进去的总数。这个「小本子上的累计数」，就是前缀和。</p>
+
+<h3>定义与递推</h3>
+<p>给定一个从 1 开始编号的数列 <code class="inline">a<sub>1</sub>, a<sub>2</sub>, …, a<sub>n</sub></code>，我们定义前缀和数组 <code class="inline">s</code>：</p>
+
+<div class="fml">
+  s<sub>i</sub> = a<sub>1</sub> + a<sub>2</sub> + ⋯ + a<sub>i</sub> &nbsp;&nbsp;&nbsp; <span class="tag">特别规定</span> s<sub>0</sub> = 0
+</div>
+
+<p>直接照着定义算，<code class="inline">s<sub>i</sub></code> 要把前面 i 个数加一遍，n 个前缀和加起来是 O(n²)。但注意到一件很朴素的事：<em>算到第 i 个的时候，前面 i−1 个的和已经算过了</em>，直接拿来用就行。于是有递推式：</p>
+
+<div class="fml">
+  s<sub>i</sub> = s<sub>i−1</sub> + a<sub>i</sub> &nbsp;&nbsp;&nbsp; <span class="tag">i 从 1 到 n</span>
+</div>
+
+<p>这样预处理一遍只要 O(n)。</p>
+
+<h3>查询：一次减法</h3>
+<p>要问区间 <code class="inline">[l, r]</code> 的和，就用「前 r 个的和」减去「前 l−1 个的和」：</p>
+
+<div class="fml">
+  sum(l, r) = s<sub>r</sub> − s<sub>l−1</sub>
+</div>
+
+<p>为什么对？因为 <code class="inline">s<sub>r</sub></code> 里包含了 <code class="inline">a<sub>1</sub>…a<sub>r</sub></code> 全部，<code class="inline">s<sub>l−1</sub></code> 里包含了 <code class="inline">a<sub>1</sub>…a<sub>l−1</sub></code>，两者一减，前面那一段刚好抵消掉，剩下的正好是 <code class="inline">a<sub>l</sub>…a<sub>r</sub></code>。</p>
+
+<div class="eg">
+  <p class="t">拿具体数字走一遍</p>
+  <p>设 <code class="inline">a = {3, 1, 4, 1, 5}</code></p>
+  <p>前缀和：<code class="inline">s = {0, 3, 4, 8, 9, 14}</code></p>
+  <p>其中 s<sub>0</sub>=0，s<sub>1</sub>=0+3=3，s<sub>2</sub>=3+1=4，s<sub>3</sub>=4+4=8，s<sub>4</sub>=8+1=9，s<sub>5</sub>=9+5=14。</p>
+  <p>问 [2, 4] 的和：s<sub>4</sub> − s<sub>1</sub> = 9 − 3 = <b>6</b>。验证一下：1 + 4 + 1 = 6，对上了。</p>
+</div>
+
+<h3>基础模板（逐行注释）</h3>
+<p>下面这段是 PDF 第 1 页给出的基础模板，把「建立前缀和、查询区间、建立差分、区间修改、用差分还原」五个操作放在了一起：</p>
+
+<div class="codebox">
+  <div class="codehead"><span class="name">基础模板 · 前缀和与差分</span><button class="copy">复制</button></div>
+  <pre class="code"><code>#include &lt;iostream&gt;                                     // 引入输入输出流
+
+const int N = 1e5 + 10;                                 // 数组最大长度，多开 10 个防越界
+long long a[N];                                         // 原数组 a
+long long sum[N];                                       // 前缀和数组
+long long diff[N];                                      // 差分数组
+
+void build_prefix_sum(int n) {                          // 建立前缀和
+    for (int i = 1; i &lt;= n; ++i) {                      // 从第 1 个元素扫到第 n 个
+        sum[i] = sum[i - 1] + a[i];                     // 当前前缀和 = 前一项前缀和 + 当前元素
+    }
+}
+
+long long query_sum(int l, int r) {                     // 查询区间 [l, r] 的和
+    return sum[r] - sum[l - 1];                         // O(1)：右端前缀和 减 左端前一位前缀和
+}
+
+void build_difference(int n) {                          // 建立差分数组
+    for (int i = 1; i &lt;= n; ++i) {                      // 从第 1 个元素扫到第 n 个
+        diff[i] = a[i] - a[i - 1];                      // 差分 = 当前元素 减 前一个元素
+    }
+}
+
+void update_range(int l, int r, long long v) {          // 把区间 [l, r] 统一加上 v
+    diff[l] += v;                                       // 左端点 +v：从 l 开始生效
+    diff[r + 1] -= v;                                   // 右端后一位 -v：到 r+1 撤销
+}
+
+void recover_from_difference(int n) {                   // 用差分数组还原原数组
+    for (int i = 1; i &lt;= n; ++i) {                      // 从第 1 个元素扫到第 n 个
+        a[i] = a[i - 1] + diff[i];                      // 对差分求前缀和，就变回 a
+    }
+}
+</code></pre>
+</div>
+
+<div class="note">
+  <b>两个必须注意的细节。</b>第一，数组从下标 1 开始用，并且 <code class="inline">s[0]</code> 要留出来等于 0，否则 l = 1 的时候访问 <code class="inline">s[l−1]</code> 就会越界。第二，<code class="inline">a</code> 是 int 的时候也要小心：累加过程中的和可能早就超过 int 的范围了，所以前缀和数组要用 <code class="inline">long long</code>。
+</div>
+
+<div class="say">
+  前缀和 = 提前把「一路加到这儿」的结果存起来，查询时两端相减。
+</div>
+
+<!-- ================= 2 ================= -->
+<h2 id="s2"><span class="no">02</span>差分：一次预处理，换来 O(1) 改区间</h2>
+
+<div class="key">
+  <b>一句话结论：</b>差分数组记的是「后一个数减前一个数」。想让一整段区间同时加上 v，不用挨个改，只要改两个位置。
+</div>
+
+<h3>还是从一个场景说起</h3>
+<p>班主任要给第 3 号到第 10 号同学每人加 5 分。最直接的办法是翻名单，一个一个改，一共改 8 个人。</p>
+<p>但也可以换个记法：在名单边上写两句话 ——「从第 3 号开始，每人 +5」「从第 11 号开始，每人 −5」。最后从头念一遍，一边念一边把这两句话的效力累加起来，念到谁，谁该加多少就自动出来了。念到第 3 号时是 +5，一直保持到第 10 号；念到第 11 号时加上 −5，正好抵消回 0。</p>
+<p>这个「只记变化点」的数组，就是差分数组。它把「改一段」变成了「改两个点」。</p>
+
+<h3>定义与还原</h3>
+<p>差分数组 <code class="inline">d</code> 定义为相邻两项的差：</p>
+
+<div class="fml">
+  d<sub>i</sub> = a<sub>i</sub> − a<sub>i−1</sub> &nbsp;&nbsp;&nbsp; <span class="tag">规定</span> a<sub>0</sub> = 0
+</div>
+
+<p>反过来，已知差分数组，把前缀和一层层加回去，就能恢复原数组：</p>
+
+<div class="fml">
+  a<sub>i</sub> = a<sub>i−1</sub> + d<sub>i</sub>
+</div>
+
+<p>这一步就是「对差分数组求前缀和」，复杂度 O(n)。</p>
+
+<h3>区间修改：两次单点操作</h3>
+<p>把区间 <code class="inline">[l, r]</code> 里每个数都加上 v，在差分数组上只需要两下：</p>
+
+<div class="fml">
+  d<sub>l</sub> ← d<sub>l</sub> + v &nbsp;&nbsp;&nbsp;&nbsp; d<sub>r+1</sub> ← d<sub>r+1</sub> − v
+</div>
+
+<p>道理和班主任那两句话完全一样：在 l 处「开始加」，加的效果会随着前缀和一路传下去；到 r+1 处「停止加」，减回来，正好把影响截断在 r。中间这一段就整体抬高了 v。</p>
+
+<div class="eg">
+  <p class="t">拿具体数字走一遍</p>
+  <p>设 <code class="inline">a = {3, 1, 4, 1, 5}</code>，则差分 <code class="inline">d = {3, −2, 3, −3, 4}</code>。</p>
+  <p>把区间 [2, 4] 每个数都加 10：d<sub>2</sub> += 10 变成 8；d<sub>5</sub> −= 10 变成 −6。</p>
+  <p>新的 <code class="inline">d = {3, 8, 3, −3, −6}</code>。</p>
+  <p>还原：a<sub>1</sub>=3，a<sub>2</sub>=3+8=11，a<sub>3</sub>=11+3=14，a<sub>4</sub>=14−3=11，a<sub>5</sub>=11−6=5。</p>
+  <p>得到 <code class="inline">{3, 11, 14, 11, 5}</code>，正好是原数组的第 2、3、4 位各加了 10。</p>
+</div>
+
+<div class="note">
+  <b>两个必须注意的细节。</b>第一，差分数组要开到 <code class="inline">n + 2</code>：修改右端点是 n 的时候会访问 <code class="inline">d[n+1]</code>，空间不够就是段错误。第二，所有修改都做完之后，再统一求前缀和还原；不要一边改一边还原，否则后面的修改会作用在已经变了的值上。
+</div>
+
+<div class="say">
+  区间修改 = 在 l 处加一枪，在 r+1 处拆一枪，最后从头累加一遍。
+</div>
+
+<!-- ================= 3 ================= -->
+<h2 id="s3"><span class="no">03</span>为什么说它们是「互逆」的一对</h2>
+
+<p>PDF 第 1 页有一句话：<em>它们是一对互逆操作</em>。这句话值得单独说清楚，因为它决定了你做题时该选哪个。</p>
+
+<p>把数组 a 看成一条路，前缀和是「往后一直累加」，差分是「相邻两项相减」。这两件事刚好互相抵消：对 a 求差分得到 d，再对 d 求前缀和，又回到 a；反过来先求前缀和再求差分，同样回到 a。</p>
+
+<div class="tbl">
+  <table>
+    <tr>
+      <th>对比项</th>
+      <th>前缀和</th>
+      <th>差分</th>
+    </tr>
+    <tr>
+      <td>怎么算</td>
+      <td><code>s[i] = s[i-1] + a[i]</code>（累加）</td>
+      <td><code>d[i] = a[i] - a[i-1]</code>（作差）</td>
+    </tr>
+    <tr>
+      <td>擅长什么</td>
+      <td>区间<b>查询</b>，一次减法 O(1)</td>
+      <td>区间<b>修改</b>，两次单点 O(1)</td>
+    </tr>
+    <tr>
+      <td>不擅长什么</td>
+      <td>区间修改（要重新算一遍 O(n)）</td>
+      <td>区间查询（要先还原 O(n)）</td>
+    </tr>
+    <tr>
+      <td>预处理代价</td>
+      <td>O(n)</td>
+      <td>读入时顺手就建好了，O(n)</td>
+    </tr>
+    <tr>
+      <td>整体复杂度</td>
+      <td>O(n + m)（m 次查询）</td>
+      <td>O(n + p)（p 次修改）</td>
+    </tr>
+  </table>
+</div>
+
+<div class="key">
+  <b>怎么选：</b>题目里「问很多次，几乎不改」——用前缀和；「改很多次，最后只问一次」——用差分。两个都要又改又问，那就得上树状数组或者线段树了。
+</div>
+
+<div class="say">
+  差分求前缀和回到原数组，原数组求差分得到差分数组，这两步互相抵消。
+</div>
+
+<!-- ================= 4 ================= -->
+<h2 id="s4"><span class="no">04</span>离散化：值域很大时把数字压缩成排名</h2>
+
+<div class="key">
+  <b>一句话结论：</b>当数字很大、但个数并不多的时候，把每个数换成它「排第几名」，大小顺序一点不变，数字却变得很小，数组就开得下了。
+</div>
+
+<h3>为什么需要它</h3>
+<p>PDF 里写得很直接：在线段树、树状数组这类结构里，<em>空间消耗与值域跨度正相关</em>。也就是说，数组要开多大，看的是「最大值减最小值」这个跨度，而不是「一共有多少个数」。</p>
+<p>举个具体的：N = 10⁵ 个数，每个数的值可能到 10⁹ 级别。你不可能开一个 10⁹ 大小的数组，内存直接爆掉。但这 10⁵ 个数之间，真正有意义的只有它们的<em>大小顺序</em>，至于 100 和 1000000 之间差了多少，很多时候根本用不上。</p>
+<p>离散化做的事就是：丢掉「间隔有多大」，只保留「谁比谁大」。10⁵ 个数最多只有 10⁵ 种不同的取值，压缩完下标就落在 1 到 N 之间，稳稳开得下。</p>
+
+<h3>班级排身高</h3>
+<p>一个班 50 个人，身高如果用毫米记，是 1732、1655、1890 这种数字。但其实我们只关心「谁第几高」。把它们换成 1、2、3……50 的排名，比较大小的结果完全一样，数字却小了两个数量级。这就是离散化的全部想法。</p>
+
+<h3>三步走</h3>
+<ol class="steps">
+  <li><b>收集</b>：把所有需要用到的大数值，统统装进一个辅助数组 <code class="inline">vals</code>。</li>
+  <li><b>排序去重</b>：<code class="inline">sort</code> 从小到大排好，<code class="inline">unique</code> 把重复的挪到末尾并返回新的尾位置，<code class="inline">erase</code> 把它们真正删掉。做完之后 <code class="inline">vals</code> 里是严格递增的一串数。</li>
+  <li><b>查排名</b>：对每个数 x，用 <code class="inline">lower_bound</code> 找到第一个大于等于 x 的位置，这个位置的下标加 1，就是 x 的排名（从 1 开始数）。</li>
+</ol>
+
+<p>PDF 里特别点出：利用 <code class="inline">std::vector</code> 结合 <code class="inline">&lt;algorithm&gt;</code> 库的 <code class="inline">sort</code>、<code class="inline">unique</code> 和 <code class="inline">lower_bound</code>，是常用实现方式。</p>
+
+<div class="eg">
+  <p class="t">拿具体数字走一遍</p>
+  <p>设 <code class="inline">a = {1000000000, 5, 999, 5, 42}</code>。</p>
+  <p>收集去重排序后：<code class="inline">vals = {5, 42, 999, 1000000000}</code>。</p>
+  <p>查排名：5 → 1，42 → 2，999 → 3，10⁹ → 4。</p>
+  <p>离散化后的数组：<code class="inline">{4, 1, 3, 1, 2}</code>。原来最大的还是最大，最小的还是最小，只是数字从十亿变成了个位数。</p>
+</div>
+
+<h3>离散化模板（逐行注释）</h3>
+
+<div class="codebox">
+  <div class="codehead"><span class="name">离散化 · 通用模板</span><button class="copy">复制</button></div>
+  <pre class="code"><code>#include &lt;iostream&gt;                                     // 输入输出
+#include &lt;vector&gt;                                       // 动态数组 vector
+#include &lt;algorithm&gt;                                    // sort / unique / lower_bound 都在这里
+
+const int N = 1e5 + 10;                                 // 数组最大长度
+int a[N];                                               // 原数组
+std::vector&lt;int&gt; vals;                                  // 存放所有数值，用来离散化
+
+int get_rank(int x) {                                   // 求数值 x 的排名（从 1 开始）
+    // lower_bound 返回第一个大于等于 x 的元素的迭代器
+    // 减去起始迭代器得到从 0 开始的下标，加 1 转换为 1-based 排名
+    return std::lower_bound(vals.begin(), vals.end(), x) - vals.begin() + 1;
+}
+
+void discretize(int n) {                                // 离散化主函数
+    for (int i = 1; i &lt;= n; ++i) {                      // 第 1 步：收集所有数值
+        vals.push_back(a[i]);                           // 把 a[i] 装进 vals
+    }
+    std::sort(vals.begin(), vals.end());                // 第 2 步：从小到大排序
+    // unique 把重复元素挪到末尾，返回去重后有效区间的尾迭代器
+    vals.erase(std::unique(vals.begin(), vals.end()), vals.end());   // 第 3 步：真正删掉重复的
+    for (int i = 1; i &lt;= n; ++i) {                      // 第 4 步：把原数组换成排名
+        a[i] = get_rank(a[i]);                          // a[i] 变成它的排名
+    }
+}
+</code></pre>
+</div>
+
+<div class="note">
+  <b>别忘了原始数值。</b>离散化之后 <code class="inline">a</code> 里存的只是排名，原来的具体数值就没了。如果后面要算「这一段实际有多长」，就得留着 <code class="inline">vals</code>，用 <code class="inline">vals[rank − 1]</code> 查回去。例题三马上就会用到这一点。
+</div>
+
+<div class="say">
+  离散化 = 把「数值」换成「名次」，排名之间的差不再是真实距离。
+</div>
+
+<!-- ================= 5 ================= -->
+<h2 id="s5"><span class="no">05</span>例题一 P8218 求区间和（前缀和）</h2>
+
+<h3>题目在说什么</h3>
+<p>给一个长度为 n 的正整数数列，再给 m 次询问，每次问区间 <code class="inline">[l, r]</code> 里所有元素的和。数据范围是 1 ≤ n, m ≤ 10⁵，1 ≤ a<sub>i</sub> ≤ 10⁴。</p>
+<p>如果每次询问都把区间里的数挨个加一遍，一次最坏要加 n 个数，m 次就是 10¹⁰ 次操作，肯定超时。</p>
+
+<h3>用哪个工具</h3>
+<p>只查不改，天生就是前缀和的主场。</p>
+
+<h3>数学模型</h3>
+<div class="fml">
+  s<sub>i</sub> = Σ<sub>j=1…i</sub> a<sub>j</sub> &nbsp;&nbsp;&nbsp; s<sub>0</sub> = 0
+</div>
+<div class="fml">
+  sum(l, r) = s<sub>r</sub> − s<sub>l−1</sub>
+</div>
+
+<h3>解题思路</h3>
+<ol class="steps">
+  <li><b>预处理</b>：读入数列的时候顺手递推 <code class="inline">s<sub>i</sub> = s<sub>i−1</sub> + a<sub>i</sub></code>，时间复杂度 O(n)。</li>
+  <li><b>查询</b>：每次询问直接套公式 <code class="inline">s<sub>r</sub> − s<sub>l−1</sub></code>，单次 O(1)。</li>
+  <li><b>总复杂度</b>：时间 O(n + m)，空间 O(n)。</li>
+</ol>
+
+<h3>核心代码</h3>
+<div class="codebox">
+  <div class="codehead"><span class="name">P8218 · 核心代码</span><button class="copy">复制</button></div>
+  <pre class="code"><code>vector&lt;long long&gt; s(n + 1, 0);          // 前缀和数组，长度 n+1，初值全 0
+for (int i = 1; i &lt;= n; i++) {          // 从 1 扫到 n
+    long long x;                        // 当前读入的数
+    cin &gt;&gt; x;                           // 读入 a[i]
+    s[i] = s[i - 1] + x;                // 边读边累加，得到前缀和
+}
+while (m--) {                           // 处理 m 次询问
+    int l, r;                           // 询问区间 [l, r]
+    cin &gt;&gt; l &gt;&gt; r;                      // 读入左右端点
+    cout &lt;&lt; s[r] - s[l - 1] &lt;&lt; "\n";    // 一次减法得到答案
+}
+</code></pre>
+</div>
+
+<h3>完整代码</h3>
+<div class="codebox">
+  <div class="codehead"><span class="name">P8218 · 完整代码</span><button class="copy">复制</button></div>
+  <pre class="code"><code>#include &lt;bits/stdc++.h&gt;                        // 万能头文件，一次包含所有常用库
+using namespace std;                            // 省去到处写 std::
+
+int main() {                                    // 主函数
+    ios::sync_with_stdio(false);                // 关掉 cin/cout 与 C 输入输出的同步
+    cin.tie(nullptr);                           // 解除 cin 与 cout 的绑定，读得更快
+
+    int n;                                      // 数列长度
+    cin &gt;&gt; n;                                   // 读入 n
+    vector&lt;long long&gt; s(n + 1, 0);              // 前缀和数组，长度 n+1，初值全 0
+    for (int i = 1; i &lt;= n; i++) {              // 从 1 扫到 n
+        long long x;                            // 当前读入的数
+        cin &gt;&gt; x;                               // 读入 a[i]
+        s[i] = s[i - 1] + x;                    // 前缀和递推：s[i] = s[i-1] + a[i]
+    }
+
+    int m;                                      // 询问次数
+    cin &gt;&gt; m;                                   // 读入 m
+    while (m--) {                               // 处理 m 次询问
+        int l, r;                               // 询问区间 [l, r]
+        cin &gt;&gt; l &gt;&gt; r;                          // 读入左右端点
+        cout &lt;&lt; s[r] - s[l - 1] &lt;&lt; "\n";        // 一次减法输出答案
+    }
+    return 0;                                   // 程序正常结束
+}
+</code></pre>
+</div>
+
+<h3>本题坑点</h3>
+<div class="note">
+  <b>坑点一：</b>前缀和数组必须从 0 开始存，并且令 <code class="inline">s<sub>0</sub> = 0</code>。这样当左端点 l = 1 时，访问 <code class="inline">s<sub>l−1</sub></code> 拿到的就是 <code class="inline">s<sub>0</sub></code>，不会出错。<br>
+  <b>坑点二：</b>虽然本题的数值很小（a<sub>i</sub> ≤ 10⁴），但累加之后的和完全可能超出 int 范围。前缀和数组建议直接用 <code class="inline">long long</code>，别心疼那点内存。
+</div>
+
+<!-- ================= 6 ================= -->
+<h2 id="s6"><span class="no">06</span>例题二 P2367 语文成绩（差分）</h2>
+
+<h3>题目在说什么</h3>
+<p>班上有 n 名同学，给出他们现在的语文成绩，然后做 p 次操作：每次把第 x 名到第 y 名同学的成绩都加上 z。所有操作做完之后，求全班的<b>最低分</b>。</p>
+<p>数据范围 1 ≤ n ≤ 5×10⁶，p ≤ n。n 有五百万这么大，如果每次操作都老老实实地把区间里每个人挨个加一遍，光是操作就有 n×p 次，绝对过不去。</p>
+
+<h3>用哪个工具</h3>
+<p>改很多次、最后只问一次，这就是差分。</p>
+
+<h3>数学模型</h3>
+<div class="fml">
+  d<sub>i</sub> = a<sub>i</sub> − a<sub>i−1</sub> &nbsp;&nbsp;&nbsp; <span class="tag">规定</span> a<sub>0</sub> = 0
+</div>
+<p>原数组可以通过对差分数组求前缀和恢复。区间 <code class="inline">[x, y]</code> 整体加 z，在差分数组上化成两次单点修改：</p>
+<div class="fml">
+  d<sub>x</sub> ← d<sub>x</sub> + z &nbsp;&nbsp;&nbsp;&nbsp; d<sub>y+1</sub> ← d<sub>y+1</sub> − z
+</div>
+
+<h3>解题思路</h3>
+<ol class="steps">
+  <li><b>构造差分数组</b>：读入初始成绩的时候，记住前一个值，当前值减前一个值存进 d 数组。</li>
+  <li><b>处理修改</b>：p 次操作，每次就是 O(1) 的两行差分更新。</li>
+  <li><b>恢复并求极值</b>：对差分数组从头求前缀和，一边还原一边维护最小值。</li>
+  <li><b>总复杂度</b>：时间 O(n + p)，空间 O(n)。</li>
+</ol>
+
+<h3>核心代码</h3>
+<div class="codebox">
+  <div class="codehead"><span class="name">P2367 · 核心代码</span><button class="copy">复制</button></div>
+  <pre class="code"><code>for (int i = 1; i &lt;= n; i++) {          // 读入初始成绩，同时建差分
+    ll x;                               // 当前成绩
+    cin &gt;&gt; x;                           // 读入 a[i]
+    d[i] = x - prev;                    // 差分 = 当前成绩 - 前一个成绩
+    prev = x;                           // 更新 prev，留给下一个用
+}
+while (p--) {                           // 处理 p 次修改
+    int x, y;                           // 修改区间 [x, y]
+    ll z;                               // 加上的分数
+    cin &gt;&gt; x &gt;&gt; y &gt;&gt; z;                 // 读入三个数
+    d[x] += z;                          // 左端点 +z
+    d[y + 1] -= z;                      // 右端后一位 -z
+}
+ll cur = 0, ans = LLONG_MAX;            // cur 是当前成绩，ans 是最低分
+for (int i = 1; i &lt;= n; i++) {          // 一遍扫过去还原
+    cur += d[i];                        // 前缀和还原出第 i 个学生的成绩
+    ans = min(ans, cur);                // 更新最低分
+}
+</code></pre>
+</div>
+
+<h3>完整代码</h3>
+<div class="codebox">
+  <div class="codehead"><span class="name">P2367 · 完整代码</span><button class="copy">复制</button></div>
+  <pre class="code"><code>#include &lt;bits/stdc++.h&gt;                        // 万能头文件
+using namespace std;                            // 省去 std::
+using ll = long long;                           // 给 long long 起个短名字 ll
+const int MAXN = 5000005;                       // 学生人数上限 5×10^6
+
+ll d[MAXN];                                     // 差分数组，全局变量默认全 0
+
+int main() {                                    // 主函数
+    ios::sync_with_stdio(false);                // 关同步，加速读入
+    cin.tie(nullptr);                           // 解绑定，加速读入
+
+    int n, p;                                   // n 个学生，p 次修改
+    cin &gt;&gt; n &gt;&gt; p;                              // 读入 n 和 p
+    ll prev = 0;                                // 记前一个成绩，把 a[0] 当成 0
+    for (int i = 1; i &lt;= n; i++) {              // 读入初始成绩并建差分
+        ll x;                                   // 当前成绩
+        cin &gt;&gt; x;                               // 读入 a[i]
+        d[i] = x - prev;                        // 差分：当前成绩 减 前一个成绩
+        prev = x;                               // 更新 prev
+    }
+
+    while (p--) {                               // 处理 p 次修改
+        int x, y;                               // 修改区间 [x, y]
+        ll z;                                   // 加上的分数 z
+        cin &gt;&gt; x &gt;&gt; y &gt;&gt; z;                     // 读入三个数
+        d[x] += z;                              // 左端点 +z：从这里开始加
+        d[y + 1] -= z;                          // 右端后一位 -z：到这里撤销
+    }
+
+    ll cur = 0;                                 // 当前成绩（差分前缀和）
+    ll ans = LLONG_MAX;                         // 最低分，先设成 long long 最大值
+    for (int i = 1; i &lt;= n; i++) {              // 一遍扫过去还原
+        cur += d[i];                            // 前缀和还原出第 i 个学生的成绩
+        ans = min(ans, cur);                    // 更新最低分
+    }
+    cout &lt;&lt; ans &lt;&lt; "\n";                        // 输出最低分
+    return 0;                                   // 正常结束
+}
+</code></pre>
+</div>
+
+<h3>本题坑点</h3>
+<div class="note">
+  <b>坑点一：</b>差分数组的大小必须开到 <code class="inline">n + 2</code>。当修改区间的右端点正好是 n 时，会访问 <code class="inline">d[n+1]</code>，空间不够就是段错误。<br>
+  <b>坑点二：</b>必须在所有区间修改指令处理完毕之后，再统一通过前缀和恢复数组并计算最小值。不能边改边还原 —— 那样后面的修改会作用在已经被改过的值上，答案就错了。
+</div>
+
+<!-- ================= 7 ================= -->
+<h2 id="s7"><span class="no">07</span>例题三 P1496 火烧赤壁（离散化 + 差分）</h2>
+
+<h3>题目在说什么</h3>
+<p>数轴上有 n 个区间，每个区间是左闭右开的形式 <code class="inline">[a, b)</code>，也就是包含 a 但不包含 b。问这些区间并在一起，总长度是多少。区间之间重叠的部分只算一次。</p>
+<p>数据范围：1 ≤ n ≤ 2×10⁴，−2³¹ ≤ a &lt; b &lt; 2³¹。坐标的取值范围从负二十多亿到正二十多亿，跨度几十亿。这种范围，开数组是绝对不可能的。这里有两个难点叠在一起：坐标太大，而且区间会重叠。</p>
+
+<h3>用哪个工具</h3>
+<p>坐标太大 → 离散化。重叠计数 → 差分。两个一起用。</p>
+
+<h3>数学模型</h3>
+<p>先把所有区间的端点收集起来，排序去重，得到一串坐标 <code class="inline">x<sub>0</sub> &lt; x<sub>1</sub> &lt; ⋯ &lt; x<sub>m−1</sub></code>。相邻两个坐标之间形成一段「基本区间」<code class="inline">[x<sub>i</sub>, x<sub>i+1</sub>)</code>，它的长度就是 <code class="inline">x<sub>i+1</sub> − x<sub>i</sub></code>。</p>
+<p>并集总长度等于所有「被覆盖次数大于 0」的基本区间长度之和：</p>
+
+<div class="fml">
+  L = Σ<sub>i = 0</sub><sup>m−2</sup> [ cover<sub>i</sub> &gt; 0 ] · ( x<sub>i+1</sub> − x<sub>i</sub> )
+</div>
+
+<p>其中 <code class="inline">cover<sub>i</sub></code> 表示第 i 段基本区间被多少个原始区间覆盖过。方括号是「指示函数」：条件成立取 1，不成立取 0。</p>
+
+<h3>解题思路</h3>
+<ol class="steps">
+  <li><b>收集端点</b>：把所有区间的左右端点都存进 <code class="inline">coord</code>，排序去重。这样就把几十亿的坐标范围，映射成了 0 到 2n−1 的紧凑下标。</li>
+  <li><b>差分标记</b>：对每个原区间 <code class="inline">[l, r)</code>，用 <code class="inline">lower_bound</code> 找出它在离散数组里的下标 L 和 R，然后执行 <code class="inline">d[L]++</code> 和 <code class="inline">d[R]−−</code>。</li>
+  <li><b>前缀累加</b>：对差分数组求前缀和，得到每一段基本区间的真实覆盖次数 <code class="inline">cover</code>。只要 <code class="inline">cover &gt; 0</code>，就把真实坐标差 <code class="inline">coord[i+1] - coord[i]</code> 累加进答案。</li>
+  <li><b>总复杂度</b>：时间 O(n log n)，空间 O(n)。</li>
+</ol>
+
+<h3>核心代码</h3>
+<div class="codebox">
+  <div class="codehead"><span class="name">P1496 · 核心代码</span><button class="copy">复制</button></div>
+  <pre class="code"><code>for (auto [l, r] : seg) {                       // 遍历每个区间 [l, r)
+    int L = lower_bound(coord.begin(), coord.end(), l) - coord.begin();   // 左端点的下标
+    int R = lower_bound(coord.begin(), coord.end(), r) - coord.begin();   // 右端点的下标
+    d[L]++;                                     // 从 L 段开始，多覆盖 1 次
+    d[R]--;                                     // 到 R 段结束，撤销这 1 次
+}
+
+long long ans = 0;                              // 答案：并集总长度
+int cover = 0;                                  // 当前被覆盖的次数
+for (int i = 0; i + 1 &lt; m; i++) {               // 枚举每一段基本区间
+    cover += d[i];                              // 前缀累加，得到第 i 段的覆盖次数
+    if (cover &gt; 0) {                            // 这一段确实被盖住了
+        ans += coord[i + 1] - coord[i];         // 加上这一段的真实长度
+    }
+}
+</code></pre>
+</div>
+
+<h3>完整代码</h3>
+<div class="codebox">
+  <div class="codehead"><span class="name">P1496 · 完整代码</span><button class="copy">复制</button></div>
+  <pre class="code"><code>#include &lt;bits/stdc++.h&gt;                        // 万能头文件
+using namespace std;                            // 省去 std::
+using ll = long long;                           // long long 的短名字
+
+int main() {                                    // 主函数
+    ios::sync_with_stdio(false);                // 关同步，加速读入
+    cin.tie(nullptr);                           // 解绑定，加速读入
+
+    int n;                                      // 区间个数
+    cin &gt;&gt; n;                                   // 读入 n
+    vector&lt;pair&lt;ll, ll&gt;&gt; seg(n);                // 存所有区间，每个是一对 (l, r)
+    vector&lt;ll&gt; coord;                           // 存放所有端点坐标
+    coord.reserve(2 * n);                       // 预分配容量，避免反复扩容
+
+    for (int i = 0; i &lt; n; i++) {               // 读入 n 个区间
+        ll l, r;                                // 当前区间的左右端点
+        cin &gt;&gt; l &gt;&gt; r;                           // 读入 l, r
+        seg[i] = {l, r};                        // 存进 seg
+        coord.push_back(l);                     // 左端点收集进 coord
+        coord.push_back(r);                     // 右端点收集进 coord
+    }
+
+    sort(coord.begin(), coord.end());                       // 端点从小到大排序
+    coord.erase(unique(coord.begin(), coord.end()), coord.end());   // 去重，得到严格递增的坐标表
+
+    int m = (int)coord.size();                  // 去重后一共有 m 个不同坐标
+    vector&lt;int&gt; d(m + 1, 0);                    // 差分数组，多开 1 个防越界
+
+    for (auto [l, r] : seg) {                   // 把每个区间转成两次差分操作
+        int L = lower_bound(coord.begin(), coord.end(), l) - coord.begin();   // 左端点下标
+        int R = lower_bound(coord.begin(), coord.end(), r) - coord.begin();   // 右端点下标
+        d[L]++;                                 // 从 L 开始覆盖 +1
+        d[R]--;                                 // 到 R 撤销覆盖 -1
+    }
+
+    ll ans = 0;                                 // 答案：并集总长度
+    int cover = 0;                              // 当前覆盖次数
+    for (int i = 0; i + 1 &lt; m; i++) {           // 枚举每一段基本区间 [x_i, x_{i+1})
+        cover += d[i];                          // 前缀累加得到第 i 段的覆盖次数
+        if (cover &gt; 0) {                        // 这一段被盖住了
+            // 计算 i 右边一段
+            ans += coord[i + 1] - coord[i];      // 累加真实长度，不是下标之差
+        }
+    }
+
+    cout &lt;&lt; ans &lt;&lt; "\n";                        // 输出总长度
+    return 0;                                   // 正常结束
+}
+</code></pre>
+</div>
+
+<h3>顺带说清 reserve / resize / vector(2n)</h3>
+<p>PDF 第 7 页专门用一段讲了这三个东西的区别，因为初学者特别容易混：</p>
+
+<div class="tbl">
+  <table>
+    <tr><th>写法</th><th>分配了什么</th><th>大小 Size</th><th>能不能直接下标赋值</th></tr>
+    <tr>
+      <td><code>reserve(2*n)</code></td>
+      <td>只分配容量（Capacity）</td>
+      <td>0，里面还是空的</td>
+      <td>不能，必须配 <code>push_back</code></td>
+    </tr>
+    <tr>
+      <td><code>resize(2*n)</code></td>
+      <td>分配空间并填默认值</td>
+      <td>2n</td>
+      <td>能，但之后再 <code>push_back</code> 会追加在这 2n 个 0 后面</td>
+    </tr>
+    <tr>
+      <td><code>vector&lt;int&gt; coord(2*n)</code></td>
+      <td>同上，是构造函数的写法</td>
+      <td>2n，全部是 0</td>
+      <td>能，但同样会把数组「撑」成 2n 个位置</td>
+    </tr>
+  </table>
+</div>
+
+<p><b>一句话区分：</b><code class="inline">reserve</code> 只是把房子盖好，里面没人；<code class="inline">resize</code> 盖好房子还塞进 2n 个人（值是 0）；<code class="inline">vector(2*n)</code> 和 <code class="inline">resize</code> 是一回事，只是换了种写法。</p>
+<p>本题要往 <code class="inline">coord</code> 里 <code class="inline">push_back</code> 端点，所以用 <code class="inline">reserve</code> 预分配是对的。如果写成 <code class="inline">resize(2*n)</code>，最后数组里会多出 2n 个 0，坐标表就全乱了。</p>
+
+<h3>本题坑点</h3>
+<div class="note">
+  <b>核心坑点：</b>离散化压缩的只是「坐标下标」，不是「实际长度」。统计答案的时候，累加的一定是真实坐标差 <code class="inline">coord[i+1] - coord[i]</code>，而不是下标差 <code class="inline">(i+1) - i = 1</code>。这两者看起来都像「差」，但一个是几十亿，一个是 1，混了就直接零分。
+</div>
+
+<!-- ================= 8 ================= -->
+<h2 id="s8"><span class="no">08</span>速查表</h2>
+
+<div class="tbl">
+  <table>
+    <tr><th>要干的事</th><th>公式 / 做法</th><th>复杂度</th></tr>
+    <tr><td>建前缀和</td><td><code>s[i] = s[i-1] + a[i]</code>，<code>s[0] = 0</code></td><td>O(n)</td></tr>
+    <tr><td>查区间和</td><td><code>s[r] - s[l-1]</code></td><td>O(1)</td></tr>
+    <tr><td>建差分</td><td><code>d[i] = a[i] - a[i-1]</code>，<code>a[0] = 0</code></td><td>O(n)</td></tr>
+    <tr><td>区间 [l,r] 加 v</td><td><code>d[l] += v</code>；<code>d[r+1] -= v</code></td><td>O(1)</td></tr>
+    <tr><td>用差分还原</td><td><code>a[i] = a[i-1] + d[i]</code></td><td>O(n)</td></tr>
+    <tr><td>离散化三步</td><td>收集 → <code>sort</code> + <code>unique</code> → <code>lower_bound</code> 查排名</td><td>O(n log n)</td></tr>
+  </table>
+</div>
+
+<div class="tbl">
+  <table>
+    <tr><th>易错点</th><th>正确做法</th></tr>
+    <tr><td>数组从 0 开始存</td><td>从 1 开始存，把 <code>a[0]</code> 或 <code>s[0]</code> 留成 0</td></tr>
+    <tr><td>前缀和用 int</td><td>改成 <code>long long</code>，累加很容易溢出</td></tr>
+    <tr><td>差分数组开 n</td><td>开 <code>n + 2</code>，因为要访问 <code>d[r+1]</code></td></tr>
+    <tr><td>边改边还原</td><td>所有修改做完，最后统一求一次前缀和</td></tr>
+    <tr><td>离散化后累加下标差</td><td>累加真实坐标差 <code>coord[i+1] - coord[i]</code></td></tr>
+  </table>
+</div>
+
+
+
+<footer>
+  
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var esc = function (s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  };
+
+  // 给代码块加注释着色：把行内 // 之后的部分染灰
+  function paint(codeEl) {
+    var lines = codeEl.textContent.split("\n");
+    var out = [];
+    for (var n = 0; n < lines.length; n++) {
+      var line = lines[n];
+      var inStr = false;
+      var cut = -1;
+      for (var i = 0; i < line.length - 1; i++) {
+        var ch = line.charAt(i);
+        if (ch === '"' && line.charAt(i - 1) !== "\\") inStr = !inStr;
+        if (!inStr && ch === "/" && line.charAt(i + 1) === "/") { cut = i; break; }
+      }
+      if (cut >= 0) {
+        out.push(esc(line.slice(0, cut)) + '<span class="cm">' + esc(line.slice(cut)) + "</span>");
+      } else {
+        out.push(esc(line));
+      }
+    }
+    codeEl.innerHTML = out.join("\n");
+  }
+
+  var blocks = document.querySelectorAll("pre.code code");
+  for (var b = 0; b < blocks.length; b++) paint(blocks[b]);
+
+  // 复制按钮
+  var btns = document.querySelectorAll(".copy");
+  for (var k = 0; k < btns.length; k++) {
+    btns[k].addEventListener("click", function () {
+      var box = this.closest(".codebox");
+      var text = box.querySelector("code").textContent;
+      var btn = this;
+      var done = function () {
+        btn.textContent = "已复制";
+        setTimeout(function () { btn.textContent = "复制"; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
+      } else {
+        fallback(text, done);
+      }
+    });
+  }
+
+  function fallback(text, done) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+})();
+</script>
+</body>
+</html>

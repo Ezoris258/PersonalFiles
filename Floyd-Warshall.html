@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Floyd-Warshall 算法详解</title>
+    <style>
+        body {
+            font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 24px 20px 80px 20px;
+            line-height: 1.75;
+            color: #222;
+            background: #fff;
+        }
+
+        h1 {
+            font-size: 26px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 36px;
+            border-left: 4px solid #3a7bd5;
+            padding-left: 10px;
+        }
+
+        h3 {
+            font-size: 17px;
+            margin-top: 24px;
+        }
+
+        p {
+            margin: 12px 0;
+        }
+
+        code {
+            font-family: Consolas, "Courier New", monospace;
+            background: #f0f0f0;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        pre {
+            background: #f6f8fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 14px 16px;
+            overflow-x: auto;
+            line-height: 1.55;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .formula {
+            background: #f6f8fa;
+            border-left: 4px solid #3a7bd5;
+            padding: 10px 16px;
+            margin: 14px 0;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 15px;
+            overflow-x: auto;
+        }
+
+        table.mat {
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-family: Consolas, monospace;
+        }
+
+        table.mat th,
+        table.mat td {
+            border: 1px solid #bbb;
+            width: 58px;
+            height: 40px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        table.mat th {
+            background: #eef2f7;
+            font-weight: 600;
+        }
+
+        table.mat td.pivot {
+            background: #ffe9b8;
+        }
+
+        table.mat td.chg {
+            background: #b7e8b7;
+            font-weight: 700;
+        }
+
+        .controls button {
+            margin: 4px 8px 4px 0;
+            padding: 6px 14px;
+            font-size: 14px;
+            border: 1px solid #3a7bd5;
+            background: #fff;
+            color: #3a7bd5;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background: #3a7bd5;
+            color: #fff;
+        }
+
+        #note {
+            background: #f6f8fa;
+            border-left: 4px solid #3a7bd5;
+            padding: 10px 16px;
+            margin: 12px 0;
+            min-height: 24px;
+        }
+
+        .compare {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .compare th,
+        .compare td {
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        .compare th {
+            background: #eef2f7;
+        }
+
+        .tip {
+            background: #fff8e1;
+            border-left: 4px solid #f0ad4e;
+            padding: 10px 16px;
+            margin: 14px 0;
+        }
+
+        figure {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        figcaption {
+            font-size: 14px;
+            color: #666;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Floyd-Warshall 算法详解</h1>
+
+    <p>Floyd-Warshall 算法（下文简称 Floyd 算法）是信息学竞赛中最经典的<strong>多源最短路</strong>算法。所谓“多源最短路”，就是一次性把所有点对之间的最短距离全部求出来，输出一个 n × n
+        的距离矩阵，其中第 i 行第 j 列表示从顶点 i 到顶点 j 的最短路径长度。本文结合 B3647 这道题目，把这个算法从思想到代码、从正确性到常见错误，完整地讲一遍。</p>
+
+    <h2>一、问题是什么</h2>
+
+    <p>给定一张包含 n 个顶点、m 条边的无向连通带权图，每条边连接两个顶点并具有正权值。要求求出任意两个顶点之间的最短路径长度，最终输出一个 n × n 的矩阵。</p>
+
+    <p>数据范围是 n ≤ 100，m ≤ 4500，1 ≤ w ≤ 1000，图中可能存在重边（也就是两个顶点之间有多条边，权值可能不同）。</p>
+
+    <p>注意 n 只有 100，这个数字非常关键——它意味着 O(n³) 的算法是完全可以接受的，而 Floyd 算法恰恰就是 O(n³) 的。所以看到“多源最短路”加上“n ≤ 100 左右”这样的特征，就应该第一时间想到
+        Floyd。</p>
+
+    <h2>二、核心思想：逐步放开“允许作为中转的顶点”</h2>
+
+    <p>Floyd 算法是建立在动态规划之上的。它的出发点是这样一个问题：如果规定“只能使用编号为 1 到 k 的这些顶点作为路径的中转点”，那么从 i 到 j 的最短距离是多少？</p>
+
+    <p>当 k = 0 时，相当于不允许任何顶点作为中转，此时从 i 到 j 要么直接有一条边（距离就是这条边的权值），要么根本不可达。这是我们的初始状态。</p>
+
+    <p>接着把 k 从 1 逐步增加到 n。每增加一个 k，就相当于在“允许中转的顶点集合”里新放开了一个顶点 k。集合从 {1, 2, …, k-1} 变成 {1, 2, …,
+        k}，此时所有点对的最短距离都可能变短，我们需要在旧答案的基础上，考虑“新放开这个 k 能不能让路径变短”。当 k 一路增加到 n 时，就相当于“所有顶点都可以作为中转点”，这时候求出来的自然就是真正的全局最短路了。</p>
+
+    <p>这个思路的巧妙之处在于：它把一个“在图上一共可以经过哪些点”这样复杂的组合问题，变成了“一个一个点放进来”这样一条有序的、可以递推的过程。</p>
+
+    <h2>三、状态定义</h2>
+
+    <p>设 f[k][i][j] 表示：从顶点 i 到顶点 j，并且路径中间经过的顶点编号<strong>不超过 k</strong>（也就是说，只允许用编号在 1 到 k 之间的顶点作为中转点）时的最短距离。</p>
+
+    <p>最终答案就是 f[n][i][j]，因为编号不超过 n 的顶点就是全部顶点了。</p>
+
+    <h2>四、状态转移方程</h2>
+
+    <p>假设我们已经知道了 f[k-1][i][j]（也就是只用前 k-1 个点作中转的最优解），现在要考虑加入第 k 个点以后，i 到 j 的最短路会变成什么样。从 i 到 j 的最短路只有两种可能：</p>
+
+    <p><strong>情况一：路径不经过顶点 k。</strong>那么这条路径的中间点只用了前 k-1 个顶点，它的长度就是 f[k-1][i][j]。</p>
+
+    <p><strong>情况二：路径经过顶点 k。</strong>那么这条路径可以拆成两段：从 i 先走到 k，再从 k 走到 j。而且在这两段路径中，中间经过的点仍然只可能是前 k-1 个顶点（因为路径是简单路径，顶点 k
+        只出现一次，它已经被单独拿出来了）。所以这两段的最短距离分别是 f[k-1][i][k] 和 f[k-1][k][j]，合起来就是 f[k-1][i][k] + f[k-1][k][j]。</p>
+
+    <p>这两种情况我们取一个最小值，就得到了转移方程：</p>
+
+    <div class="formula">
+        f[k][i][j] = min( f[k-1][i][j] , f[k-1][i][k] + f[k-1][k][j] )
+    </div>
+
+    <p>这个方程的含义非常直白：要么不用 k 中转，要么用 k 中转，两种情况取较小值。</p>
+
+    <h2>五、为什么 k 必须放在最外层循环</h2>
+
+    <p>这是 Floyd 算法最容易被写错、也最容易被面试官和教练问到的地方。</p>
+
+    <p>观察转移方程可以看到，第 k 层的状态 f[k][·][·] <strong>完全依赖</strong>于第 k-1 层的状态 f[k-1][·][·]。也就是说，在开始计算“允许使用前 k
+        个点”的所有距离之前，必须保证“允许使用前 k-1 个点”的所有距离已经全部计算完毕。</p>
+
+    <p>如果把 k 放到内层，例如写成 i 在最外层、k 在中间的循环顺序，那么当你在计算 f[i][j] 用到某个 f[i'][k'] 的时候，那个 f[i'][k'] 可能还没有被本层（第 k' 层）正确地更新过，你用到的是第
+        k'-1 层的旧值，甚至是更早的、混着不同层数的值。这样状态之间的依赖关系就乱掉了，递推的正确性彻底崩塌。</p>
+
+    <div class="tip">
+        打个比方：k 循环就像是“一关一关地打”，每一关（第 k 轮）都必须在前一关（第 k-1 轮）完全打完的基础上进行。如果把 k 放进 i、j
+        的内层，就等于打关卡的时候来回跳跃，前一关还没通关就去打后一关，算出来的东西自然不对。
+    </div>
+
+    <p>所以正确的写法永远是：<code>for k → for i → for j</code>，k 在最外面，没有任何商量的余地。</p>
+
+    <h2>六、为什么可以压成二维数组（原地更新）</h2>
+
+    <p>按照方程，理论上我们需要开一个三维数组 f[k][i][j]。但 n = 100 时，三维数组需要 100 × 100 × 100 = 10<sup>6</sup> 个元素，其实也不是开不起。不过 Floyd
+        算法有一个非常好的性质，使得我们可以只开二维数组 dis[i][j]，直接在原数组上更新，从而把空间从 O(n³) 降到 O(n²)。</p>
+
+    <p>为什么可以原地更新而不出错？关键在于：在计算第 k 层的时候，转移用到的两个值 dis[i][k] 和 dis[k][j]，在这一轮里其实<strong>不会被改变</strong>。</p>
+
+    <p>我们逐一看：</p>
+
+    <p>对于 dis[i][k]，当内层循环枚举到 j = k 时，更新式是 dis[i][k] = min(dis[i][k], dis[i][k] + dis[k][k])。而 dis[k][k] 永远等于 0（自己到自己的距离是
+        0，只要图中没有负权回路，它就不会被更新成负数），所以 dis[i][k] + dis[k][k] = dis[i][k]，取 min 之后还是原来的值，没有变化。</p>
+
+    <p>同理，对于 dis[k][j]，当 i = k 时，更新式是 dis[k][j] = min(dis[k][j], dis[k][k] + dis[k][j])，同样因为 dis[k][k] = 0 而没有变化。</p>
+
+    <p>也就是说，虽然我们在原地覆盖数组，但转移方程右边用到的 dis[i][k] 和 dis[k][j] 在第 k 轮里始终保持为第 k-1
+        层的值，不会因为我们“边算边覆盖”而被污染。于是二维数组的原地更新和三维数组的分层递推，算出来的结果完全一致。</p>
+
+    <div class="tip">
+        这个结论有一个重要前提：图中<strong>不能有负权回路</strong>。如果存在负权回路，dis[k][k] 会变成负数，那么 dis[i][k]
+        就有可能被更新成更小的值，上面“不变”的论证就失效了，原地更新也就不再等价于分层递推。不过 Floyd 算法本来也不能处理负权回路（那种情况下最短路径根本不存在，可以无限绕圈变小），所以这不是额外限制。
+    </div>
+
+    <h2>七、手动跑一遍例子</h2>
+
+    <p>光看公式容易发懵，我们把一个具体的图完整地跑一遍。看下面这个图，它有 4 个顶点、5 条无向边，边上的数字是权值：</p>
+
+    <figure>
+        <svg width="320" height="320" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+            <line x1="70" y1="70" x2="250" y2="70" stroke="#555" stroke-width="2" />
+            <line x1="70" y1="70" x2="70" y2="250" stroke="#555" stroke-width="2" />
+            <line x1="250" y1="70" x2="250" y2="250" stroke="#555" stroke-width="2" />
+            <line x1="70" y1="250" x2="250" y2="250" stroke="#555" stroke-width="2" />
+            <line x1="70" y1="70" x2="250" y2="250" stroke="#999" stroke-width="2" stroke-dasharray="6 4" />
+            <circle cx="70" cy="70" r="22" fill="#eef2f7" stroke="#3a7bd5" stroke-width="2" />
+            <text x="70" y="77" text-anchor="middle" font-size="17" font-family="sans-serif">1</text>
+            <circle cx="250" cy="70" r="22" fill="#eef2f7" stroke="#3a7bd5" stroke-width="2" />
+            <text x="250" y="77" text-anchor="middle" font-size="17" font-family="sans-serif">2</text>
+            <circle cx="70" cy="250" r="22" fill="#eef2f7" stroke="#3a7bd5" stroke-width="2" />
+            <text x="70" y="257" text-anchor="middle" font-size="17" font-family="sans-serif">3</text>
+            <circle cx="250" cy="250" r="22" fill="#eef2f7" stroke="#3a7bd5" stroke-width="2" />
+            <text x="250" y="257" text-anchor="middle" font-size="17" font-family="sans-serif">4</text>
+            <text x="160" y="60" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#c0392b">2</text>
+            <text x="52" y="165" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#c0392b">5</text>
+            <text x="268" y="165" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#c0392b">4</text>
+            <text x="160" y="243" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#c0392b">2</text>
+            <text x="158" y="152" text-anchor="middle" font-size="15" font-family="sans-serif" fill="#c0392b">1</text>
+        </svg>
+        <figcaption>示例图：1-2 权值 2，1-3 权值 5，2-3 权值 1，2-4 权值 4，3-4 权值 2</figcaption>
+    </figure>
+
+    <p>初始时，dis[i][j] 就是边权（无向图所以矩阵对称），对角线为 0，没有边的位置是无穷大（记作 ∞）。点击下面的按钮，可以看到 k
+        每增加一轮，距离矩阵发生了哪些变化。被新放开的那个中转点所在的行和列用<strong>黄色</strong>标出，本轮被更新（变短）的位置用<strong>绿色</strong>标出。</p>
+
+    <div class="controls" id="btns"></div>
+    <div id="note"></div>
+    <div id="matrix"></div>
+
+    <p>观察这个过程可以发现几个有趣的现象：</p>
+
+    <p>第 1 轮以顶点 1 作为中转点，什么也没更新。原因很简单，从 2 到 3 的最短路是 1，而绕道 1 的话要走 2 + 5 = 7，更长；从 3 到 4 绕道 1 要先到 1，而 3 到 1 是 5、1 到 4
+        根本不通，所以直接跳过。这一轮没有变化是完全正常的，并不代表算法出错。</p>
+
+    <p>第 2 轮以顶点 2 作为中转点，一下子更新了两处：1 到 3 的距离从 5 变成 2 + 1 = 3，1 到 4 的距离从 ∞ 变成 2 + 4 = 6。这正体现了“经过中转点可能变短”的意义——1 到 3
+        本来只能走那条权值 5 的直连边，现在发现可以 1 → 2 → 3，只要 3。</p>
+
+    <p>第 3 轮以顶点 3 作为中转点，1 到 4 又从 6 变成 3 + 2 = 5，因为 1 → 2 → 3 → 4 的总长度是 2 + 1 + 2 = 5。注意这一轮能算出 1 到 4 的新值，正是依赖于第 2 轮已经把
+        dis[1][3] 更新成了 3——这就是“k 必须一层一层推进”的直观体现。</p>
+
+    <p>第 4 轮没有变化，说明所有最短路都已经求出来了。</p>
+
+    <h2>八、完整代码</h2>
+
+    <p>下面是 B3647 的完整实现。代码里已经加了详细注释，可以直接编译运行。</p>
+
+    <pre><code>#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+const int N = 105;
+const int INF = 0x3f3f3f3f;   // 约 1.06e9，两个 INF 相加也不会溢出 int
+
+int dis[N][N];
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m;
+    cin &gt;&gt; n &gt;&gt; m;
+
+    // 初始化：全部置为无穷大
+    // memset 按字节填充，0x3f 填充到每个 int 上就是 0x3f3f3f3f
+    memset(dis, 0x3f, sizeof(dis));
+
+    // 自己到自己的距离是 0
+    for (int i = 1; i &lt;= n; ++i) {
+        dis[i][i] = 0;
+    }
+
+    // 读入边：无向图，两个方向都要更新
+    for (int i = 1; i &lt;= m; ++i) {
+        int u, v, w;
+        cin &gt;&gt; u &gt;&gt; v &gt;&gt; w;
+
+        // 可能存在重边，保留较小的那个权值
+        dis[u][v] = min(dis[u][v], w);
+        dis[v][u] = min(dis[v][u], w);
+    }
+
+    // Floyd 三重循环：k 必须放在最外层
+    for (int k = 1; k &lt;= n; ++k) {
+        for (int i = 1; i &lt;= n; ++i) {
+            for (int j = 1; j &lt;= n; ++j) {
+                // 如果有一端不可达，跳过，避免无穷大参与加法
+                if (dis[i][k] == INF || dis[k][j] == INF) {
+                    continue;
+                }
+
+                dis[i][j] = min(dis[i][j],
+                    dis[i][k] + dis[k][j]);
+            }
+        }
+    }
+
+    // 输出距离矩阵
+    for (int i = 1; i &lt;= n; ++i) {
+        for (int j = 1; j &lt;= n; ++j) {
+            cout &lt;&lt; dis[i][j] &lt;&lt; (j == n ? '\n' : ' ');
+        }
+    }
+
+    return 0;
+}</code></pre>
+
+    <p>核心的三重循环单独拎出来看，就是下面这几行：</p>
+
+    <pre><code>for (int k = 1; k &lt;= n; ++k) {
+    for (int i = 1; i &lt;= n; ++i) {
+        for (int j = 1; j &lt;= n; ++j) {
+            if (dis[i][k] == INF || dis[k][j] == INF) {
+                continue;
+            }
+
+            dis[i][j] = min(dis[i][j],
+                dis[i][k] + dis[k][j]);
+        }
+    }
+}</code></pre>
+
+    <p>把它和转移方程对照着看：<code>dis[i][j]</code> 就是 f[k-1][i][j]（不经过 k 的旧答案），<code>dis[i][k] + dis[k][j]</code> 就是经过 k
+        中转的候选值，<code>min</code> 取二者较小者再放回 <code>dis[i][j]</code>。整个算法的精髓就在这三行里。</p>
+
+    <p>关于那个 <code>if (dis[i][k] == INF || dis[k][j] == INF) continue;</code>：因为 INF 是一个很大的数（0x3f3f3f3f ≈ 1.06 ×
+        10<sup>9</sup>），如果让 INF 参与加法，虽然本题数据下不至于溢出 int，但会得到一个“比 INF 还大”的无意义数值，之后如果又被当成真实距离使用，就会带来隐患。判断一下跳过，既安全又省时间。</p>
+
+    <h2>九、复杂度分析</h2>
+
+    <p>时间复杂度是 O(n³)：三重循环分别枚举中间点 k、起点 i、终点 j，每一层都是 n 次，总运算量约为 n³ 次。n = 100 时大约是 10<sup>6</sup> 次基本操作，对现代计算机来说就是一瞬间的事。</p>
+
+    <p>空间复杂度是 O(n²)：只需要一个二维数组存储距离矩阵，因为状态被压缩掉了 k 这一维。</p>
+
+    <h2>十、常见坑点</h2>
+
+    <h3>坑点 1：三重循环的顺序不能随意调整</h3>
+
+    <p>中间点 k 必须放在最外层，原因在第五节已经讲得很清楚了。把 k 放进内层的写法在小的手算例子上有时也能碰巧得到正确答案，但本质上是不正确的，在数据稍微复杂一点的题目上就会出错。</p>
+
+    <h3>坑点 2：重边要取较小值</h3>
+
+    <p>题目明确说图中可能存在重边。读入边的时候，如果直接用 <code>dis[u][v] = w;</code> 覆盖赋值，那么后读入的较大权值会把先读入的较小权值冲掉，答案就错了。必须写成
+        <code>dis[u][v] = min(dis[u][v], w);</code>。</p>
+
+    <h3>坑点 3：对角线要初始化为 0</h3>
+
+    <p>如果用 <code>memset</code> 把整个数组都置成无穷大，那么 <code>dis[i][i]</code> 也是无穷大，这是不对的——自己到自己的距离是 0。必须在读入边之前单独把对角线置
+        0，否则“经过自己”这种本来应该是 0 长度的转移就会全部失效，甚至连“原地更新为什么正确”的论证都建立在 <code>dis[k][k] = 0</code> 这个前提上。</p>
+
+    <h3>坑点 4：无向图要双向赋值</h3>
+
+    <p>题目给的是无向图，所以读入一条边 (u, v, w) 时，<code>dis[u][v]</code> 和 <code>dis[v][u]</code> 都要更新。只写一个方向就变成了有向图，答案会错。</p>
+
+    <h3>坑点 5：不要把 Floyd 用在 n 很大的题目上</h3>
+
+    <p>Floyd 的 O(n³) 在 n ≤ 500 左右时基本还能过，n 到了 1000 就会比较吃力，n 到 10<sup>5</sup> 更是完全不可能。如果题目要求的是“单源最短路”并且 n 很大，那就该用 Dijkstra
+        配优先队列，复杂度是 O((V + E) log V)，两者适用的场景完全不同。</p>
+
+    <h2>十一、和 Dijkstra 的对比</h2>
+
+    <table class="compare">
+        <tr>
+            <th>对比项</th>
+            <th>Floyd-Warshall</th>
+            <th>Dijkstra（堆优化）</th>
+        </tr>
+        <tr>
+            <td>解决的问题</td>
+            <td>多源最短路（任意两点间）</td>
+            <td>单源最短路（一个起点到所有点）</td>
+        </tr>
+        <tr>
+            <td>核心思想</td>
+            <td>动态规划，逐步放开中转点</td>
+            <td>贪心，每次确定一个距离最小的点</td>
+        </tr>
+        <tr>
+            <td>时间复杂度</td>
+            <td>O(n³)</td>
+            <td>O((V + E) log V)</td>
+        </tr>
+        <tr>
+            <td>空间复杂度</td>
+            <td>O(n²)</td>
+            <td>O(V + E)</td>
+        </tr>
+        <tr>
+            <td>负权边</td>
+            <td>可以处理（但不能有负权回路）</td>
+            <td>不可以，要求边权非负</td>
+        </tr>
+        <tr>
+            <td>适合的 n</td>
+            <td>n ≤ 500 左右</td>
+            <td>n 可达 10⁵ 量级</td>
+        </tr>
+    </table>
+
+    <p>一句话总结：要“全部点对”并且 n 小，用 Floyd；要“一个源点”并且 n 大、边权非负，用 Dijkstra。两者不是互相替代的关系，而是针对不同问题的两种工具。</p>
+
+    <script>
+        (function () {
+            var INF = Infinity;
+
+            // 0-based 下标，展示时 +1
+            var initMat = [
+                [0, 2, 5, INF],
+                [2, 0, 1, 4],
+                [5, 1, 0, 2],
+                [INF, 4, 2, 0]
+            ];
+
+            function clone(m) {
+                return m.map(function (row) { return row.slice(); });
+            }
+
+            function buildStates() {
+                var d = clone(initMat);
+                var n = d.length;
+                var states = [];
+
+                states.push({
+                    k: 0,
+                    mat: clone(d),
+                    changed: [],
+                    note: '初始状态：只允许直接边，不允许任何中间点。对角线为 0，无边处为无穷大。'
+                });
+
+                for (var k = 0; k < n; k++) {
+                    var changed = [];
+                    for (var i = 0; i < n; i++) {
+                        for (var j = 0; j < n; j++) {
+                            if (d[i][k] === INF || d[k][j] === INF) continue;
+                            if (d[i][k] + d[k][j] < d[i][j]) {
+                                d[i][j] = d[i][k] + d[k][j];
+                                changed.push([i, j]);
+                            }
+                        }
+                    }
+                    var note;
+                    if (changed.length === 0) {
+                        note = '第 ' + (k + 1) + ' 轮：以顶点 ' + (k + 1) +
+                            ' 作为中转点，本轮没有任何距离被更新。';
+                    } else {
+                        note = '第 ' + (k + 1) + ' 轮：以顶点 ' + (k + 1) +
+                            ' 作为中转点，共有 ' + changed.length +
+                            ' 个位置被更新（绿色标出），其中包含对称位置。';
+                    }
+                    states.push({ k: k + 1, mat: clone(d), changed: changed, note: note });
+                }
+                return states;
+            }
+
+            var states = buildStates();
+            var matrixBox = document.getElementById('matrix');
+            var noteBox = document.getElementById('note');
+            var btnBox = document.getElementById('btns');
+
+            function render(state) {
+                var n = state.mat.length;
+                var html = '<table class="mat"><tr><th></th>';
+                for (var j = 0; j < n; j++) {
+                    html += '<th>' + (j + 1) + '</th>';
+                }
+                html += '</tr>';
+
+                for (var i = 0; i < n; i++) {
+                    html += '<tr><th>' + (i + 1) + '</th>';
+                    for (var j2 = 0; j2 < n; j2++) {
+                        var cls = [];
+                        if (state.k >= 1 && (i === state.k - 1 || j2 === state.k - 1)) {
+                            cls.push('pivot');
+                        }
+                        for (var t = 0; t < state.changed.length; t++) {
+                            if (state.changed[t][0] === i && state.changed[t][1] === j2) {
+                                cls.push('chg');
+                                break;
+                            }
+                        }
+                        var v = state.mat[i][j2];
+                        html += '<td class="' + cls.join(' ') + '">' +
+                            (v === INF ? '&infin;' : v) + '</td>';
+                    }
+                    html += '</tr>';
+                }
+                html += '</table>';
+                matrixBox.innerHTML = html;
+                noteBox.textContent = state.note;
+            }
+
+            states.forEach(function (s, idx) {
+                var b = document.createElement('button');
+                b.textContent = idx === 0 ? '初始状态' : '第 ' + idx + ' 轮（k = ' + idx + '）';
+                b.addEventListener('click', function () { render(states[idx]); });
+                btnBox.appendChild(b);
+            });
+
+            render(states[0]);
+        })();
+    </script>
+
+</body>
+
+</html>
