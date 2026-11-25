@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>GCD、逆元与素数筛 · 讲解</title>
+<style>
+  :root { --bg:#fff; --fg:#1f2328; --muted:#5b6470; --line:#d8dee4; --code-bg:#f6f8fa;
+          --accent:#0b5cad; --thm-bg:#f2f7fd; --warn:#8a5a00; --warn-bg:#fff8e6; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16181c; --fg:#e6e6e6; --muted:#a2abb5; --line:#30363d; --code-bg:#1f242b;
+            --accent:#79b8ff; --thm-bg:#1b2430; --warn:#e0b062; --warn-bg:#2a2317; }
+  }
+  body { margin:0 auto; max-width:860px; padding:32px 20px 64px;
+         background:var(--bg); color:var(--fg); font-size:16px; line-height:1.75;
+         font-family: system-ui, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  h1 { font-size:1.6rem; margin-bottom:.2em; }
+  h2 { font-size:1.3rem; margin-top:2.2em; border-bottom:1px solid var(--line); padding-bottom:.3em; }
+  h3 { font-size:1.1rem; margin-top:1.6em; }
+  h4 { font-size:1rem; margin-top:1.2em; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  p { margin:.6em 0; }
+  ul, ol { padding-left:1.6em; }
+  li { margin:.25em 0; }
+  code, pre { font-family: "Cascadia Mono", Consolas, "Courier New", monospace; }
+  code { background:var(--code-bg); padding:.1em .3em; border-radius:4px; font-size:.95em; }
+  pre { background:var(--code-bg); border:1px solid var(--line); border-radius:6px;
+        padding:12px 14px; overflow-x:auto; line-height:1.6; font-size:.92rem; margin:1em 0; }
+  pre code { background:none; padding:0; font-size:1em; }
+  table { border-collapse:collapse; width:100%; margin:1em 0; font-size:.95rem; }
+  th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--code-bg); font-weight:600; }
+  .sub { color:var(--muted); margin-top:0; }
+  .thm { background:var(--thm-bg); border-left:3px solid var(--accent); padding:.7em 1em; margin:1em 0; }
+  .thm > .t { font-weight:600; margin:0 0 .3em 0; }
+  .thm p { margin:.3em 0; }
+  .proof { margin:1em 0 1.4em 0; padding-left:1em; border-left:1px solid var(--line); }
+  .proof > .t { font-weight:600; color:var(--muted); margin:0 0 .3em 0; }
+  .note { background:var(--warn-bg); border-left:3px solid var(--warn); padding:.6em 1em; margin:1em 0; }
+  .cap { color:var(--muted); font-size:.92rem; margin:.4em 0 -.4em 0; }
+  .io { display:flex; gap:12px; flex-wrap:wrap; margin:1em 0; }
+  .io pre { flex:1 1 240px; margin:0; }
+  nav ol { margin:.4em 0; }
+  nav li { margin:.15em 0; }
+  .fill { color:var(--muted); font-size:.92rem; }
+</style>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], packages: { '[+]': ['ams'] } },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+
+<h1>GCD、逆元与素数筛：从定理到模板题</h1>
+<p class="sub">对应材料 <code>20261125.pdf</code>，共 7 页，内容包括欧几里得算法、扩展欧几里得、同余与逆元、剩余类、素数筛，以及 P1082、P3811、P3383 三道模板题。本页保留原文的讲解顺序，补全了原文中出现的每一条定理的证明，并补上了原文只提名字、没有展开的快速幂、欧拉函数与莫比乌斯函数。</p>
+
+<nav>
+  <p><strong>目录</strong></p>
+  <ol>
+    <li><a href="#s0">整份材料的主线</a></li>
+    <li><a href="#s1">整除、带余除法与最大公约数</a></li>
+    <li><a href="#s2">欧几里得定理与欧几里得算法</a></li>
+    <li><a href="#s3">裴蜀定理</a></li>
+    <li><a href="#s4">扩展欧几里得算法</a></li>
+    <li><a href="#s5">同余与同余的运算性质</a></li>
+    <li><a href="#s6">乘法逆元</a></li>
+    <li><a href="#s7">费马小定理、欧拉定理与快速幂</a></li>
+    <li><a href="#s8">线性递推求逆元</a></li>
+    <li><a href="#s9">等价类、剩余类与完全剩余系</a></li>
+    <li><a href="#s10">素数筛：埃氏筛与线性筛</a></li>
+    <li><a href="#s11">线性筛顺带求欧拉函数与莫比乌斯函数</a></li>
+    <li><a href="#s12">例题一：P1082 同余方程</a></li>
+    <li><a href="#s13">例题二：P3811 乘法逆元</a></li>
+    <li><a href="#s14">例题三：P3383 线性筛素数</a></li>
+    <li><a href="#s15">易错点清单</a></li>
+    <li><a href="#s16">总结与自测</a></li>
+    <li><a href="#s17">原文与修正对照</a></li>
+  </ol>
+</nav>
+
+<section id="s0">
+<h2>0. 整份材料的主线</h2>
+<p>这份讲义看起来分了三大块，其实只解决一个问题：<strong>在模意义下怎样做除法</strong>。整数除法在取模之后会失效，原因是 $2\times 3\equiv 0 \pmod 6$ 这样的式子：$2$ 与 $3$ 都不是 $0$，乘积却是 $0$，所以不能用“除以 $2$”把 $3$ 还原出来。要修好除法，就必须先确定哪些数在模 $m$ 下还能“倒过来”，也就是逆元；而逆元存不存在的判定，又归结到最大公约数。整份材料的推理链条如下：</p>
+<ol>
+  <li>欧几里得算法把 $\gcd(a,b)$ 的规模不断压小，最终在常数时间内算出最大公约数；</li>
+  <li>裴蜀定理指出 $\gcd(a,b)$ 一定能写成 $ax+by$ 的形式，其中 $x,y$ 是整数；</li>
+  <li>扩展欧几里得算法把这个 $x,y$ 真正算出来，于是任何一次“求 gcd”都会顺带产出一组线性组合系数；</li>
+  <li>把第 3 步用在 $ax+my=\gcd(a,m)=1$ 上，就得到 $ax\equiv 1\pmod m$，即 $a$ 的逆元；</li>
+  <li>逆元一旦有，模意义下的除法就换成乘逆元，同余式的四则运算重新变得和普通整数一样好用；</li>
+  <li>批量求逆元要靠递推，判定素数要靠筛法，这两个技巧都依赖对“整除关系”的精细理解。</li>
+</ol>
+<p>原文的覆盖面如下，本页逐条对应到小节，最后会照这张表对账。</p>
+<table>
+  <tr><th>原文内容</th><th>本页小节</th><th>本页新增的证明或补充</th></tr>
+  <tr><td>GCD 与扩展欧几里得、欧几里得定理</td><td>2、3、4 节</td><td>欧几里得定理证明、裴蜀定理证明、ExGCD 正确性归纳证明、通解公式证明</td></tr>
+  <tr><td>同余与逆元、三种求逆元方法</td><td>5、6、7、8 节</td><td>同余是等价关系、除法消去律、逆元存在性与唯一性、费马小定理、欧拉定理、线性递推公式证明</td></tr>
+  <tr><td>等价类和剩余类</td><td>9 节</td><td>等价关系与划分的一一对应、模运算良定义</td></tr>
+  <tr><td>素数筛、埃氏筛与线性筛</td><td>10、11 节</td><td>埃氏筛正确性、复杂度上界、线性筛“每个合数恰标一次”的双向证明、$\varphi$ 与 $\mu$ 递推式的证明</td></tr>
+  <tr><td>P1082、P3811、P3383</td><td>12、13、14 节</td><td>每题给出完整 C++14 代码、真实样例输出与手推演算</td></tr>
+</table>
+</section>
+
+<section id="s1">
+<h2>1. 整除、带余除法与最大公约数</h2>
+
+<h3>1.1 整除</h3>
+<p><strong>定义 1（整除）</strong> 设 $a,b$ 是整数且 $b\ne 0$。如果存在整数 $q$ 使得 $a=qb$，就说 $b$ 整除 $a$，记作 $b\mid a$；否则记作 $b\nmid a$。此时称 $b$ 是 $a$ 的因数，$a$ 是 $b$ 的倍数。</p>
+<p>下面三条性质在后文中会反复用到，它们都可以直接从定义推出。</p>
+<ul>
+  <li>若 $b\mid a$ 且 $a\ne 0$，则 $|b|\le |a|$。因为 $a=qb$ 且 $q\ne 0$，所以 $|a|=|q||b|\ge |b|$。</li>
+  <li>若 $b\mid a$ 且 $a\mid b$，则 $a=\pm b$。把两个等式相乘得 $ab=q_1q_2ab$，约去 $ab$ 得 $q_1q_2=1$，而整数乘积为 $1$ 只能两个因子都是 $1$ 或都是 $-1$。</li>
+  <li><strong>线性组合性质</strong>：若 $b\mid a$ 且 $b\mid c$，则对任意整数 $m,n$ 都有 $b\mid (ma+nc)$。证明：设 $a=q_1b$，$c=q_2b$，则 $ma+nc=(mq_1+nq_2)b$，括号内是整数。</li>
+</ul>
+<p>第三条是整套理论的地基：它说明“公约数”对加减和数乘封闭，因此一组数的所有公约数构成的集合有很好的结构，最大公约数才谈得上。</p>
+
+<h3>1.2 带余除法</h3>
+<div class="thm">
+  <p class="t">定理 1（带余除法）</p>
+  <p>设 $a$ 是整数，$b$ 是正整数。则存在唯一的一对整数 $q,r$，使得</p>
+  <p>$$a=qb+r,\qquad 0\le r\lt b.$$</p>
+  <p>其中 $q$ 称为商，$r$ 称为余数，记作 $r=a\bmod b$，并且 $q=\left\lfloor \dfrac{a}{b}\right\rfloor$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>存在性。</strong>考虑集合 $S=\{\,a-kb \;|\; k\in\mathbb{Z}\,\}$。取 $k$ 充分小（例如 $k=-|a|$），可使 $a-kb\ge 0$，所以 $S$ 中含有非负整数；由良序原理，$S$ 的非负元素中有最小值，记它为 $r$，并设 $r=a-qb$。若 $r\ge b$，则 $r-b=a-(q+1)b$ 也是 $S$ 中的非负整数，且比 $r$ 更小，与 $r$ 的最小性矛盾。所以 $0\le r\lt b$。</p>
+  <p><strong>唯一性。</strong>设 $a=q_1b+r_1=q_2b+r_2$，其中 $0\le r_1,r_2\lt b$。两式相减得 $(q_1-q_2)b=r_2-r_1$。右边满足 $|r_2-r_1|\lt b$，而左边是 $b$ 的整数倍，绝对值小于 $b$ 的 $b$ 的倍数只能是 $0$，故 $r_1=r_2$，进而 $q_1=q_2$。$\square$</p>
+</div>
+<p>这条定理之所以重要，是因为它把“任意整数 $a$”换成了“落在 $[0,b)$ 里的余数 $r$”，而 $r$ 的取值范围与 $a$ 的大小无关，只与 $b$ 有关。欧几里得算法能终止，靠的就是这一点。</p>
+<div class="note">
+  <p><strong>C++ 的 <code>%</code> 与数学上的取模不完全一样。</strong>数学上 $r=a\bmod b$ 总取 $[0,b)$ 内的那个值，而 C++ 从 C++11 起规定 <code>a % b</code> 的符号跟随被除数：<code>-7 % 3</code> 的结果是 <code>-1</code>，不是数学上的 <code>2</code>。本题的数据都是正数，暂时不会踩到这个坑；但 P1082 里 $x$ 可能是负数，所以最后一步必须写成 <code>(x % b + b) % b</code> 才能把负数拉回 $[0,b)$，这一点在 12 节会再讲一次。</p>
+</div>
+
+<h3>1.3 最大公约数</h3>
+<p><strong>定义 2（最大公约数）</strong> 设 $a,b$ 是整数且不全为 $0$。若整数 $d$ 同时满足 $d\mid a$ 与 $d\mid b$，称 $d$ 是 $a,b$ 的公因数。由 1.1 的第一条性质，公因数都满足 $|d|\le \max(|a|,|b|)$，所以公因数只有有限多个且非空（$1$ 一定是公因数），其中最大的那个称为 $a,b$ 的<strong>最大公约数</strong>，记作 $\gcd(a,b)$。</p>
+<p>另外约定 $\gcd(a,0)=|a|$（$a\ne 0$），$\gcd(0,0)=0$。这个约定不是随手定的：$a$ 的所有因数都是 $a$ 与 $0$ 的公因数，其中最大的是 $|a|$，与定义完全一致。</p>
+<p>由定义立刻得到三条常用性质：$\gcd(a,b)=\gcd(b,a)$；$\gcd(a,b)=\gcd(|a|,|b|)$；$\gcd(a,b)\ge 1$（$a,b$ 不全为 $0$ 时）。</p>
+</section>
+
+<section id="s2">
+<h2>2. 欧几里得定理与欧几里得算法</h2>
+
+<div class="thm">
+  <p class="t">定理 2（欧几里得定理）</p>
+  <p>设 $a=qb+r$，其中 $a,b,q,r$ 都是整数。则</p>
+  <p>$$\gcd(a,b)=\gcd(b,r).$$</p>
+  <p>特别地，取 $q=\left\lfloor a/b\right\rfloor$、$r=a\bmod b$，就得到 $\gcd(a,b)=\gcd(b,a\bmod b)$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>只要证明“$a,b$ 的公因数集合”与“$b,r$ 的公因数集合”相等，两个集合的最大元素自然相等。</p>
+  <p>设 $d$ 是 $a,b$ 的公因数，即 $d\mid a$ 且 $d\mid b$。由 $r=a-qb$ 以及 1.1 的线性组合性质，$d\mid r$。于是 $d$ 也是 $b,r$ 的公因数。</p>
+  <p>反过来，设 $d$ 是 $b,r$ 的公因数，即 $d\mid b$ 且 $d\mid r$。由 $a=qb+r$ 同样得到 $d\mid a$，所以 $d$ 也是 $a,b$ 的公因数。</p>
+  <p>两个方向合起来说明两个公因数集合互相包含、因而相等，它们的最大元素相等，即 $\gcd(a,b)=\gcd(b,r)$。$\square$</p>
+</div>
+<p>这个证明值得多看一眼：它没有用到 $r$ 落在 $[0,b)$ 内，也没有用到 $a,b$ 是正数。只要 $a=qb+r$ 成立，等式就成立。原文说“不要求 $0\le r\lt b$”，指的就是这一点：定理本身对任何 $r=a-qb$ 都成立。</p>
+
+<h3>2.1 为什么必须取最小非负余数</h3>
+<p>定理对任意 $q$ 都成立，但算法能否结束取决于 $r$ 的大小。如果取 $q=0$，则 $r=a$，数对从 $(a,b)$ 变成 $(b,a)$，只是交换了位置，规模没有变小，递归会原地打转。取 $q=\left\lfloor a/b\right\rfloor$ 时，定理 1 保证 $0\le r\lt b$，于是第二个数从 $b$ 严格降到 $r$，每一步都在变小。这就是原文“取 $q=\lfloor a/b\rfloor$ 时问题规模缩小得最快”的准确含义：它保证 $r$ 是不超过 $b-1$ 的最小可能值。</p>
+
+<h3>2.2 终止性与步数上界</h3>
+<div class="thm">
+  <p class="t">引理 1</p>
+  <p>设 $a\ge b\gt 0$，$r=a\bmod b$。则 $r\lt \dfrac{a}{2}$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>分两种情况。若 $b\le a/2$，由定理 1 有 $r\lt b\le a/2$。若 $b\gt a/2$，则 $a/b\lt 2$，所以商 $q=\left\lfloor a/b\right\rfloor=1$，于是 $r=a-b\lt a-a/2=a/2$。两种情况都有 $r\lt a/2$。$\square$</p>
+</div>
+<div class="thm">
+  <p class="t">定理 3（欧几里得算法的终止性与复杂度）</p>
+  <p>对任意正整数 $a,b$，欧几里得算法至多经过 $2\left\lceil \log_2 \min(a,b)\right\rceil+1$ 次递归调用就终止，时间复杂度为 $O(\log \min(a,b))$，空间复杂度为递归深度 $O(\log \min(a,b))$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>设当前数对为 $(a,b)$，$a\ge b$。经过一次调用变成 $(b,r)$，其中 $r=a\bmod b\lt b$；再经过一次调用变成 $(r,b\bmod r)$，由引理 1 有 $b\bmod r\lt b/2$。所以每两次调用之后，数对中的两个数都不超过原来较大数的一半。当较小数降到 $0$ 时递归到达终点，因此调用次数不超过 $2\log_2 a+O(1)$。每一步只做一次取模和常数次赋值，单步代价 $O(1)$，总时间 $O(\log a)$；递归栈深度等于调用次数，空间同阶。$\square$</p>
+</div>
+<p>这个上界是紧的：取相邻的斐波那契数 $a=F_{n+1},b=F_n$ 时，余数序列恰好是 $F_{n-1},F_{n-2},\dots$，每步只缩小约 $1/\varphi$ 倍（$\varphi$ 是黄金比），需要的步数与 $n$ 同阶，达到 $O(\log a)$ 的量级。所以欧几里得算法的最坏情况就出现在斐波那契数对上。</p>
+
+<h3>2.3 代码</h3>
+<p class="cap">代码 1：递归版欧几里得算法。样例输入 <code>12 18</code>，输出 <code>6</code>。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;              // 万能头：一次引入常用标准库（输入输出、容器、算法等）
+using namespace std;                  // 展开 std 名字空间，后面写 cin/cout 不必加 std::
+
+long long my_gcd(long long a, long long b) {   // 递归求 gcd(a,b)，要求 a、b 都是非负整数
+    if (b == 0) return a;                      // 递归终点：gcd(a,0)=a，此时 a 就是最大公约数
+    return my_gcd(b, a % b);                   // 欧几里得定理：gcd(a,b)=gcd(b,a%b)，把问题换成更小的数对
+}                                              // 函数结束
+
+int main() {                       // 程序入口
+    ios::sync_with_stdio(false);   // 关闭 cin/cout 与 C 标准流的同步，加快输入输出
+    cin.tie(nullptr);              // 解除 cin 与 cout 的绑定，避免每次读入都刷新输出缓冲区
+    long long a = 0, b = 0;        // 两个输入数，用 long long 防止 a%b 溢出或数据超 int
+    cin &gt;&gt; a &gt;&gt; b;                 // 从标准输入读入 a 与 b
+    cout &lt;&lt; my_gcd(a, b) &lt;&lt; "\n";  // 输出最大公约数，末尾换行
+    return 0;                      // 正常结束
+}                                  // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+12 18</code></pre>
+  <pre><code>输出
+6</code></pre>
+</div>
+<p>复杂度：每次递归把 $(a,b)$ 换成 $(b,a\bmod b)$，由 2.2 节约 $O(\log \min(a,b))$ 次调用，每次 $O(1)$，总时间 $O(\log \min(a,b))$，空间是递归栈 $O(\log \min(a,b))$。这里的时间复杂度针对的是两个数的<strong>数值大小</strong>，而不是数字个数。</p>
+
+<h3>2.4 常见错误</h3>
+<ul>
+  <li>忘记写递归终点 <code>b == 0</code>，程序会无限递归直到栈溢出。</li>
+  <li>三个参数都开 <code>int</code>：当 $a,b$ 在 $2\times 10^9$ 附近时，后续题目里会出现 <code>a % b</code> 之外的乘法，容易溢出；本页统一用 <code>long long</code>。</li>
+  <li>以为 $\gcd$ 只对正数有定义。按约定 $\gcd(a,0)=|a|$，所以传负数时应先取绝对值；本题数据为正，代码里没有额外处理。</li>
+</ul>
+</section>
+
+<section id="s3">
+<h2>3. 裴蜀定理</h2>
+
+<div class="thm">
+  <p class="t">定理 4（裴蜀定理，Bézout's identity）</p>
+  <p>设 $a,b$ 是不全为 $0$ 的整数，$g=\gcd(a,b)$。则存在整数 $x,y$ 使得</p>
+  <p>$$ax+by=g.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明（最小正线性组合法）</p>
+  <p>考虑集合 $S=\{\,ax+by \mid x,y\in\mathbb{Z},\ ax+by\gt 0\,\}$。因为 $a,b$ 不全为 $0$，取 $x=\operatorname{sgn}(a)$、$y=0$（若 $a=0$ 则取 $x=0,y=\operatorname{sgn}(b)$）就能得到正整数 $|a|$ 或 $|b|$，所以 $S$ 非空；$S$ 是正整数的子集，由良序原理它有最小值。设这个最小值为 $d=ax_0+by_0$。</p>
+  <p>对 $a$ 做带余除法：$a=qd+r$，$0\le r\lt d$。把 $d$ 的表达式代入得</p>
+  <p>$$r=a-qd=a-q(ax_0+by_0)=a(1-qx_0)+b(-qy_0).$$</p>
+  <p>括号内都是整数，所以 $r$ 也是 $a,b$ 的整系数线性组合。如果 $r\gt 0$，那么 $r\in S$ 且 $r\lt d$，与 $d$ 的最小性矛盾。因此 $r=0$，即 $d\mid a$。同理对 $b$ 做带余除法可得 $d\mid b$。所以 $d$ 是 $a,b$ 的公因数，从而 $d\le g$。</p>
+  <p>另一方面，$g\mid a$ 且 $g\mid b$，由线性组合性质 $g\mid (ax_0+by_0)=d$，而 $d\gt 0$，所以 $g\le d$。</p>
+  <p>两个不等式合起来得到 $d=g$，即 $ax_0+by_0=g$。$\square$</p>
+</div>
+<p>证明的第二段实际上同时说明了一件更强的事：$a,b$ 的<strong>每一个</strong>整系数线性组合都被 $\gcd(a,b)$ 整除。这句话和定理合起来，就给出了线性方程可解性的完整判据。</p>
+
+<div class="thm">
+  <p class="t">推论 1（二元一次不定方程的可解性）</p>
+  <p>设 $a,b,c$ 是整数，$a,b$ 不全为 $0$。方程 $ax+by=c$ 有整数解的充要条件是 $\gcd(a,b)\mid c$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>必要性。</strong>若 $ax+by=c$ 有整数解，则 $\gcd(a,b)$ 整除 $a$ 与 $b$，由线性组合性质整除 $c$。</p>
+  <p><strong>充分性。</strong>设 $g=\gcd(a,b)$ 且 $g\mid c$，记 $c=gt$。由定理 4 取 $ax_0+by_0=g$，两边同乘 $t$ 得 $a(tx_0)+b(ty_0)=c$，所以 $(tx_0,ty_0)$ 是一组整数解。$\square$</p>
+</div>
+
+<div class="thm">
+  <p class="t">推论 2（互质与可逆）</p>
+  <p>设 $a,m$ 是整数，$m\gt 0$。则存在整数 $x$ 使 $ax\equiv 1\pmod m$ 的充要条件是 $\gcd(a,m)=1$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>$ax\equiv 1\pmod m$ 等价于存在整数 $y$ 使 $ax-1=my$，即 $ax+(-y)m=1$。由推论 1，这个方程有整数解的充要条件是 $\gcd(a,m)\mid 1$，也就是 $\gcd(a,m)=1$。$\square$</p>
+</div>
+<div class="note">
+  <p><strong>原文订正。</strong>原文在 P1082 的“解题思路”里写“根据裴蜀定理，方程有解的充要条件是 $\gcd(a,b)=1$”。这句话只对 $ax+by=1$ 这一种右端成立；对一般的 $ax+by=c$，条件是 $\gcd(a,b)\mid c$，而不是 $\gcd(a,b)=1$。P1082 的方程右端恰好是 $1$，所以两个条件重合，原文的结论在本题里是对的，但作为定理陈述不完整。</p>
+</div>
+</section>
+
+<section id="s4">
+<h2>4. 扩展欧几里得算法</h2>
+<p>裴蜀定理只保证解存在，没有说怎么算。扩展欧几里得算法（ExGCD）的做法是：在欧几里得算法递归下降的过程中，顺手把每一层的线性组合系数也求出来，回溯时逐层还原。</p>
+
+<h3>4.1 递归关系的推导</h3>
+<p>设当前要解 $ax+by=g$，其中 $g=\gcd(a,b)$。递归调用求出的是下一层的解：</p>
+<p>$$b\,x_1+(a\bmod b)\,y_1=g.$$</p>
+<p>把 $a\bmod b=a-\left\lfloor a/b\right\rfloor b$ 代入，得</p>
+<p>$$b\,x_1+\left(a-\left\lfloor \frac{a}{b}\right\rfloor b\right)y_1=g
+\;\Longrightarrow\;
+a\,y_1+b\left(x_1-\left\lfloor \frac{a}{b}\right\rfloor y_1\right)=g.$$</p>
+<p>与 $ax+by=g$ 逐项对比系数，就得到</p>
+<p>$$x=y_1,\qquad y=x_1-\left\lfloor \frac{a}{b}\right\rfloor y_1.$$</p>
+<p>递归终点是 $b=0$：此时 $g=a$，方程是 $ax+0\cdot y=a$，取 $x=1,y=0$ 即可。</p>
+
+<h3>4.2 正确性证明</h3>
+<div class="thm">
+  <p class="t">定理 5（ExGCD 的正确性）</p>
+  <p>设 $a,b$ 是非负整数。按上述递归过程，函数返回的 $d$ 等于 $\gcd(a,b)$，返回的 $x,y$ 满足 $ax+by=d$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明（对递归深度归纳）</p>
+  <p><strong>基础情形</strong>：$b=0$。此时返回 $d=a$、$x=1$、$y=0$，有 $a\cdot 1+0\cdot 0=a=d$，且 $d=\gcd(a,0)$，成立。</p>
+  <p><strong>归纳步</strong>：设 $b\gt 0$，并假设对更小的数对 $(b,a\bmod b)$ 递归调用已经返回正确的 $d,x_1,y_1$，即 $b x_1+(a\bmod b)y_1=d=\gcd(b,a\bmod b)$。由欧几里得定理，$d=\gcd(a,b)$。把 $a\bmod b=a-\lfloor a/b\rfloor b$ 代入上式，得</p>
+  <p>$$a\,y_1+b\left(x_1-\left\lfloor \frac{a}{b}\right\rfloor y_1\right)=d.$$</p>
+  <p>而算法取的正是 $x=y_1$、$y=x_1-\lfloor a/b\rfloor y_1$，所以 $ax+by=d$ 成立。$\square$</p>
+</div>
+<p>终止性可以单独说清楚：每层递归都把第二个参数换成 $a\bmod b\lt b$，参数严格减小且始终非负，所以最多经过与欧几里得算法相同的步数就到达 $b=0$。由 2.2 节，调用深度为 $O(\log\min(a,b))$。</p>
+
+<h3>4.3 通解公式</h3>
+<div class="thm">
+  <p class="t">定理 6（二元一次不定方程的通解）</p>
+  <p>设 $a,b$ 是不全为 $0$ 的整数，$g=\gcd(a,b)$，且 $(x_0,y_0)$ 是 $ax+by=g$ 的一组整数解。则方程的全部整数解为</p>
+  <p>$$x=x_0+\frac{b}{g}k,\qquad y=y_0-\frac{a}{g}k,\qquad k\in\mathbb{Z}.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>先证“所有解都有这个形状”。</strong>设 $(x,y)$ 也是解，则 $ax+by=g=ax_0+by_0$，相减得</p>
+  <p>$$a(x-x_0)+b(y-y_0)=0.$$</p>
+  <p>记 $a'=a/g$，$b'=b/g$，则 $\gcd(a',b')=1$，上式化为 $a'(x-x_0)=-b'(y-y_0)$。于是 $b'\mid a'(x-x_0)$；因为 $\gcd(a',b')=1$，由欧几里得引理（若 $b'\mid a'c$ 且 $\gcd(a',b')=1$，则 $b'\mid c$）得到 $b'\mid (x-x_0)$。设 $x-x_0=b'k$，代回得 $-b'(y-y_0)=a'b'k$，即 $y-y_0=-a'k$，这正是要证的形式。</p>
+  <p><strong>再证“这个形状的每一组都是解”。</strong>直接代入：</p>
+  <p>$$a\left(x_0+\frac{b}{g}k\right)+b\left(y_0-\frac{a}{g}k\right)=ax_0+by_0+\frac{ab}{g}k-\frac{ab}{g}k=g.$$</p>
+  <p>所以通解公式给出的恰好是全部整数解。$\square$</p>
+</div>
+<p>这个公式在 P1082 里非常重要。P1082 要求 $ax\equiv 1\pmod b$ 的最小正整数解，ExGCD 给出的 $x_0$ 可能是一个很大的负数，通解公式说明所有解都相差 $\dfrac{b}{g}=b$（本题 $g=1$）的整数倍，所以把 $x_0$ 挪到 $[0,b)$ 内就是最小正整数解，不需要枚举。</p>
+
+<h3>4.4 代码</h3>
+<p class="cap">代码 2：扩展欧几里得。样例输入 <code>12 18</code>，输出 <code>6 -1 1</code>，含义是 $\gcd=6$ 且 $12\times(-1)+18\times 1=6$。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;          // 万能头：引入输入输出、容器等常用标准库
+using namespace std;              // 展开 std 名字空间
+
+long long exgcd(long long a, long long b, long long &amp;x, long long &amp;y) {  // 求 ax+by=gcd(a,b) 的一组整数解，返回值是 gcd
+    if (b == 0) {                 // 递归终点：此时 gcd(a,0)=a，方程退化为 a*x+0*y=a
+        x = 1;                    // 取 x=1，则 a*1+0*0=a，恰好是一组解
+        y = 0;                    // y 取任意值都成立，统一取 0 便于计算
+        return a;                 // 返回最大公约数 a
+    }                             // 递归终点处理结束
+    long long x1 = 0, y1 = 0;     // 保存下一层（规模更小的问题）求出的解 x1、y1
+    long long d = exgcd(b, a % b, x1, y1);          // 递归求解 b*x1+(a%b)*y1=gcd，d 是最大公约数
+    x = y1;                       // 由推导 x=y1，把下一层的 y1 作为当前层的 x
+    y = x1 - (a / b) * y1;        // 由推导 y=x1-(a/b)*y1，用下一层结果反推当前层的 y
+    return d;                     // 一路把最大公约数传回最外层
+}                                 // exgcd 结束
+
+int main() {                      // 程序入口
+    ios::sync_with_stdio(false);  // 关闭流同步，加快读写
+    cin.tie(nullptr);             // 解除 cin 与 cout 的绑定
+    long long a = 0, b = 0;       // 输入的两个数 a、b
+    cin &gt;&gt; a &gt;&gt; b;                // 读入 a 与 b
+    long long x = 0, y = 0;       // 用来接收特解的两个变量
+    long long d = exgcd(a, b, x, y);   // 求解，d 得到 gcd(a,b)，x、y 得到一组特解
+    cout &lt;&lt; d &lt;&lt; " " &lt;&lt; x &lt;&lt; " " &lt;&lt; y &lt;&lt; "\n";   // 输出 gcd 与特解，便于人工验证 ax+by=d
+    return 0;                     // 正常结束
+}                                 // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+12 18</code></pre>
+  <pre><code>输出
+6 -1 1</code></pre>
+</div>
+<p>复杂度：递归深度与欧几里得算法相同，为 $O(\log\min(a,b))$；每层只做常数次加减乘，总时间 $O(\log\min(a,b))$，空间为递归栈 $O(\log\min(a,b))$。</p>
+<div class="note">
+  <p><strong>溢出提醒。</strong>回溯式 <code>y = x1 - (a / b) * y1</code> 里，$x_1,y_1$ 的量级不超过 $\max(a,b)$，而 $a/b$ 可能很大，乘起来可能超过 <code>int</code>。本题 $a,b\le 2\times 10^9$，三个量都用 <code>long long</code> 才安全。另外，$a,b$ 很大时 $x,y$ 本身也可能接近 $b$ 与 $a$ 的量级，用 <code>int</code> 存会溢出。</p>
+</div>
+</section>
+
+<section id="s5">
+<h2>5. 同余与同余的运算性质</h2>
+
+<h3>5.1 定义</h3>
+<p><strong>定义 3（同余）</strong> 设 $m$ 是正整数。若 $m\mid (a-b)$，就说 $a$ 与 $b$ 模 $m$ <strong>同余</strong>，记作</p>
+<p>$$a\equiv b \pmod m.$$</p>
+<p>否则记作 $a\not\equiv b\pmod m$。</p>
+<p>这个定义等价于“$a$ 与 $b$ 除以 $m$ 的余数相同”。证明很短：由带余除法写 $a=q_1m+r_1$、$b=q_2m+r_2$，其中 $0\le r_1,r_2\lt m$，则 $a-b=(q_1-q_2)m+(r_1-r_2)$。因为 $|r_1-r_2|\lt m$，所以 $m\mid (a-b)$ 当且仅当 $r_1-r_2=0$。</p>
+<p>同余式可以像等式一样书写，但要记住两者有一个本质区别：等式两边可以随便加减乘除，同余式只能随便加减乘，除法要额外条件，这正是第 6 节要处理的。</p>
+
+<h3>5.2 同余是等价关系</h3>
+<div class="thm">
+  <p class="t">定理 7</p>
+  <p>固定正整数 $m$，则“模 $m$ 同余”是整数集上的等价关系，即对任意整数 $a,b,c$ 满足：</p>
+  <ol>
+    <li><strong>自反性</strong>：$a\equiv a\pmod m$；</li>
+    <li><strong>对称性</strong>：若 $a\equiv b\pmod m$，则 $b\equiv a\pmod m$；</li>
+    <li><strong>传递性</strong>：若 $a\equiv b\pmod m$ 且 $b\equiv c\pmod m$，则 $a\equiv c\pmod m$。</li>
+  </ol>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>自反性</strong>：$a-a=0=m\cdot 0$，所以 $m\mid 0$。</p>
+  <p><strong>对称性</strong>：若 $m\mid (a-b)$，设 $a-b=km$，则 $b-a=-km$，仍被 $m$ 整除。</p>
+  <p><strong>传递性</strong>：设 $a-b=k_1m$，$b-c=k_2m$，相加得 $a-c=(k_1+k_2)m$，所以 $m\mid (a-c)$。$\square$</p>
+</div>
+
+<h3>5.3 加减乘可以直接做</h3>
+<div class="thm">
+  <p class="t">定理 8</p>
+  <p>设 $a\equiv b\pmod m$ 且 $c\equiv d\pmod m$，则</p>
+  <p>$$a+c\equiv b+d,\qquad a-c\equiv b-d,\qquad ac\equiv bd \pmod m.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>设 $a=b+sm$，$c=d+tm$，其中 $s,t$ 是整数。则</p>
+  <p>$$a+c=(b+d)+(s+t)m,\qquad a-c=(b-d)+(s-t)m,$$</p>
+  <p>两项之差都是 $m$ 的整数倍。乘法稍微长一点：</p>
+  <p>$$ac-bd=(b+sm)(d+tm)-bd=b\,tm+d\,sm+st\,m^2=m(bt+ds+stm),$$</p>
+  <p>括号内是整数，所以 $m\mid (ac-bd)$。$\square$</p>
+</div>
+<p>由乘法性质反复使用，可以推广到任意次幂：若 $a\equiv b\pmod m$，则 $a^k\equiv b^k\pmod m$。同余式两边还可以同时加上或减去同一个整数、同时乘以同一个整数，因为这是定理 8 在 $c=d$ 时的特例。这三条性质合起来就是常说的“模运算对加、减、乘兼容，可以直接取模”：计算 $a\times b\bmod m$ 时，先把 $a,b$ 各自对 $m$ 取模再乘，结果的余数不变。</p>
+
+<h3>5.4 除法不能直接做</h3>
+<div class="thm">
+  <p class="t">定理 9（消去律）</p>
+  <p>设 $m$ 是正整数，$c$ 是整数，$g=\gcd(c,m)$。则对任意整数 $a,b$，</p>
+  <p>$$ac\equiv bc\pmod m \iff a\equiv b \pmod{\frac{m}{g}}.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>$ac\equiv bc\pmod m$ 等价于 $m\mid c(a-b)$，而 $g\mid c$，所以等价于</p>
+  <p>$$\frac{m}{g}\ \Big|\ \frac{c}{g}(a-b).$$</p>
+  <p>由 $g=\gcd(c,m)$ 有 $\gcd\left(\dfrac{c}{g},\dfrac{m}{g}\right)=1$。再由欧几里得引理（定理 11 前会单独证明：若 $n\mid xy$ 且 $\gcd(n,x)=1$，则 $n\mid y$），得到</p>
+  <p>$$\frac{m}{g}\ \Big|\ (a-b),$$</p>
+  <p>这正好是 $a\equiv b \pmod{m/g}$。$\square$</p>
+</div>
+<p>把这个定理用在 $g=1$ 的情形，就得到最常用的一条：<strong>若 $c$ 与 $m$ 互质，同余式两边可以同时约去 $c$。</strong>如果 $g\gt 1$，约去 $c$ 的同时必须把模数也除以 $g$，否则结论不成立。</p>
+<p>反例说明为什么不能无条件约：取 $m=6$，$c=3$，$a=2$，$b=8$。此时 $3\times 2=6$，$3\times 8=24$，两者之差 $-18$ 是 $6$ 的倍数，所以 $3\times 2\equiv 3\times 8\pmod 6$ 成立；但 $2\not\equiv 8\pmod 6$。这里 $g=\gcd(3,6)=3$，定理 9 说的是“约去 $3$ 之后模数要变成 $6/3=2$”，而 $2\equiv 8\pmod 2$ 确实成立。</p>
+<p>这也解释了 $2$ 在模 $6$ 下为什么不能当除数：不是“算不出来”，而是 $2$ 与 $6$ 不互质，乘以 $2$ 这个映射把不同的剩余类压到了一起（$0$ 和 $3$ 都变成 $0$），信息丢失了，没法还原。要恢复除法，必须要求乘数在模 $m$ 下是双射，这个条件恰好就是下一节的逆元存在条件。</p>
+</section>
+
+<section id="s6">
+<h2>6. 乘法逆元</h2>
+
+<h3>6.1 定义</h3>
+<p><strong>定义 4（乘法逆元）</strong> 设 $m$ 是正整数，$\gcd(a,m)=1$。若整数 $x$ 满足</p>
+<p>$$ax\equiv 1\pmod m,$$</p>
+<p>则称 $x$ 是 $a$ 在模 $m$ 下的<strong>乘法逆元</strong>，记作 $a^{-1}\pmod m$。有了逆元，“除以 $a$”就定义为“乘以 $a^{-1}$”：</p>
+<p>$$\frac{b}{a}\ \text{在模 }m\text{ 下理解为}\ b\cdot a^{-1}\pmod m.$$</p>
+<p>注意这个写法只是记号上的方便。模意义下本来没有除法，能这样写完全是因为 $a^{-1}$ 存在；如果 $a$ 与 $m$ 不互质，这个记号就没有意义。例如模 $7$ 下 $3$ 的逆元是 $5$，因为 $3\times 5=15\equiv 1\pmod 7$；而模 $6$ 下 $2$ 没有逆元，因为 $2x$ 永远是偶数，不可能与 $1$ 同余。</p>
+
+<h3>6.2 存在性与唯一性</h3>
+<div class="thm">
+  <p class="t">定理 10</p>
+  <p>设 $m$ 是正整数，$a$ 是整数。则 $a$ 在模 $m$ 下存在逆元的充要条件是 $\gcd(a,m)=1$。并且当逆元存在时，它在模 $m$ 的意义下唯一，即在 $[0,m)$ 中恰有一个逆元。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>存在性。</strong>$ax\equiv 1\pmod m$ 等价于存在整数 $y$ 使 $ax+my=1$。这是推论 1 中 $c=1$ 的情形，方程有整数解当且仅当 $\gcd(a,m)\mid 1$，即 $\gcd(a,m)=1$。</p>
+  <p><strong>唯一性。</strong>设 $x,x'$ 都是 $a$ 的逆元，则 $ax\equiv 1\equiv ax'\pmod m$，相减得 $a(x-x')\equiv 0\pmod m$，即 $m\mid a(x-x')$。因为 $\gcd(a,m)=1$，由定理 9（$g=1$ 的情形）约去 $a$，得 $m\mid (x-x')$，即 $x\equiv x'\pmod m$。所以任意两个逆元都同余，在 $[0,m)$ 中只有一个。$\square$</p>
+</div>
+
+<h3>6.3 求法一：扩展欧几里得</h3>
+<p>把 $ax\equiv 1\pmod m$ 写成 $ax+my=1$，用 ExGCD 求出一组 $(x,y)$，再把 $x$ 调整到 $[0,m)$ 即可。这个方法不要求 $m$ 是质数，只要 $\gcd(a,m)=1$，因此它是最通用的求逆元方法。</p>
+<p class="cap">代码 3：用扩展欧几里得求逆元。样例输入 <code>3 10</code>，输出 <code>7</code>，验证 $3\times 7=21\equiv 1\pmod{10}$。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;          // 万能头：引入输入输出等常用标准库
+using namespace std;              // 展开 std 名字空间
+
+void exgcd(long long a, long long b, long long &amp;x, long long &amp;y) {   // 求 ax+by=gcd(a,b) 的一组特解
+    if (b == 0) {                 // 递归终点：方程退化为 a*x+0*y=a
+        x = 1;                    // 取 x=1 即满足 a*1+0*0=a
+        y = 0;                    // y 取 0，不影响当前层的等式
+        return;                   // 终点直接返回
+    }                             // 终点处理结束
+    long long x1 = 0, y1 = 0;     // 保存下一层的解
+    exgcd(b, a % b, x1, y1);      // 递归求 b*x1+(a%b)*y1=gcd
+    x = y1;                       // 当前层 x 取下一层的 y1
+    y = x1 - (a / b) * y1;        // 当前层 y 由下一层两个解反推
+}                                 // exgcd 结束
+
+int main() {                      // 程序入口
+    ios::sync_with_stdio(false);  // 关闭流同步，加快读写
+    cin.tie(nullptr);             // 解除 cin 与 cout 的绑定
+    long long a = 0, m = 1;       // 要求逆元的数 a 与模数 m
+    cin &gt;&gt; a &gt;&gt; m;                // 读入 a 与 m
+    long long x = 0, y = 0;       // 接收 ax+my=gcd(a,m) 的一组解
+    long long g = 0;              // 保存最大公约数
+    exgcd(a, m, x, y);            // 求解，x 就是候选逆元
+    g = a * x + m * y;            // 用等式反算 gcd，避免再写一遍欧几里得
+    if (g != 1) {                 // 公约数不是 1 说明逆元不存在
+        cout &lt;&lt; -1 &lt;&lt; "\n";       // 输出 -1 表示无逆元
+    } else {                      // 互质，逆元存在
+        cout &lt;&lt; (x % m + m) % m &lt;&lt; "\n";   // 把 x 调整到 [0,m) 后输出
+    }                             // 分支结束
+    return 0;                     // 正常结束
+}                                 // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+3 10</code></pre>
+  <pre><code>输出
+7</code></pre>
+  <pre><code>输入
+2 6</code></pre>
+  <pre><code>输出
+-1</code></pre>
+</div>
+<p>复杂度：一次 ExGCD，时间 $O(\log m)$，空间 $O(\log m)$。这里 $m$ 的量级是 $10^9$，$O(\log m)$ 大约是 $30$ 层递归，非常快。</p>
+
+<h3>6.4 三种求法的适用场景</h3>
+<table>
+  <tr><th>方法</th><th>适用条件</th><th>复杂度</th><th>说明</th></tr>
+  <tr><td>ExGCD 解 $ax+my=1$</td><td>$\gcd(a,m)=1$</td><td>$O(\log m)$ 单次</td><td>最通用，模数不必是质数；只求单个逆元时首选</td></tr>
+  <tr><td>费马小定理 $a^{m-2}$</td><td>$m$ 是质数且 $m\nmid a$</td><td>$O(\log m)$ 单次</td><td>需要快速幂；代码短，但条件比 ExGCD 强</td></tr>
+  <tr><td>线性递推</td><td>$m$ 是质数，且 $n\lt m$</td><td>$O(n)$ 求 $1$ 到 $n$ 全部</td><td>批量求逆元专用；单个求反而慢，因为要先算前缀</td></tr>
+</table>
+<p>原文的表格只写了复杂度，没有写“单个还是批量”。补一句：线性递推的 $O(n)$ 是<strong>总</strong>复杂度，平摊到每个数是 $O(1)$；而 ExGCD 与费马小定理是每次 $O(\log m)$，求 $n$ 个就是 $O(n\log m)$。当 $n=3\times 10^6$ 时，两者相差约 $30$ 倍，这就是 P3811 必须用递推的原因。</p>
+</section>
+
+<section id="s7">
+<h2>7. 费马小定理、欧拉定理与快速幂</h2>
+
+<h3>7.1 欧几里得引理</h3>
+<div class="thm">
+  <p class="t">引理 2（欧几里得引理）</p>
+  <p>设 $p$ 是质数，$x,y$ 是整数。若 $p\mid xy$，则 $p\mid x$ 或 $p\mid y$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>若 $p\mid x$ 则结论已成立。否则 $p\nmid x$，因为 $p$ 是质数，$x$ 的因数中不可能含有 $p$，所以 $\gcd(x,p)=1$。由推论 1，存在整数 $u,v$ 使 $xu+pv=1$。两边同乘 $y$，得</p>
+  <p>$$xyu+pyv=y.$$</p>
+  <p>左边两项都被 $p$ 整除（第一项因为 $p\mid xy$，第二项显然），所以 $p\mid y$。$\square$</p>
+</div>
+<p>引理 2 对合数不成立：$6\mid 2\times 3$，但 $6\nmid 2$ 且 $6\nmid 3$。质数这个条件不能省，它保证了 $\gcd(x,p)=1$ 只有两种可能。</p>
+
+<h3>7.2 费马小定理</h3>
+<div class="thm">
+  <p class="t">定理 11（费马小定理）</p>
+  <p>设 $p$ 是质数，$a$ 是整数且 $p\nmid a$。则</p>
+  <p>$$a^{p-1}\equiv 1\pmod p.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明（完全剩余系的置换）</p>
+  <p>考虑 $p-1$ 个数</p>
+  <p>$$a,\ 2a,\ 3a,\ \ldots,\ (p-1)a.$$</p>
+  <p><strong>第一步：它们模 $p$ 的余数都不为 $0$。</strong>若 $p\mid ia$，由引理 2，$p\mid i$ 或 $p\mid a$。但 $1\le i\le p-1$，所以 $p\nmid i$；题设又给出 $p\nmid a$，矛盾。</p>
+  <p><strong>第二步：这些余数两两不同。</strong>若 $ia\equiv ja\pmod p$，其中 $1\le i,j\le p-1$，则 $p\mid (i-j)a$。由引理 2，$p\mid (i-j)$ 或 $p\mid a$；后者不成立，前者结合 $|i-j|\lt p$ 得 $i=j$。</p>
+  <p>于是这 $p-1$ 个余数落在 $1,2,\ldots,p-1$ 这 $p-1$ 个位置上，且两两不同，所以它们恰好是 $1,2,\ldots,p-1$ 的一个排列。把 $p-1$ 个同余式相乘：</p>
+  <p>$$a^{p-1}\cdot (p-1)!\equiv (p-1)!\pmod p.$$</p>
+  <p><strong>第三步：约去 $(p-1)!$。</strong>因为 $p$ 是质数且大于 $p-1$，$(p-1)!$ 的每个因子都与 $p$ 互质，由引理 2 反复使用可知 $p\nmid (p-1)!$，即 $\gcd((p-1)!,p)=1$。由定理 9，两边可以同时约去 $(p-1)!$，得到 $a^{p-1}\equiv 1\pmod p$。$\square$</p>
+</div>
+<p>推论：对任意整数 $a$（包括 $p\mid a$ 的情形），都有 $a^p\equiv a\pmod p$。当 $p\nmid a$ 时两边乘 $a$ 即可；当 $p\mid a$ 时两边都同余于 $0$。</p>
+<p>这条定理直接给出了第二种求逆元的方法：把 $a^{p-1}\equiv 1$ 改写成 $a\cdot a^{p-2}\equiv 1$，所以</p>
+<p>$$a^{-1}\equiv a^{p-2}\pmod p.$$</p>
+<p>条件是 $p$ 为质数且 $p\nmid a$。要求 $a^{p-2}$ 就要用到快速幂。</p>
+
+<h3>7.3 欧拉定理（费马小定理的推广）</h3>
+<p>费马小定理要求模数是质数。如果模数是一般的 $m$，只要 $a$ 与 $m$ 互质，同样有幂次回到 $1$，只是指数要换成欧拉函数。</p>
+<p><strong>定义 5（欧拉函数）</strong> 对正整数 $m$，$\varphi(m)$ 表示 $1,2,\ldots,m$ 中与 $m$ 互质的数的个数。例如 $\varphi(1)=1$，$\varphi(6)=2$（只有 $1,5$），$\varphi(7)=6$。</p>
+<div class="thm">
+  <p class="t">定理 12（欧拉定理）</p>
+  <p>设 $m$ 是正整数，$a$ 是整数且 $\gcd(a,m)=1$。则</p>
+  <p>$$a^{\varphi(m)}\equiv 1\pmod m.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明（既约剩余系的置换）</p>
+  <p>从每个与 $m$ 互质的剩余类中各取一个代表，得到 $r_1,r_2,\ldots,r_{\varphi(m)}$，称为模 $m$ 的一个<strong>既约剩余系</strong>。它满足三条：两两不同余；每个 $r_i$ 都与 $m$ 互质；任何与 $m$ 互质的整数都与某个 $r_i$ 同余。</p>
+  <p>考虑 $ar_1,ar_2,\ldots,ar_{\varphi(m)}$。</p>
+  <p><strong>第一步：每个 $ar_i$ 都与 $m$ 互质。</strong>若质数 $q\mid m$ 且 $q\mid ar_i$，由引理 2，$q\mid a$ 或 $q\mid r_i$，两种都与“$a$ 与 $m$ 互质、$r_i$ 与 $m$ 互质”矛盾。</p>
+  <p><strong>第二步：它们两两不同余。</strong>若 $ar_i\equiv ar_j\pmod m$，由 $\gcd(a,m)=1$ 与定理 9 约去 $a$，得 $r_i\equiv r_j\pmod m$，于是 $i=j$。</p>
+  <p>所以 $ar_1,\ldots,ar_{\varphi(m)}$ 也是模 $m$ 的一个既约剩余系，它与原既约剩余系在模 $m$ 下逐项对应。把两边全部相乘：</p>
+  <p>$$a^{\varphi(m)}\prod_{i=1}^{\varphi(m)} r_i\ \equiv\ \prod_{i=1}^{\varphi(m)} r_i \pmod m.$$</p>
+  <p><strong>第三步：约去 $\prod r_i$。</strong>每个 $r_i$ 都与 $m$ 互质，由引理 2 反复使用，乘积也与 $m$ 互质，可用定理 9 约去，得到 $a^{\varphi(m)}\equiv 1\pmod m$。$\square$</p>
+</div>
+<p>当 $m=p$ 为质数时，$1,\ldots,p-1$ 都与 $p$ 互质，所以 $\varphi(p)=p-1$，欧拉定理退化成费马小定理。这也说明费马小定理不是独立的新结论，而是欧拉定理在质数模下的特例。</p>
+<p>欧拉函数还有两条本页后面会用到的性质：对质数 $p$ 与正整数 $k$，$\varphi(p)=p-1$，$\varphi(p^k)=p^k-p^{k-1}$（$1$ 到 $p^k$ 中只有 $p$ 的倍数不与 $p^k$ 互质，共 $p^{k-1}$ 个）。</p>
+
+<h3>7.4 快速幂</h3>
+<p>要算 $a^e\bmod m$，直接连乘 $e$ 次是 $O(e)$，$e$ 到 $10^9$ 时太慢。快速幂把指数写成二进制：</p>
+<p>$$e=\sum_{i=0}^{\lfloor\log_2 e\rfloor} b_i2^i,\qquad b_i\in\{0,1\},$$</p>
+<p>于是</p>
+<p>$$a^e=\prod_{i:\,b_i=1} a^{2^i}.$$</p>
+<p>算法从低位到高位扫描 $e$ 的二进制位，用一个变量保存当前的 $a^{2^i}$（每轮自乘一次即可得到下一位的底数），遇到 $b_i=1$ 就把它乘进答案。正确性由上面的分解式直接得到；每轮指数右移一位，所以循环恰好执行 $\lfloor\log_2 e\rfloor+1$ 次，时间 $O(\log e)$。</p>
+<p class="cap">代码 4：快速幂。样例输入 <code>2 10 1000</code>，输出 <code>24</code>，因为 $2^{10}=1024$，$1024\bmod 1000=24$。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;          // 万能头：引入输入输出等常用标准库
+using namespace std;              // 展开 std 名字空间
+
+long long qpow(long long a, long long e, long long mod) {   // 计算 a^e mod mod，a、e、mod 均为非负
+    long long res = 1 % mod;      // 累乘结果，初值为 1（对 mod 取模，防止 mod=1 时结果应为 0）
+    a %= mod;                     // 先把底数对 mod 取模，避免后面的乘法溢出
+    while (e &gt; 0) {               // 只要指数还没被除尽就继续
+        if (e &amp; 1)                // 看指数二进制的最低位是否为 1
+            res = res * a % mod;  // 若为 1，就把当前的 a 乘进答案
+        a = a * a % mod;          // 底数平方，准备处理指数的下一位
+        e &gt;&gt;= 1;                  // 指数右移一位，等价于除以 2
+    }                             // 循环结束
+    return res;                   // 返回 a^e mod mod
+}                                 // qpow 结束
+
+int main() {                      // 程序入口
+    ios::sync_with_stdio(false);  // 关闭流同步，加快读写
+    cin.tie(nullptr);             // 解除 cin 与 cout 的绑定
+    long long a = 0, e = 0, mod = 1;   // 底数、指数、模数
+    cin &gt;&gt; a &gt;&gt; e &gt;&gt; mod;         // 读入三个参数
+    cout &lt;&lt; qpow(a, e, mod) &lt;&lt; "\n";   // 输出快速幂结果
+    return 0;                     // 正常结束
+}                                 // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+2 10 1000</code></pre>
+  <pre><code>输出
+24</code></pre>
+</div>
+<p>复杂度：循环次数为指数二进制位数，即 $O(\log e)$；每次循环做常数次乘法取模，总时间 $O(\log e)$，空间 $O(1)$。注意 <code>res</code> 初值写成 <code>1 % mod</code> 而不是 <code>1</code>，这样 $m=1$ 时结果也是 $0$，不会出现“答案比模数还大”的边界错误。</p>
+
+<h3>7.5 用费马小定理求逆元</h3>
+<p class="cap">代码 5：费马小定理求逆元。样例输入 <code>3 11</code>，输出两行：逆元 <code>4</code> 与校验值 <code>1</code>。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;          // 万能头：引入输入输出等常用标准库
+using namespace std;              // 展开 std 名字空间
+
+long long qpow(long long a, long long e, long long mod) {   // 快速幂：求 a^e mod mod
+    long long res = 1 % mod;      // 答案初值取 1（对 mod 取模，兼顾 mod=1 的退化情况）
+    a %= mod;                     // 底数先取模，保证后续乘法不溢出
+    while (e &gt; 0) {               // 指数没除尽就继续
+        if (e &amp; 1)                // 检查指数最低位
+            res = res * a % mod;  // 该位为 1 时把当前底数乘进答案
+        a = a * a % mod;          // 底数自乘，对应指数的下一位
+        e &gt;&gt;= 1;                  // 指数右移一位
+    }                             // 循环结束
+    return res;                   // 返回结果
+}                                 // qpow 结束
+
+int main() {                      // 程序入口
+    ios::sync_with_stdio(false);  // 关闭流同步，加快读写
+    cin.tie(nullptr);             // 解除 cin 与 cout 的绑定
+    long long a = 0, p = 2;       // 要求逆元的数 a 与质数模数 p
+    cin &gt;&gt; a &gt;&gt; p;                // 读入 a 与 p（p 必须是质数且 p 不整除 a）
+    long long inv = qpow(a, p - 2, p);   // 费马小定理：a^(p-1)=1，故逆元就是 a^(p-2)
+    cout &lt;&lt; inv &lt;&lt; "\n";          // 输出逆元
+    cout &lt;&lt; (a % p) * inv % p &lt;&lt; "\n";   // 输出 a 与逆元的乘积模 p，应当恒为 1
+    return 0;                     // 正常结束
+}                                 // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+3 11</code></pre>
+  <pre><code>输出
+4
+1</code></pre>
+</div>
+<p>验证：$3^{9}\bmod 11$。手算 $3^2=9$，$3^4=81\equiv 4$，$3^8\equiv 16\equiv 5$，所以 $3^9=3^8\cdot 3\equiv 5\cdot 3=15\equiv 4$。确实 $3\times 4=12\equiv 1\pmod{11}$。</p>
+<p>复杂度：一次快速幂 $O(\log p)$ 时间、$O(1)$ 空间。这个方法比 ExGCD 代码更短，但要求 $p$ 是质数；如果模数不是质数（例如 $10^9+9$ 之外的合数模），必须改用 ExGCD。</p>
+</section>
+
+<section id="s8">
+<h2>8. 线性递推求逆元</h2>
+<p>P3811 要求一次输出 $1$ 到 $n$ 每个数在模质数 $p$ 下的逆元，$n$ 可以到 $3\times 10^6$。逐个用 ExGCD 是 $O(n\log p)$，约 $3\times 10^6\times 30=9\times 10^7$ 次递归，常数太大；费马小定理方法也一样。线性递推把总复杂度降到 $O(n)$，思路是用已经算好的较小数的逆元推出当前数的逆元。</p>
+
+<div class="thm">
+  <p class="t">定理 13（逆元的线性递推）</p>
+  <p>设 $p$ 是质数，$1\le i\lt p$。记 $k=\left\lfloor p/i\right\rfloor$，$r=p\bmod i$。则</p>
+  <p>$$\mathrm{inv}[i]\equiv -k\cdot \mathrm{inv}[r]\pmod p,$$</p>
+  <p>写成非负形式就是</p>
+  <p>$$\mathrm{inv}[i]=(p-k)\cdot \mathrm{inv}[r]\bmod p,$$</p>
+  <p>边界为 $\mathrm{inv}[1]=1$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>由带余除法，$p=ki+r$，其中 $0\le r\lt i$。因为 $p$ 是质数且 $1\le i\lt p$，$i$ 不可能是 $p$ 的倍数，所以 $r\ne 0$，即 $1\le r\lt i$。</p>
+  <p>把 $p=ki+r$ 放到模 $p$ 下，左边 $p\equiv 0$，得到</p>
+  <p>$$ki+r\equiv 0\pmod p.$$</p>
+  <p>因为 $1\le i\lt p$ 且 $p$ 是质数，$\gcd(i,p)=1$，$i$ 的逆元存在；同理 $1\le r\lt i\lt p$ 给出 $\gcd(r,p)=1$，$r$ 的逆元也存在。两边同乘 $i^{-1}r^{-1}$：</p>
+  <p>$$k\,i\,i^{-1}r^{-1}+r\,i^{-1}r^{-1}\equiv 0\;\Longrightarrow\;k\,r^{-1}+i^{-1}\equiv 0\pmod p,$$</p>
+  <p>移项得 $i^{-1}\equiv -k\,r^{-1}\pmod p$。又 $-k\equiv p-k\pmod p$，所以 $\mathrm{inv}[i]\equiv (p-k)\,\mathrm{inv}[r]\pmod p$。</p>
+  <p>递推的合法性在于 $r=p\bmod i\lt i$：计算第 $i$ 项时，第 $r$ 项已经算好，不会出现循环依赖。$\square$</p>
+</div>
+<p>这里能约去 $i$ 与 $r$，用的正是定理 9 在 $g=1$ 时的情形；而 $g=1$ 又来自 $p$ 是质数、$i,r$ 都小于 $p$。所以“$p$ 必须是质数”和“$i\lt p$”这两个条件一个都不能少：若 $i$ 是 $p$ 的倍数，$i$ 在模 $p$ 下根本没有逆元，递推式也就无从谈起。</p>
+<p class="cap">代码 6：线性递推求 $1$ 到 $n$ 的逆元（即 P3811 的正解）。样例输入 <code>10 13</code>，输出 10 行，依次是 $1$ 到 $10$ 在模 $13$ 下的逆元。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;            // 万能头：引入输入输出等常用标准库
+using namespace std;                // 展开 std 名字空间
+
+const int MAXN = 3000005;           // n 的上限是 3e6，数组开到 MAXN 略大一点
+int inv[MAXN];                      // inv[i] 存 i 在模 p 意义下的逆元
+
+int main() {                        // 程序入口
+    ios::sync_with_stdio(false);    // 关闭流同步，3e6 行输出时差别很大
+    cin.tie(nullptr);               // 解除 cin 与 cout 的绑定
+    int n = 0;                      // n 表示要求的范围是 1..n
+    long long p = 1;                // p 是模数，可能到 2e9，用 long long 存更稳妥
+    cin &gt;&gt; n &gt;&gt; p;                  // 读入 n 与 p
+    inv[1] = 1;                     // 递推边界：1 的逆元就是 1
+    cout &lt;&lt; 1 &lt;&lt; "\n";              // 输出 i=1 的逆元
+    for (int i = 2; i &lt;= n; ++i) {  // 从 2 开始逐个递推
+        inv[i] = (long long)(p - p / i) * inv[p % i] % p;   // 公式 inv[i]=(p-p/i)*inv[p%i] mod p
+        cout &lt;&lt; inv[i] &lt;&lt; "\n";     // 输出 i 的逆元，用 \n 而不是 endl
+    }                               // 递推结束
+    return 0;                       // 正常结束
+}                                   // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+10 13</code></pre>
+  <pre><code>输出
+1
+7
+9
+10
+8
+11
+2
+5
+3
+4</code></pre>
+</div>
+<p>复杂度：循环 $n-1$ 次，每次一次乘法、一次取模，总时间 $O(n)$；需要存下所有逆元，空间 $O(n)$。注意 <code>p - p / i</code> 可能接近 $2\times 10^9$，与 <code>inv[p % i]</code> 相乘会超过 <code>int</code>，所以乘法前要转成 <code>long long</code>。</p>
+</section>
+
+<section id="s9">
+<h2>9. 等价类、剩余类与完全剩余系</h2>
+
+<h3>9.1 等价关系</h3>
+<p><strong>定义 6（等价关系）</strong> 设 $S$ 是非空集合，$\sim$ 是 $S$ 上的一个关系（对 $S$ 中任意两个元素，要么成立、要么不成立）。若 $\sim$ 满足</p>
+<ol>
+  <li><strong>自反性</strong>：对任意 $a\in S$，$a\sim a$；</li>
+  <li><strong>对称性</strong>：若 $a\sim b$，则 $b\sim a$；</li>
+  <li><strong>传递性</strong>：若 $a\sim b$ 且 $b\sim c$，则 $a\sim c$，</li>
+</ol>
+<p>就称 $\sim$ 是 $S$ 上的一个<strong>等价关系</strong>。由定理 7，模 $m$ 同余就是整数集上的一个等价关系。</p>
+<p>等价关系的意义是“把认为相同的东西归成一类”。给定 $a\in S$，把所有与 $a$ 等价的元素收集起来，记</p>
+<p>$$[a]=\{\,x\in S \mid x\sim a\,\},$$</p>
+<p>称为 $a$ 所在的<strong>等价类</strong>，$a$ 称为这个类的一个<strong>代表元</strong>。</p>
+
+<h3>9.2 等价关系与划分</h3>
+<p><strong>定义 7（划分）</strong> 设 $S$ 是非空集合，$\{A_i\}_{i\in I}$ 是 $S$ 的一族非空子集。若它们两两不交（$i\ne j$ 时 $A_i\cap A_j=\varnothing$），且并集等于 $S$，就称这族子集是 $S$ 的一个<strong>划分</strong>，每个 $A_i$ 称为一个<strong>块</strong>。</p>
+<div class="thm">
+  <p class="t">定理 14（等价关系与划分一一对应）</p>
+  <p>设 $\sim$ 是 $S$ 上的等价关系，则全体等价类构成 $S$ 的一个划分。反过来，给定 $S$ 的一个划分，定义“$a\sim b$ 当且仅当 $a,b$ 属于同一个块”，则 $\sim$ 是 $S$ 上的等价关系，且它的等价类恰好是划分的各块。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>前半：等价类构成划分。</strong></p>
+  <p>（1）每个 $[a]$ 非空：由自反性 $a\in [a]$。</p>
+  <p>（2）不同类不交：设 $[a]\cap [b]\ne\varnothing$，取 $c$ 属于交集，则 $c\sim a$ 且 $c\sim b$。由对称性 $a\sim c$，再由传递性 $a\sim b$。现在任取 $x\in [a]$，有 $x\sim a\sim b$，故 $x\in [b]$，即 $[a]\subseteq [b]$；对称地 $[b]\subseteq [a]$。所以 $[a]=[b]$。这说明两个类要么完全相同，要么不交。</p>
+  <p>（3）并集是整个 $S$：每个 $a$ 都在 $[a]$ 里。三条合起来，$\{[a]\mid a\in S\}$ 是一个划分。</p>
+  <p><strong>后半：划分给出等价关系。</strong>设划分为 $\{A_i\}$，定义 $a\sim b$ 当且仅当存在 $i$ 使 $a,b\in A_i$。自反：$a$ 属于某个块（并集是 $S$）。对称：定义对 $a,b$ 对称。传递：若 $a,b\in A_i$ 且 $b,c\in A_j$，则 $b\in A_i\cap A_j$；块两两不交，交集非空只能是 $i=j$，于是 $a,c\in A_i$，即 $a\sim c$。等价类方面，$[a]$ 就是包含 $a$ 的那个块：$x\in [a]$ 当且仅当 $x$ 与 $a$ 同块，当且仅当 $x\in A_i$。$\square$</p>
+</div>
+<p>这个定理说明“分类”和“等价关系”是同一件事的两种说法：说“按某个标准分类”，等价于“规定一个等价关系”。原文说“等价关系是 $S$ 上的分类规则”，道理就在这里。</p>
+
+<h3>9.3 模 $m$ 的剩余类</h3>
+<p>把定理 14 用到同余关系上。固定正整数 $m$，对整数 $a$ 定义</p>
+<p>$$\overline{a}=\{\,a+km \mid k\in\mathbb{Z}\,\},$$</p>
+<p>称为 $a$ 所在的<strong>剩余类</strong>（也叫同余类）。由 1.2 节，$\overline{a}$ 恰好是所有除以 $m$ 余 $a\bmod m$ 的整数。不同的剩余类共有 $m$ 个，即</p>
+<p>$$\overline{0},\ \overline{1},\ \ldots,\ \overline{m-1},$$</p>
+<p>它们构成整数集的一个划分。这 $m$ 个类合起来记作 $\mathbb{Z}_m$，称为模 $m$ 的<strong>剩余类环</strong>（本页只需要它的集合结构）。</p>
+<p>从每个剩余类中各取一个代表，得到的 $m$ 个整数称为模 $m$ 的一个<strong>完全剩余系</strong>。最常用的完全剩余系是 $0,1,\ldots,m-1$；$1,2,\ldots,m$ 也是一个完全剩余系，$1,3,5,7$ 是模 $4$ 的一个完全剩余系（分别代表 $\overline{1},\overline{3},\overline{1},\overline{3}$ 中的 $\overline{1},\overline{3}$ 各一个）。7.2 节证明费马小定理时，$a,2a,\ldots,(p-1)a$ 模 $p$ 恰好取遍 $1,\ldots,p-1$，说的就是它构成模 $p$ 的一个完全剩余系（去掉 $\overline{0}$）。</p>
+<p>模 $5$ 时，每个整数除以 $5$ 的余数只能是 $0,1,2,3,4$，全体整数被分成 $5$ 个剩余类。把每个类里的数排出来，能看得很清楚：</p>
+<table>
+  <tr><th>剩余类</th><th>这一类里的数（向两端无限延伸）</th></tr>
+  <tr><td>$\overline{0}$</td><td>$\ldots,\ -10,\ -5,\ 0,\ 5,\ 10,\ 15,\ \ldots$</td></tr>
+  <tr><td>$\overline{1}$</td><td>$\ldots,\ -9,\ -4,\ 1,\ 6,\ 11,\ 16,\ \ldots$</td></tr>
+  <tr><td>$\overline{2}$</td><td>$\ldots,\ -8,\ -3,\ 2,\ 7,\ 12,\ 17,\ \ldots$</td></tr>
+  <tr><td>$\overline{3}$</td><td>$\ldots,\ -7,\ -2,\ 3,\ 8,\ 13,\ 18,\ \ldots$</td></tr>
+  <tr><td>$\overline{4}$</td><td>$\ldots,\ -6,\ -1,\ 4,\ 9,\ 14,\ 19,\ \ldots$</td></tr>
+</table>
+<p>例如 $7$ 属于 $\overline{2}$，$2$ 是这个类的代表元；$-8$ 也属于 $\overline{2}$，因为 $-8=2-2\times 5$。原文写的“余数为 $2$ 的剩余类是 $\{\ldots,-8,-3,2,7,12,\ldots\}$”就是这一行的内容。</p>
+
+<h3>9.4 剩余类上的运算</h3>
+<p>既然每个类里有无限多个整数，就要先确认“按代表元算”不会因为代表元选得不同而得到不同的类。这就是下面的良定义问题。</p>
+<div class="thm">
+  <p class="t">定理 15（模运算的良定义）</p>
+  <p>设 $a\equiv a'\pmod m$，$b\equiv b'\pmod m$，则</p>
+  <p>$$\overline{a+b}=\overline{a'+b'},\qquad \overline{a-b}=\overline{a'-b'},\qquad \overline{ab}=\overline{a'b'}.$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>由定理 8，$a+b\equiv a'+b'$、$a-b\equiv a'-b'$、$ab\equiv a'b'\pmod m$。同余的定义就是两者之差被 $m$ 整除，也就是两者落在同一个剩余类里，所以对应的类相等。$\square$</p>
+</div>
+<p>于是可以在 $\mathbb{Z}_m$ 上直接定义加法与乘法：$\overline{a}+\overline{b}=\overline{a+b}$，$\overline{a}\cdot\overline{b}=\overline{ab}$。定理 15 保证换一个代表元算出来的结果不变。原文说“运算结果落在哪一类，只取决于两个操作数各自在哪一类，与具体选类里哪个数无关”，讲的就是这件事。</p>
+<p>原文还给了结合律的一个例子：$(a\times b\times c)\bmod m=((a\bmod m)\times(b\bmod m)\bmod m\times c)\bmod m$。它的依据是定理 8 的乘法性质反复使用：每一步都可以把已经算出的部分换成模 $m$ 下的等价值，最后的剩余类不变。</p>
+
+<h3>9.5 既约剩余类与逆元</h3>
+<p>在 $m$ 个剩余类中，有一类特别重要：与 $m$ 互质的那些数所在的类。若 $\gcd(a,m)=1$，则 $\overline{a}$ 中每个数都与 $m$ 互质（因为类中每个数形如 $a+km$，任何公因数都整除 $a$ 与 $m$），这样的类称为<strong>既约剩余类</strong>。模 $m$ 的既约剩余类共有 $\varphi(m)$ 个，从每个类中各取一个代表就得到<strong>既约剩余系</strong>。</p>
+<p>由定理 10，$a$ 在模 $m$ 下可逆当且仅当 $\gcd(a,m)=1$，也就是说：<strong>可逆的剩余类恰好是既约剩余类，共 $\varphi(m)$ 个。</strong>这句话把第 6 节的逆元与这一节的分类连在了一起，也是 7.3 节欧拉定理证明中“既约剩余系”这个概念的来源。</p>
+</section>
+
+<section id="s10">
+<h2>10. 素数筛：埃氏筛与线性筛</h2>
+
+<h3>10.1 素数与最小质因子</h3>
+<p><strong>定义 8（素数）</strong> 大于 $1$ 且只有 $1$ 与自身两个正因数的整数称为<strong>素数</strong>（质数）；大于 $1$ 且不是素数的整数称为<strong>合数</strong>。$1$ 既不是素数也不是合数。</p>
+<p>每个大于 $1$ 的整数都至少有一个质因数：取它大于 $1$ 的最小正因数 $p$，若 $p$ 是合数，则 $p$ 有更小的因数，与最小性矛盾。把所有质因数中最小的那个记为 $\operatorname{spf}(n)$，称为 $n$ 的<strong>最小质因子</strong>（smallest prime factor）。</p>
+<div class="thm">
+  <p class="t">引理 3</p>
+  <p>若 $n\ge 2$ 是合数，则 $\operatorname{spf}(n)\le \sqrt{n}$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>设 $p=\operatorname{spf}(n)$，写 $n=pm$。因为 $n$ 是合数，$m\ge 2$。若 $m\lt p$，则 $m$ 的某个质因数 $q$ 满足 $q\le m\lt p$，且 $q\mid m\mid n$，这与 $p$ 是 $n$ 的最小质因子矛盾。所以 $m\ge p$，于是 $n=pm\ge p^2$，即 $p\le\sqrt{n}$。$\square$</p>
+</div>
+<p>这条引理是埃氏筛从 $p^2$ 开始标记的依据：小于 $p^2$ 的 $p$ 的倍数一定还有更小的质因子，早就被更小的质数标记过了。</p>
+
+<h3>10.2 埃氏筛</h3>
+<p>算法的想法很直接：从小到大扫描，遇到一个没被标记的数就认定它是素数，然后把它的所有倍数标记成合数。为了保证每个合数都被标记，标记要从 $p^2$ 开始（引理 3 说明更小的 $p$ 的倍数已经有更小的质因子）。</p>
+<div class="thm">
+  <p class="t">定理 16（埃氏筛的正确性）</p>
+  <p>按上述规则扫描完 $2$ 到 $n$ 后，未被标记的数恰好是 $[2,n]$ 中的全体素数。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>素数不会被标记。</strong>标记动作只发生在“对某个素数 $p$，把 $p$ 的真倍数 $kp$（$k\ge p$）标为合数”，被标的数都有 $p$ 这个真因数，确实是合数。所以素数永远不会被标。</p>
+  <p><strong>合数一定会被标记。</strong>设 $n$ 是合数，$p=\operatorname{spf}(n)$。由引理 3，$n\ge p^2$，所以当外层扫描到 $p$ 时，$p^2\le n$，内层循环会从 $p^2$ 开始以步长 $p$ 走到不超过 $n$ 的所有倍数，其中包含 $n$（因为 $p\mid n$ 且 $n\ge p^2$）。$\square$</p>
+</div>
+<div class="thm">
+  <p class="t">定理 17（埃氏筛的复杂度）</p>
+  <p>埃氏筛的标记次数为 $\displaystyle\sum_{p\le\sqrt n}\left(\left\lfloor\frac{n}{p}\right\rfloor-p+1\right)$，它不超过 $n\sum_{p\le n}\frac{1}{p}$。由此得到上界 $O(n\log n)$；更精细的估计 $\sum_{p\le n}\frac{1}{p}=\ln\ln n+O(1)$（梅滕斯定理）给出 $O(n\log\log n)$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>对每个素数 $p\le\sqrt n$，内层标记 $p^2,2p,\ldots$ 直到不超过 $n$，共 $\lfloor n/p\rfloor-p+1$ 次，求和即第一式。因为 $\lfloor n/p\rfloor-p+1\le n/p$，得到不超过 $n\sum_{p\le n}1/p$。</p>
+  <p>把素数集合放大成全体整数 $2,3,\ldots,n$，有</p>
+  <p>$$\sum_{p\le n}\frac{1}{p}\ \le\ \sum_{k=2}^{n}\frac{1}{k}\ \lt\ \int_{1}^{n}\frac{\mathrm{d}x}{x}=\ln n,$$</p>
+  <p>所以标记次数是 $O(n\log n)$。这个界成立，但松了一个 $\log\log n$ 因子：素数在整数中越来越稀疏，$\sum_{p\le n}1/p$ 实际上只增长到 $\ln\ln n$ 的量级（梅滕斯定理），所以真实复杂度是 $O(n\log\log n)$。$\square$</p>
+</div>
+<div class="note">
+  <p><strong>原文订正。</strong>原文表格把埃氏筛写成 $O(n\log n)$。这个写法作为上界没有错，但它不是紧界；题目和数据范围里通用的说法是 $O(n\log\log n)$。本页保留两种写法并说明差别，做题时按 $n\log\log n$ 估算更准确。</p>
+</div>
+<p class="cap">代码 7：埃氏筛。样例输入 <code>30</code>，输出 $30$ 以内的全部素数。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;            // 万能头：引入输入输出与容器
+using namespace std;                // 展开 std 名字空间
+
+const int MAXN = 100000005;         // 数据上限 1e8，数组开大 5 个位置防止越界
+bool is_comp[MAXN];                 // is_comp[x] 为 true 表示 x 是合数，初值全为 false
+vector&lt;int&gt; primes;                 // 按从小到大存放筛出来的质数
+
+int main() {                        // 程序入口
+    ios::sync_with_stdio(false);    // 关闭流同步，加快输入
+    cin.tie(nullptr);               // 解除 cin 与 cout 的绑定
+    int n = 0;                      // 要筛出 1..n 中的所有质数
+    cin &gt;&gt; n;                       // 读入 n
+    for (int i = 2; i &lt;= n; ++i) {  // 从 2 开始逐个判断
+        if (!is_comp[i]) {          // 没有被更小的质数标记过，说明 i 本身是质数
+            primes.push_back(i);    // 把质数 i 收进结果表
+            if ((long long)i * i &lt;= n)                    // 只有当 i*i 不超过 n 时才需要去筛
+                for (long long j = (long long)i * i; j &lt;= n; j += i)   // 从 i*i 开始，把 i 的倍数逐个标记
+                    is_comp[(int)j] = true;               // 标记 j 是合数
+        }                           // 质数处理结束
+    }                               // 外层循环结束
+    for (size_t k = 0; k &lt; primes.size(); ++k)   // 按下标遍历所有筛出的质数
+        cout &lt;&lt; primes[k] &lt;&lt; (k + 1 == primes.size() ? "\n" : " ");   // 用空格分隔输出，最后一个换行
+    return 0;                       // 正常结束
+}                                   // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+30</code></pre>
+  <pre><code>输出
+2 3 5 7 11 13 17 19 23 29</code></pre>
+</div>
+<p>复杂度：标记总次数 $O(n\log\log n)$，空间是一个 $n+1$ 大小的布尔数组 $O(n)$。注意内层循环用 <code>long long</code> 的 <code>j</code>：当 $i$ 接近 $n$ 时，<code>i*i</code> 会超过 <code>int</code> 的范围，用 <code>int</code> 会溢出成负数，循环条件失效甚至越界。</p>
+
+<h3>10.3 线性筛（欧拉筛）</h3>
+<p>埃氏筛的浪费在于同一个合数会被多个质因子重复标记，例如 $12$ 会被 $2$ 和 $3$ 各标一次。线性筛的想法是：<strong>规定每个合数只由它的最小质因子标记一次</strong>。具体做法是外层枚举 $i$，内层按从小到大枚举已经找到的素数 $p$，标记 $i\cdot p$；一旦发现 $p\mid i$ 就立刻退出内层循环。这条退出规则是全部正确性的关键。</p>
+<div class="thm">
+  <p class="t">定理 18（线性筛的正确性）</p>
+  <p>按上述规则（内层枚举质数 $p$，标记 $i\cdot p$，遇到 $p\mid i$ 立即 break）处理完 $2$ 到 $n$ 后：每个合数恰好被标记一次，每个素数都不会被标记。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>先记两个事实。第一，内层按递增顺序枚举质数，所以 break 发生在 $i$ 的最小质因子处（若 $p\mid i$，则 $p$ 是 $i$ 的质因子，第一个整除 $i$ 的质数就是 $\operatorname{spf}(i)$）。第二，当内层枚举到 $p$ 时，若此前没有 break，说明所有小于 $p$ 的质数都不整除 $i$。</p>
+  <p><strong>（a）每个合数都会被标记。</strong>设 $n$ 是合数，$p=\operatorname{spf}(n)$，$m=n/p$。由 $p$ 的最小性，$m$ 的每个质因子都不小于 $p$（否则 $m$ 有更小的质因子 $q\lt p$，$q\mid m\mid n$，与 $p$ 最小矛盾），所以 $\operatorname{spf}(m)\ge p$。当外层枚举到 $i=m$ 时，内层从最小的质数开始枚举，在枚举到 $p$ 之前遇到的质数都小于 $p\le\operatorname{spf}(m)$，因此都不整除 $m$，不会 break；枚举到 $p$ 时，$p$ 是质数且 $i\cdot p=n\le n$，于是 $n$ 被标记。</p>
+  <p><strong>（b）每个合数至多被标记一次。</strong>假设 $n$ 在某次标记中被写成 $i\cdot p$，其中 $p$ 是质数。由于这次标记没有被更早的 break 跳过，所有小于 $p$ 的质数都不整除 $i$，即 $\operatorname{spf}(i)\ge p$。于是</p>
+  <p>$$\operatorname{spf}(n)=\operatorname{spf}(i\cdot p)=\min(\operatorname{spf}(i),p)=p.$$</p>
+  <p>这说明标记 $n$ 的那个质数 $p$ 只能是 $n$ 的最小质因子，被唯一确定；进而 $i=n/p$ 也被唯一确定。所以 $n$ 只能由数对 $(n/p,\ \operatorname{spf}(n))$ 标记一次。</p>
+  <p><strong>（c）素数不会被标记。</strong>标记出的数都形如 $i\cdot p$，其中 $i\ge 2$、$p\ge 2$，是合数。所以素数永远不会进入标记。$\square$</p>
+</div>
+<div class="thm">
+  <p class="t">定理 19（线性筛的复杂度）</p>
+  <p>线性筛的时间复杂度为 $O(n)$，空间复杂度为 $O(n)$。</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p>外层循环执行 $n-1$ 次，每次做一次质数判定，共 $O(n)$。内层的每次迭代要么标记一个合数后继续，要么标记一个合数后 break；也就是说每一次内层迭代都恰好标记了一个新的合数，而由定理 18，每个合数只被标记一次，合数总数不超过 $n$。所以内层迭代总次数不超过 $n$，内外合计 $O(n)$。空间上需要一个长为 $n+1$ 的布尔数组和一个最多 $\pi(n)$ 个元素的质数表，都是 $O(n)$。$\square$</p>
+</div>
+<p class="cap">代码 8：线性筛，同时是 P3383 的完整代码。样例输入 <code>100 5</code> 与 5 个询问，输出前 5 个素数。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;            // 万能头：引入输入输出与 vector
+using namespace std;                // 展开 std 名字空间
+
+const int MAXN = 100000005;         // n 的上限是 1e8，数组开大一点
+bool is_comp[MAXN];                 // is_comp[x] 为 true 表示 x 已被判定为合数
+vector&lt;int&gt; primes;                 // 按从小到大保存所有质数，下标从 0 开始
+
+int main() {                        // 程序入口
+    ios::sync_with_stdio(false);    // 关闭流同步，加快输入
+    cin.tie(nullptr);               // 解除 cin 与 cout 的绑定
+    int n = 0, q = 0;               // n 是筛的范围，q 是询问个数
+    cin &gt;&gt; n &gt;&gt; q;                  // 读入 n 与 q
+    for (int i = 2; i &lt;= n; ++i) {  // 依次处理 2..n 的每个数
+        if (!is_comp[i]) {          // 没被标记过就是质数
+            primes.push_back(i);    // 把质数 i 加入质数表
+        }                           // 质数判断结束
+        for (size_t t = 0; t &lt; primes.size(); ++t) {   // 枚举已知质数，按从小到大
+            int p = primes[t];      // 取出当前质数
+            if ((long long)i * p &gt; n) break;           // 先把 i 转成 long long 再乘，乘积不会溢出；超过 n 就停止标记
+            is_comp[i * p] = true;  // 标记 i*p 是合数，它的最小质因子是 p
+            if (i % p == 0) break;  // p 整除 i 时 p 已是 i 的最小质因子，继续枚举会重复筛，立即退出
+        }                           // 内层枚举结束
+    }                               // 外层循环结束
+    for (int t = 1; t &lt;= q; ++t) {  // 处理 q 次询问
+        int k = 0;                  // 询问第 k 小的质数
+        cin &gt;&gt; k;                   // 读入 k
+        cout &lt;&lt; primes[k - 1] &lt;&lt; "\n";   // 下标从 0 开始，所以第 k 小是 primes[k-1]
+    }                               // 询问处理结束
+    return 0;                       // 正常结束
+}                                   // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+100 5
+1 2 3 4 5</code></pre>
+  <pre><code>输出
+2
+3
+5
+7
+11</code></pre>
+</div>
+<p>复杂度：预处理 $O(n)$，单次询问 $O(1)$（直接按下标取），空间 $O(n)$。内层循环把 <code>i * p &gt; n</code> 的判断放在标记之前，且用 <code>long long</code> 做强转，是为了避免 $i\cdot p$ 在 <code>int</code> 中溢出成负数后误判。</p>
+<div class="note">
+  <p><strong>原文订正。</strong>原文解释线性筛时写“当 $p_j\mid i$ 时，$p_j$ 是 $i$ 的最小质因子”。严格地说，只有在内层<strong>第一次</strong>遇到整除时这句话才成立；如果继续枚举下去，后面还会有别的质因子整除 $i$（例如 $i=12$ 时 $2$ 与 $3$ 都整除 $12$），而它们不是最小质因子。原文的下一句“标记后立即 break”已经把这个问题堵住了，但表述上应改成“内层从小到大枚举，第一个整除 $i$ 的 $p_j$ 就是 $i$ 的最小质因子，此时立即 break”。</p>
+</div>
+<p>原文还提到“循环条件写成 <code>primes[j] &lt;= n / i</code> 而不是 <code>primes[j] * i &lt;= n</code>，防止乘法溢出”。这个建议是对的，本页代码用的是另一种等价写法：先转成 <code>long long</code> 再乘，同样不会溢出，读起来更直接。两种写法选一种即可，不要两种都不用。</p>
+</section>
+
+<section id="s11">
+<h2>11. 线性筛顺带求欧拉函数与莫比乌斯函数</h2>
+<p>原文提到“由于每个合数恰好被处理一次，且此时最小质因子已知，可在筛的过程中顺带递推积性函数，如欧拉函数 $\varphi$、莫比乌斯函数 $\mu$”。这句话展开就是本节的内容。</p>
+
+<h3>11.1 两个函数的定义</h3>
+<p><strong>定义 9（欧拉函数）</strong> $\varphi(n)$ 表示 $1,2,\ldots,n$ 中与 $n$ 互质的数的个数，$\varphi(1)=1$。由 7.3 节，$\varphi(p)=p-1$（$p$ 为质数），$\varphi(p^k)=p^k-p^{k-1}$。</p>
+<p><strong>定义 10（莫比乌斯函数）</strong></p>
+<p>$$\mu(n)=\begin{cases}1, &amp; n=1,\\ (-1)^k, &amp; n=p_1p_2\cdots p_k,\ \text{其中 }p_i\text{ 是互不相同的质数},\\ 0, &amp; \text{存在质数 }p\text{ 使 }p^2\mid n.\end{cases}$$</p>
+<p>例如 $\mu(1)=1$，$\mu(2)=-1$，$\mu(6)=\mu(2\cdot 3)=1$，$\mu(4)=0$，$\mu(12)=0$（被 $4$ 整除）。</p>
+<p>两个函数都是<strong>积性函数</strong>：当 $\gcd(a,b)=1$ 时，$f(ab)=f(a)f(b)$。对 $\varphi$ 用公式 $\varphi(n)=n\prod_{q\mid n}\left(1-\frac{1}{q}\right)$ 可证；对 $\mu$ 直接由定义可证（互质意味着质因子集合不交，指数相加）。</p>
+
+<h3>11.2 递推式与证明</h3>
+<div class="thm">
+  <p class="t">定理 20（线性筛中的递推）</p>
+  <p>设 $p$ 是质数，$i\ge 2$，$ip\le n$。则</p>
+  <p>$$\varphi(ip)=\begin{cases}\varphi(i)\cdot p, &amp; p\mid i,\\ \varphi(i)\cdot(p-1), &amp; p\nmid i,\end{cases}\qquad
+     \mu(ip)=\begin{cases}0, &amp; p\mid i,\\ -\mu(i), &amp; p\nmid i.\end{cases}$$</p>
+</div>
+<div class="proof">
+  <p class="t">证明</p>
+  <p><strong>欧拉函数，$p\mid i$ 的情形。</strong>此时 $i$ 与 $ip$ 的质因子集合完全相同（乘 $p$ 只是把 $p$ 的指数加一，不引入新的质因子）。由 $\varphi(n)=n\prod_{q\mid n}(1-1/q)$，</p>
+  <p>$$\varphi(ip)=ip\prod_{q\mid ip}\left(1-\frac{1}{q}\right)=p\cdot i\prod_{q\mid i}\left(1-\frac{1}{q}\right)=p\,\varphi(i).$$</p>
+  <p><strong>欧拉函数，$p\nmid i$ 的情形。</strong>此时 $\gcd(i,p)=1$，$\varphi$ 是积性函数，所以 $\varphi(ip)=\varphi(i)\varphi(p)=\varphi(i)(p-1)$。</p>
+  <p><strong>莫比乌斯函数，$p\mid i$ 的情形。</strong>此时 $p^2\mid ip$，按定义 $\mu(ip)=0$。</p>
+  <p><strong>莫比乌斯函数，$p\nmid i$ 的情形。</strong>此时 $i$ 与 $p$ 互质，$\mu$ 是积性函数，$\mu(ip)=\mu(i)\mu(p)=-\mu(i)$。$\square$</p>
+</div>
+<p>递推之所以能在线性筛里顺手做完，是因为标记 $ip$ 的那一刻恰好知道 $p$ 是不是 $i$ 的质因子（就是 break 的判断条件），两种情形不会搞混。这也解释了为什么必须把 break 写在标记之后：若先 break 再标记，$ip$ 就漏掉了。</p>
+
+<h3>11.3 代码</h3>
+<p class="cap">代码 9：线性筛同时求 $\varphi$ 与 $\mu$。样例输入 <code>10</code>，输出 $1$ 到 $10$ 的 $i$、$\varphi(i)$、$\mu(i)$。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;            // 万能头：引入输入输出与 vector
+using namespace std;                // 展开 std 名字空间
+
+const int MAXN = 1000005;           // n 的上限设为 1e6，需要更大时同步改大
+bool is_comp[MAXN];                 // 合数标记
+vector&lt;int&gt; primes;                 // 质数表
+int phi[MAXN];                      // phi[i] 表示 1..i 中与 i 互质的数的个数
+int mu[MAXN];                       // mu[i] 是莫比乌斯函数，取值 -1、0、1
+
+int main() {                        // 程序入口
+    ios::sync_with_stdio(false);    // 关闭流同步，输出行数很多时更快
+    cin.tie(nullptr);               // 解除 cin 与 cout 的绑定
+    int n = 0;                      // 递推范围
+    cin &gt;&gt; n;                       // 读入 n
+    phi[1] = 1;                     // 1 与 1 互质，所以 phi[1]=1
+    mu[1] = 1;                      // 莫比乌斯函数的定义给出 mu[1]=1
+    for (int i = 2; i &lt;= n; ++i) {  // 从 2 开始线性筛
+        if (!is_comp[i]) {          // i 是质数
+            primes.push_back(i);    // 收进质数表
+            phi[i] = i - 1;         // 质数 i 与 1..i-1 全部互质
+            mu[i] = -1;             // 质数只有一个质因子，按定义 mu 为 -1
+        }                           // 质数初始化结束
+        for (size_t t = 0; t &lt; primes.size(); ++t) {   // 枚举质数
+            int p = primes[t];      // 取出质数 p
+            if ((long long)i * p &gt; n) break;           // 超过范围就退出，用 long long 防溢出
+            is_comp[i * p] = true;  // 标记 i*p 为合数
+            if (i % p == 0) {       // p 是 i 的最小质因子，i*p 中 p 的指数要加一
+                phi[i * p] = phi[i] * p;    // 此时 phi(i*p)=phi(i)*p
+                mu[i * p] = 0;      // p^2 整除 i*p，莫比乌斯函数为 0
+                break;              // 每个合数只被最小质因子筛一次，立即退出
+            }                       // 分支结束
+            phi[i * p] = phi[i] * (p - 1);   // p 不整除 i，phi 是积性函数，乘 phi(p)=p-1
+            mu[i * p] = -mu[i];     // p 不整除 i，mu 是积性函数，mu(i*p)=mu(i)*mu(p)=-mu(i)
+        }                           // 内层枚举结束
+    }                               // 筛法结束
+    for (int i = 1; i &lt;= n; ++i)    // 逐个输出结果
+        cout &lt;&lt; i &lt;&lt; " " &lt;&lt; phi[i] &lt;&lt; " " &lt;&lt; mu[i] &lt;&lt; "\n";   // 输出 i、phi(i)、mu(i)
+    return 0;                       // 正常结束
+}                                   // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+10</code></pre>
+  <pre><code>输出
+1 1 1
+2 1 -1
+3 2 -1
+4 2 0
+5 4 -1
+6 2 1
+7 6 -1
+8 4 0
+9 6 0
+10 4 1</code></pre>
+</div>
+<p>复杂度：与线性筛相同，$O(n)$ 时间、$O(n)$ 空间。初始化时 $i=1$ 要单独赋值 $\varphi(1)=\mu(1)=1$，因为外层循环从 $2$ 开始，$1$ 不会被质数分支处理到。</p>
+</section>
+
+<section id="s12">
+<h2>12. 例题一：P1082 [NOIP2012 提高组] 同余方程</h2>
+
+<h3>12.1 题意</h3>
+<p>给定两个正整数 $a,b$，求最小的正整数 $x$，使得</p>
+<p>$$ax\equiv 1\pmod b.$$</p>
+<p>输入保证这样的解存在。数据范围：$2\le a,b\le 2\times 10^9$。</p>
+
+<h3>12.2 数学模型</h3>
+<p>按定义，$ax\equiv 1\pmod b$ 等价于存在整数 $y$ 使 $ax-1=by$，即</p>
+<p>$$ax+by=1.$$</p>
+<p>这是二元一次不定方程。由推论 1，它有整数解的充要条件是 $\gcd(a,b)\mid 1$，即 $\gcd(a,b)=1$。题目说“输入保证存在这样的解”，等价于保证 $a$ 与 $b$ 互质。</p>
+<p>题目的要求不只是“求一组解”，而是“求最小的正整数解”。由定理 6，$g=1$ 时方程的通解是</p>
+<p>$$x=x_0+bk,\qquad y=y_0-ak,\qquad k\in\mathbb{Z}.$$</p>
+<p>也就是说所有解的 $x$ 相差 $b$ 的整数倍，在 $[0,b)$ 中恰有一个。把 ExGCD 得到的 $x_0$ 对 $b$ 取模归位，就得到最小正整数解。</p>
+
+<h3>12.3 解题步骤</h3>
+<ol>
+  <li>读入 $a,b$；</li>
+  <li>调用 ExGCD 求 $ax+by=1$ 的一组特解 $(x_0,y_0)$，同时得到 $g=\gcd(a,b)$（本题由题意 $g=1$）；</li>
+  <li>把 $x_0$ 调整到 $[0,b)$：<code>x = (x0 % b + b) % b</code>；</li>
+  <li>输出 $x$。</li>
+</ol>
+<p>第 3 步为什么要加一个 $b$：C++ 的 <code>%</code> 对负数取模结果仍是负数，例如 <code>-3 % 10</code> 得 $-3$，而数学上需要的是 $7$。先加 $b$ 把负数拉成非负，再取一次模处理 $x_0$ 本身非负的情况，两步合起来就得到 $[0,b)$ 内的值。因为 $x_0\not\equiv 0\pmod b$（否则 $ax_0\equiv 0$，与 $ax_0\equiv 1$ 矛盾），结果一定落在 $[1,b-1]$ 里，正是最小正整数解。</p>
+
+<h3>12.4 代码</h3>
+<p class="cap">代码 10：P1082 完整代码。样例输入 <code>3 10</code>，输出 <code>7</code>。</p>
+<pre class="c"><code>#include &lt;bits/stdc++.h&gt;          // 万能头：本题只需要输入输出
+using namespace std;              // 展开 std 名字空间
+
+void exgcd(long long a, long long b, long long &amp;x, long long &amp;y) {  // 求 ax+by=gcd(a,b) 的一组特解，本题保证 gcd(a,b)=1
+    if (b == 0) {                 // 递归终点：方程退化成 a*x+0*y=a
+        x = 1;                    // 取 x=1，则 a*1+0*0=a，是一组解
+        y = 0;                    // y 取 0 即可，它不会再影响当前层的正确性
+        return;                   // 递归终点直接返回
+    }                             // 递归终点处理结束
+    long long x1 = 0, y1 = 0;     // 存放下一层（b 与 a%b）求出的特解
+    exgcd(b, a % b, x1, y1);      // 递归求解 b*x1+(a%b)*y1=gcd(b,a%b)
+    x = y1;                       // 用下一层的 y1 作为当前层的 x
+    y = x1 - (a / b) * y1;        // 用下一层的 x1 与 y1 反推当前层的 y
+}                                 // exgcd 结束
+
+int main() {                      // 程序入口
+    ios::sync_with_stdio(false);  // 关闭流同步，加快读写
+    cin.tie(nullptr);             // 解除 cin 与 cout 的绑定
+    long long a = 0, b = 0;       // 题目给出的两个正整数
+    cin &gt;&gt; a &gt;&gt; b;                // 读入 a 与 b
+    long long x = 0, y = 0;       // 接收 ax+by=1 的一组整数解
+    exgcd(a, b, x, y);            // 求出特解，题目保证 gcd(a,b)=1，所以解出的一定满足 ax+by=1
+    cout &lt;&lt; (x % b + b) % b &lt;&lt; "\n";   // 把 x 调成 [0,b) 内的最小正整数解并输出
+    return 0;                     // 正常结束
+}                                 // 程序结束</code></pre>
+<div class="io">
+  <pre><code>输入
+3 10</code></pre>
+  <pre><code>输出
+7</code></pre>
+</div>
+
+<h3>12.5 用样例手推一遍</h3>
+<p>以 $a=3,b=10$ 为例，逐步跟踪 ExGCD 的递归与回溯。注意递归是“下降”阶段，$x,y$ 的实际赋值发生在“回溯”阶段。</p>
+<table>
+  <tr><th>步骤</th><th>当前调用</th><th>$b$ 是否为 $0$</th><th>发生的事</th></tr>
+  <tr><td>1</td><td><code>exgcd(3, 10)</code></td><td>否</td><td>继续递归 <code>exgcd(10, 3)</code></td></tr>
+  <tr><td>2</td><td><code>exgcd(10, 3)</code></td><td>否</td><td>继续递归 <code>exgcd(3, 1)</code></td></tr>
+  <tr><td>3</td><td><code>exgcd(3, 1)</code></td><td>否</td><td>继续递归 <code>exgcd(1, 0)</code></td></tr>
+  <tr><td>4</td><td><code>exgcd(1, 0)</code></td><td>是</td><td>$x_1=1,\ y_1=0$，返回；此时 $1\times 1+0\times 0=1$</td></tr>
+  <tr><td>5</td><td>回到 <code>exgcd(3, 1)</code></td><td>—</td><td>$x=y_1=0$，$y=x_1-\lfloor 3/1\rfloor y_1=1-3\times 0=1$；验证 $3\times 0+1\times 1=1$</td></tr>
+  <tr><td>6</td><td>回到 <code>exgcd(10, 3)</code></td><td>—</td><td>$x=1$，$y=0-\lfloor 10/3\rfloor\times 1=-3$；验证 $10\times 1+3\times(-3)=1$</td></tr>
+  <tr><td>7</td><td>回到 <code>exgcd(3, 10)</code></td><td>—</td><td>$x=-3$，$y=1-\lfloor 3/10\rfloor\times(-3)=1-0=1$；验证 $3\times(-3)+10\times 1=1$</td></tr>
+  <tr><td>8</td><td><code>main</code> 修正</td><td>—</td><td>$(-3\bmod 10+10)\bmod 10=(-3+10)\bmod 10=7$，输出 $7$</td></tr>
+</table>
+<p>校验：$3\times 7=21=2\times 10+1$，所以 $3\times 7\equiv 1\pmod{10}$，且 $7$ 是 $[1,9]$ 中唯一满足的解。程序实际输出 <code>7</code>，与手推一致。</p>
+
+<h3>12.6 复杂度与坑点</h3>
+<p>时间复杂度 $O(\log\min(a,b))$：递归深度与欧几里得算法相同。空间复杂度 $O(\log\min(a,b))$，来自递归栈。$a,b\le 2\times 10^9$ 时递归深度约 $45$ 层，远低于栈限制。</p>
+<ul>
+  <li><strong>负数取模</strong>：直接输出 <code>x % b</code> 会得到负数，必须用 <code>(x % b + b) % b</code>。</li>
+  <li><strong>溢出</strong>：<code>a / b</code> 与 <code>y1</code> 相乘可能超过 <code>int</code>，必须用 <code>long long</code>。</li>
+  <li><strong>题意</strong>：题目要的是最小<strong>正</strong>整数解，不是最小非负解；本题不会出现 $0$ 解，但换一道题（右端为 $c\gt 1$）时要单独判断。</li>
+</ul>
+</section>
+
+<section id="s13">
+<h2>13. 例题二：P3811 【模板】乘法逆元</h2>
+
+<h3>13.1 题意</h3>
+<p>给定正整数 $n,p$，求 $1$ 到 $n$ 中每个数在模 $p$ 意义下的乘法逆元，每个逆元占一行。数据范围：$1\le n\le 3\times 10^6$，$n\lt p\lt 2\times 10^9$，保证 $p$ 是质数。</p>
+
+<h3>13.2 数学模型</h3>
+<p>要求输出序列 $\mathrm{inv}_1,\mathrm{inv}_2,\ldots,\mathrm{inv}_n$，其中每个 $\mathrm{inv}_i$ 满足</p>
+<p>$$1\le \mathrm{inv}_i\lt p,\qquad i\cdot \mathrm{inv}_i\equiv 1\pmod p.$$</p>
+<p>由 $n\lt p$ 且 $p$ 是质数，$1\le i\le n$ 的每个 $i$ 都与 $p$ 互质，所以逆元全部存在（定理 10），且落在 $[1,p-1]$ 内唯一。</p>
+
+<h3>13.3 解题思路</h3>
+<p>用 8 节的线性递推（定理 13）。对每个 $i\ge 2$，令 $k=\lfloor p/i\rfloor$、$r=p\bmod i$，则</p>
+<p>$$\mathrm{inv}[i]=(p-k)\cdot \mathrm{inv}[r]\bmod p.$$</p>
+<p>因为 $1\le r\lt i$，$\mathrm{inv}[r]$ 在算第 $i$ 项时已经求出。边界 $\mathrm{inv}[1]=1$。整个数组从头到尾扫一遍即可，代码见代码 6（8 节），这里不再重复贴出。</p>
+
+<h3>13.4 用样例手推一遍</h3>
+<p>样例 $n=10,p=13$。逐行计算 $k=\lfloor 13/i\rfloor$、$r=13\bmod i$、$\mathrm{inv}[i]=(13-k)\cdot\mathrm{inv}[r]\bmod 13$。</p>
+<table>
+  <tr><th>$i$</th><th>$k=\lfloor 13/i\rfloor$</th><th>$r=13\bmod i$</th><th>$\mathrm{inv}[r]$</th><th>$(13-k)\times\mathrm{inv}[r]$</th><th>$\mathrm{inv}[i]$</th><th>校验 $i\times\mathrm{inv}[i]\bmod 13$</th></tr>
+  <tr><td>1</td><td>—</td><td>—</td><td>—</td><td>规定</td><td>1</td><td>1</td></tr>
+  <tr><td>2</td><td>6</td><td>1</td><td>1</td><td>$7\times 1=7$</td><td>7</td><td>$14\bmod 13=1$</td></tr>
+  <tr><td>3</td><td>4</td><td>1</td><td>1</td><td>$9\times 1=9$</td><td>9</td><td>$27\bmod 13=1$</td></tr>
+  <tr><td>4</td><td>3</td><td>1</td><td>1</td><td>$10\times 1=10$</td><td>10</td><td>$40\bmod 13=1$</td></tr>
+  <tr><td>5</td><td>2</td><td>3</td><td>9</td><td>$11\times 9=99$</td><td>8</td><td>$40\bmod 13=1$</td></tr>
+  <tr><td>6</td><td>2</td><td>1</td><td>1</td><td>$11\times 1=11$</td><td>11</td><td>$66\bmod 13=1$</td></tr>
+  <tr><td>7</td><td>1</td><td>6</td><td>11</td><td>$12\times 11=132$</td><td>2</td><td>$14\bmod 13=1$</td></tr>
+  <tr><td>8</td><td>1</td><td>5</td><td>8</td><td>$12\times 8=96$</td><td>5</td><td>$40\bmod 13=1$</td></tr>
+  <tr><td>9</td><td>1</td><td>4</td><td>10</td><td>$12\times 10=120$</td><td>3</td><td>$27\bmod 13=1$</td></tr>
+  <tr><td>10</td><td>1</td><td>3</td><td>9</td><td>$12\times 9=108$</td><td>4</td><td>$40\bmod 13=1$</td></tr>
+</table>
+<p>其中 $99\bmod 13=99-7\times 13=8$，$132\bmod 13=132-10\times 13=2$，$96\bmod 13=96-7\times 13=5$，$120\bmod 13=120-9\times 13=3$，$108\bmod 13=108-8\times 13=4$。输出序列 $1,7,9,10,8,11,2,5,3,4$ 与程序实际输出完全一致。</p>
+
+<h3>13.5 复杂度与坑点</h3>
+<p>时间复杂度 $O(n)$：外层循环 $n-1$ 次，每次常数操作。空间复杂度 $O(n)$：需要保存全部逆元（递推时要用到前面任意项）。</p>
+<ul>
+  <li><strong>输出太慢</strong>：$3\times 10^6$ 行输出，使用 <code>endl</code> 会频繁刷新缓冲区导致超时；必须关闭流同步并用 <code>"\n"</code>。原文把它列在“本题坑点”，严格说这是性能问题而不是正确性问题：小数据下用 <code>endl</code> 结果仍然对。</li>
+  <li><strong>溢出</strong>：<code>(p - p / i)</code> 接近 $2\times 10^9$，与逆元相乘必须用 <code>long long</code> 承接，否则结果随机。</li>
+  <li><strong>条件</strong>：递推要求 $p$ 是质数且 $n\lt p$。若 $i$ 是 $p$ 的倍数，$i$ 没有逆元，递推式会算出错误结果。</li>
+  <li><strong>数组大小</strong>：$n\le 3\times 10^6$，数组要开到 $3\times 10^6+5$，开小了会越界。</li>
+</ul>
+</section>
+
+<section id="s14">
+<h2>14. 例题三：P3383 【模板】线性筛素数</h2>
+
+<h3>14.1 题意</h3>
+<p>给定正整数 $n$ 与 $q$ 次询问，每次询问给出一个 $k$，要求输出从小到大排列的第 $k$ 个素数。数据范围：$1\le n\le 10^8$，$1\le q\le 10^6$。</p>
+
+<h3>14.2 数学模型</h3>
+<p>设 $P=\{p_1,p_2,\ldots,p_m\}$ 是 $[2,n]$ 中的全体素数，按从小到大排列。对每个询问 $k$，返回 $p_k$。预处理的目标是让 $P$ 满足单调、可随机访问，这样单次询问就是 $O(1)$ 的数组下标访问。</p>
+
+<h3>14.3 解题思路</h3>
+<p>用 10.3 节的线性筛（定理 18、19）：外层枚举 $i$，遇到未被标记的 $i$ 就收进质数表；内层按从小到大枚举质数 $p$，标记 $i\cdot p$，一旦 $p\mid i$ 立即 break。预处理完成后，$p_k$ 就是 <code>primes[k-1]</code>（数组下标从 $0$ 开始）。完整代码见代码 8（10.3 节）。</p>
+
+<h3>14.4 用样例手推一遍</h3>
+<p>样例 $n=100$，询问 $k=1,2,3,4,5$。只看前几步，观察内层标记与 break 的时机。</p>
+<table>
+  <tr><th>$i$</th><th>$i$ 是否质数</th><th>内层枚举的 $p$</th><th>标记 $i\cdot p$</th><th>是否 break</th></tr>
+  <tr><td>2</td><td>是，入表</td><td>2</td><td>4</td><td>$2\mid 2$，break</td></tr>
+  <tr><td>3</td><td>是，入表</td><td>2</td><td>6</td><td>否</td></tr>
+  <tr><td></td><td></td><td>3</td><td>9</td><td>$3\mid 3$，break</td></tr>
+  <tr><td>4</td><td>否</td><td>2</td><td>8</td><td>$2\mid 4$，break</td></tr>
+  <tr><td>5</td><td>是，入表</td><td>2</td><td>10</td><td>否</td></tr>
+  <tr><td></td><td></td><td>3</td><td>15</td><td>否</td></tr>
+  <tr><td></td><td></td><td>5</td><td>25</td><td>$5\mid 5$，break</td></tr>
+  <tr><td>6</td><td>否</td><td>2</td><td>12</td><td>$2\mid 6$，break</td></tr>
+  <tr><td>7</td><td>是，入表</td><td>2, 3, 5, 7</td><td>14, 21, 35, 49</td><td>$7\mid 7$，break</td></tr>
+  <tr><td>8</td><td>否</td><td>2</td><td>16</td><td>$2\mid 8$，break</td></tr>
+  <tr><td>9</td><td>否</td><td>2, 3</td><td>18, 27</td><td>$3\mid 9$，break</td></tr>
+  <tr><td>10</td><td>否</td><td>2</td><td>20</td><td>$2\mid 10$，break</td></tr>
+</table>
+<p>可以看到每个合数只在它最小质因子对应的那一行出现一次：$12$ 只在 $i=6,p=2$ 时被标，不会在 $i=4,p=3$ 时被重复标记（$i=4$ 在 $p=2$ 处已经 break）。质数表依次长成 $2,3,5,7,11,\ldots$，所以 $k=1,2,3,4,5$ 的答案就是 $2,3,5,7,11$，与程序实际输出一致。</p>
+
+<h3>14.5 复杂度与坑点</h3>
+<p>预处理时间 $O(n)$，单次询问 $O(1)$，总时间 $O(n+q)$；空间为一个 $10^8$ 大小的布尔数组与质数表，$O(n)$。</p>
+<ul>
+  <li><strong>数组大小与内存</strong>：$n\le 10^8$，<code>bool</code> 数组占 $100$ MB 左右，接近部分题目的内存上限；用 <code>int</code> 数组会直接爆内存。原文“使用布尔类型 <code>bool</code> 替代 <code>int</code> 数组”说的就是这个。</li>
+  <li><strong>乘法溢出</strong>：<code>i * p</code> 在 $i,p$ 都到 $10^8$ 量级时会超过 <code>int</code>，必须先转 <code>long long</code> 再比较或访问。</li>
+  <li><strong>判定顺序</strong>：必须先判断 <code>i * p &gt; n</code> 再访问 <code>is_comp[i*p]</code>，否则会越界；判断与标记的先后不能颠倒。</li>
+  <li><strong>变量命名</strong>：原文完整代码里数组叫 <code>is_prime</code>，但值为 <code>true</code> 表示“是合数”，语义正好相反，读代码时极易看错。本页改名为 <code>is_comp</code>，建议自己写的时候也这样命名。</li>
+</ul>
+</section>
+
+<section id="s15">
+<h2>15. 易错点清单</h2>
+<table>
+  <tr><th>编号</th><th>错误</th><th>后果</th><th>正确做法</th></tr>
+  <tr><td>1</td><td>用 <code>int</code> 存 $a,b$ 并做 <code>a*b</code>、<code>i*p</code></td><td>溢出成负数，循环条件失效或数组越界</td><td>乘法前转 <code>long long</code>，或改写成除法比较</td></tr>
+  <tr><td>2</td><td>对可能是负数的 $x$ 直接 <code>x % b</code></td><td>输出负数，答案错误</td><td><code>(x % b + b) % b</code></td></tr>
+  <tr><td>3</td><td>递推逆元时忘记 <code>inv[1] = 1</code></td><td>后面所有项都是 $0$ 或乱码</td><td>先赋边界再循环</td></tr>
+  <tr><td>4</td><td>线性筛先 <code>break</code> 再标记</td><td>$i\cdot p$ 漏标，合数被当成素数</td><td>标记写在 break 之前</td></tr>
+  <tr><td>5</td><td>线性筛不写 <code>break</code></td><td>结果仍然正确，但退化成 $O(n\log n)$ 甚至 $O(n^2)$，超时</td><td><code>if (i % p == 0) break;</code></td></tr>
+  <tr><td>6</td><td>埃氏筛从 $2p$ 开始标记而不是 $p^2$</td><td>重复标记，常数变大</td><td>从 $p^2$ 开始</td></tr>
+  <tr><td>7</td><td>用费马小定理求逆元时模数不是质数</td><td>结果错误且无法察觉</td><td>模数非质数时改用 ExGCD</td></tr>
+  <tr><td>8</td><td>递推逆元时 $n\ge p$</td><td>$p$ 的倍数没有逆元，数组里出现错误值</td><td>确认 $n\lt p$</td></tr>
+  <tr><td>9</td><td>大量输出用 <code>endl</code></td><td>频繁刷新缓冲区，$3\times 10^6$ 行时超时</td><td>用 <code>"\n"</code>，并关闭流同步</td></tr>
+  <tr><td>10</td><td>把“$ax+by=c$ 有解”记成“$a,b$ 互质”</td><td>一般题目里判错可解性</td><td>充要条件是 $\gcd(a,b)\mid c$</td></tr>
+</table>
+</section>
+
+<section id="s16">
+<h2>16. 总结与自测</h2>
+<p>整份材料的知识结构可以压缩成四句话：</p>
+<ol>
+  <li><strong>gcd 靠欧几里得定理降规模</strong>：$\gcd(a,b)=\gcd(b,a\bmod b)$，因为两边的公因数集合完全相同；每两步规模减半，所以 $O(\log\min(a,b))$。</li>
+  <li><strong>裴蜀定理把 gcd 变成线性组合</strong>：$ax+by=\gcd(a,b)$ 一定有解，因此 $ax+by=c$ 可解当且仅当 $\gcd(a,b)\mid c$；ExGCD 在 $O(\log\min(a,b))$ 内算出这组系数。</li>
+  <li><strong>逆元就是 $ax\equiv 1$ 的解</strong>：存在当且仅当 $\gcd(a,m)=1$，模 $m$ 下唯一；单个用 ExGCD 或费马小定理，批量用线性递推。</li>
+  <li><strong>筛法把“倍数”变成“标一次”</strong>：埃氏筛每个合数被多个质因子标记，$O(n\log\log n)$；线性筛规定每个合数只由最小质因子标记一次，$O(n)$。</li>
+</ol>
+
+<h3>16.1 合上页面再想一遍</h3>
+<ol>
+  <li>欧几里得定理的证明为什么只需说明两个公因数集合相等，而不需要讨论最大元？</li>
+  <li>裴蜀定理的证明里，为什么最小正线性组合 $d$ 一定整除 $a$？如果不整除会矛盾在哪里？</li>
+  <li>ExGCD 的回溯公式 $x=y_1$、$y=x_1-\lfloor a/b\rfloor y_1$ 是怎么从 $b x_1+(a\bmod b)y_1=g$ 推出来的？</li>
+  <li>模 $6$ 下 $2$ 为什么没有逆元？用定理 10 和定理 9 各解释一遍。</li>
+  <li>费马小定理证明中“这些余数两两不同”用到了质数的哪条性质？如果 $p$ 是合数，证明在哪一步断掉？</li>
+  <li>线性筛的 break 条件为什么是 <code>i % p == 0</code> 而不是 <code>p &gt; i</code>？不 break 会重复标记哪个数？举一个具体例子。</li>
+  <li>线性递推逆元的公式里，为什么 $r=p\bmod i$ 一定小于 $i$ 且不为 $0$？</li>
+  <li>埃氏筛为什么可以从 $p^2$ 开始标记？用引理 3 说明。</li>
+  <li>$\mathrm{inv}[i]=(p-p/i)\cdot\mathrm{inv}[p\%i]\bmod p$ 中，$(p-p/i)$ 与 $-p/i$ 为什么等价？</li>
+  <li>如果题目要求 $ax+by=c$ 且 $\gcd(a,b)\nmid c$，应该输出什么？为什么？</li>
+</ol>
+
+<h3>16.2 关于本页代码</h3>
+<p>本页 10 个 C++ 程序全部用 <code>g++ -std=c++14 -O2</code> 真实编译通过（本机编译器版本 g++ 16.2.0），只用 C++14 标准特性，在 NOIP 的 g++ 14 环境下同样可以编译。每个程序都在样例上真实运行过，页面中的“输出”是运行结果，不是手写的。除 P1082、P3811、P3383 三题的样例取自题目外，其余程序的样例是本页自拟的小数据，用于展示中间过程。</p>
+</section>
+
+<section id="s17">
+<h2>17. 原文与修正对照</h2>
+<p>下表汇总本页对原文措辞与结论的修改。原文的整体思路没有问题，这些修改集中在“定理的条件是否写全”“复杂度是否写紧”“变量名是否与语义一致”三处。</p>
+<table>
+  <tr><th>位置</th><th>原文</th><th>问题</th><th>修正</th></tr>
+  <tr><td>P1082 解题思路</td><td>“根据裴蜀定理，方程有解的充要条件是 $\gcd(a,b)=1$”</td><td>只对右端为 $1$ 成立；一般方程的条件是 $\gcd(a,b)\mid c$</td><td>本题右端恰为 $1$，条件重合；定理陈述改为推论 1 的完整形式</td></tr>
+  <tr><td>素数筛表格</td><td>埃氏筛 $O(n\log n)$</td><td>上界成立但不紧</td><td>紧界 $O(n\log\log n)$；本页两种都给出并说明差别</td></tr>
+  <tr><td>线性筛说明</td><td>“当 $p_j\mid i$ 时，$p_j$ 是 $i$ 的最小质因子”</td><td>只有内层第一次整除时成立</td><td>改为“从小到大枚举，第一个整除 $i$ 的 $p_j$ 是 $\operatorname{spf}(i)$，此时立即 break”</td></tr>
+  <tr><td>P3383 完整代码</td><td>数组名 <code>is_prime</code>，值为真表示合数</td><td>名字与语义相反，易读错</td><td>改名 <code>is_comp</code></td></tr>
+  <tr><td>逆元一节</td><td>“$a/b\equiv a\cdot b^{-1}\pmod m$”</td><td>模意义下没有除法，此式是记号约定</td><td>说明该记号只在 $\gcd(b,m)=1$ 时有意义，含义是“乘逆元”</td></tr>
+  <tr><td>欧几里得定理一节</td><td>“不要求 $0\le r\lt b$”</td><td>定理成立，但读者容易误以为算法可以随便取余数</td><td>补充：算法必须取最小非负余数，否则规模不缩小、递归不终止</td></tr>
+  <tr><td>P3811 本题坑点</td><td>“必须关闭流同步并摒弃 endl”</td><td>这是性能问题，不是正确性问题</td><td>说明只影响大数据下的运行时间，不影响小数据的结果</td></tr>
+</table>
+</section>
+
+</body>
+</html>
+</body>
+</html>
